@@ -110,5 +110,6 @@ Each evaluator class contains only its own logic and can be tested independently
 - **Simple value mapping** — If branches just return different values without logic, a lookup table or map is simpler.
 - **Two branches with trivial logic** — Overhead of classes may not be justified.
 - **One-off conditional** — If this branching appears only once and won't grow, a simple conditional may be fine.
+- **Many small branches with a simple outcome** — When the caller only needs a bool, enum, or single value back, see [Named Decisions](./named-decisions.md) for a lighter, function-based extraction.
 
 The goal is maintainability. Apply Strategy when it genuinely simplifies testing and extension.
