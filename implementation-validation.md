@@ -1,24 +1,27 @@
-# Service Validation
+# Validation
 
-Validation strategy for the service layer. Services are the authoritative source for business rules and constraints.
+Validation strategy for the domain layer — services and workflows. Services are the primary site (they own business logic); workflows validate thinly.
 
 ## Core Principle
 
-**Services validate everything.** Treat the service layer as a standalone library — it cannot assume anything about how it will be consumed. Every input must be validated against business rules and system constraints.
+**The domain layer validates everything.** Treat services and workflows as a standalone library — they cannot assume anything about how they will be consumed. Every input is validated against business rules and system constraints before use, and failures throw the feature's domain exception.
+
+- **Services are primary** — they own the business logic, so the bulk of validation lives there.
+- **Workflows are thin** — a workflow validates only the inputs handed to it (via shared guards); everything beyond input validity belongs to the services it calls.
 
 ---
 
-## Why Services Own Validation
+## Why the Domain Layer Owns Validation
 
-1. **Services know the constraints** — Database column limits, business rules, relationship requirements. The service is closest to the domain model and understands what's valid.
+1. **It knows the constraints** — Database column limits, business rules, relationship requirements. The domain layer is closest to the model and understands what's valid.
 
-2. **Multiple integration points** — The same service may be consumed via API, queue worker, CLI, or scheduled job. Each integration point shouldn't duplicate validation logic.
+2. **Multiple integration points** — The same service or workflow may be consumed via API, queue worker, CLI, or scheduled job. Each integration point shouldn't duplicate validation logic.
 
-3. **Defense in depth** — Even if an integration layer validates inputs, the service validates again. External validation is a convenience; service validation is the guarantee.
+3. **Defense in depth** — Even if an integration layer validates inputs, the domain layer validates again. External validation is a convenience; domain-layer validation is the guarantee.
 
 ---
 
-## What Services Validate
+## What Gets Validated
 
 ### Data Constraints
 
@@ -41,27 +44,31 @@ Validation strategy for the service layer. Services are the authoritative source
 
 ---
 
-## Exception Strategy
+## Exception Strategy — `exceptions.ts`
 
-When validation fails, services throw exceptions that allow integrators to handle errors appropriately. Start simple — two exception types are sufficient for most cases.
+When validation fails, the domain layer throws exceptions that let integrators handle errors appropriately. Each feature owns an `exceptions.ts`. Start simple — two kinds of failure cover most cases.
 
-### Two Exception Types
+### Input Failures — the Schema Library
 
-#### 1. Input Validation Exception
+Malformed input (wrong type, bad format, missing required field) is caught at the boundary by the schema library (e.g. Zod's `.parse()`). A dedicated input-validation exception is usually unnecessary — the schema library throws its own. This is the first line of defense wherever data enters a service or workflow.
 
-Thrown when input data fails schema validation (type, format, required fields). This is the first line of defense when data enters a service method.
+### The Domain Exception
 
-**Note:** In typed languages with schema libraries (e.g., Zod in TypeScript), the schema library may throw its own validation errors. A dedicated input validation exception may not be needed — the schema library handles it.
-
-#### 2. Domain Exception
-
-A single exception type for all business logic errors within a domain. Name it after the feature or domain:
+`exceptions.ts` holds **one domain exception per feature**, named after the feature:
 
 - `AdvancedRoundRobinException`
 - `OrderProcessingException`
 - `UserManagementException`
 
-This covers all business rule violations: not found, constraint violations, authorization failures, invalid state, etc.
+It covers all business-rule violations within the feature: not found, constraint violations, authorization failures, invalid state, etc.
+
+**Who throws it** — every layer in the feature throws the *same* feature exception:
+
+- **Services** — on any business-rule violation in their own logic.
+- **`shared/validation.ts` guards** — when a shared check fails (see Shared Validation Helpers).
+- **Workflows** — only *via* those shared guards, as part of their thin input validation. A workflow does not raise business-rule failures of its own.
+
+Because it's one exception per feature, a guard, a service, and a workflow all throw (and an integrator catches) the same type.
 
 ### When to Add Granular Exceptions
 
@@ -90,17 +97,67 @@ The integrator catches the exception and decides presentation: JSON error respon
 
 ---
 
+## Who Validates What
+
+| Layer | Validates | Throws |
+|-------|-----------|--------|
+| **Service** | its own inputs (schema parse) **and** all business rules for its entity (uniqueness, relationships, state); calls shared guards for recurring checks | feature domain exception (+ schema library on bad input) |
+| **`shared/validation.ts`** | a single shared business-rule check, reused by ≥2 callers | feature domain exception |
+| **Workflow** | **only the inputs handed to it** — schema parse + shared guards to confirm referenced entities exist; then delegates | feature domain exception, only via the shared guards |
+
+The rule: a workflow's validation is **thin and input-bounded**. Anything past "are my inputs well-formed and do the referenced entities exist?" is the job of the services it calls.
+
 ## Validation Flow
+
+Service — owns the full flow:
 
 ```
 Input arrives at service method
         ↓
 Validate against schema (type, format, required)
-        ↓  (failure → Input Validation Exception or schema library error)
+        ↓  (failure → schema library error)
 Validate business rules (uniqueness, relationships, state)
-        ↓  (failure → Domain Exception)
+        ↓  (failure → domain exception)
 Proceed with operation
 ```
+
+Workflow — thin, then delegate:
+
+```
+Inputs arrive at workflow
+        ↓
+Validate against schema (type, format, required)
+        ↓  (failure → schema library error)
+Shared guards: referenced entities exist
+        ↓  (failure → domain exception)
+Call services in sequence  ← each service validates its own business rules
+```
+
+---
+
+## Shared Validation Helpers
+
+**By default, validation lives inside the service that owns the operation** — that is the rule. This layer is the exception: when the *same* business-rule check keeps recurring across services (the author-existence check we kept writing in every todo/comment service is the canonical example), extract that shared subset into `shared/validation.ts` so it lives in one place. The shared module is for de-duplicating recurring domain validation, not the default home for validation.
+
+### The Contract
+
+A shared validation helper is a **guard**: it asserts a business rule and **throws a domain exception** (from the feature's `exceptions.ts`) when the rule is violated. On success it returns nothing meaningful, or returns the entity it just confirmed exists.
+
+A guard **may perform IO** — it commonly checks existence or uniqueness against a store. This is what distinguishes it from a pure helper: it asserts and halts rather than computing and returning. The defining trait is the throw.
+
+### What Belongs There
+
+- **Referential checks** — "the referenced user/parent/owner exists" (e.g. `requireAuthor`).
+- **Uniqueness** — a name or identifier is unique within its scope.
+- **Relationship / ownership invariants** — this entity belongs to that parent; this operation is allowed for this owner.
+
+Only the checks **reused by two or more** services/workflows belong here. A check used by exactly one service stays inline in that service — extract it on the *second* caller, not in anticipation. This mirrors the playbook's "extract as a refactor, not upfront" stance.
+
+### Relationship to In-Service Validation
+
+Shared helpers do **not** replace a service's own boundary validation. A service still validates its input at the boundary (schema parse, then its own rules) — defense in depth, per the Validation Flow above. `shared/validation.ts` holds the *shared subset* of business rules so they live in one place, not a substitute for each service validating its own inputs.
+
+These guards are also what a **workflow** uses for its thin input validation — confirming referenced entities exist before delegating to services.
 
 ---
 
@@ -112,3 +169,4 @@ Proceed with operation
 - **Partial validation** — Validating some fields but not others
 - **Implicit constraints** — Database errors surfacing instead of explicit validation
 - **Over-engineered exceptions** — Creating granular exception types before they're needed
+- **Business rules in a workflow** — Validation beyond input/existence checks that belongs in a service

@@ -42,21 +42,7 @@ Schemas live in dedicated files, not inline within service methods. This enables
 - Easier maintenance when requirements change
 
 ### Structure
-
-```
-/schemas
-  /entities
-    user.schema.ts
-    order.schema.ts
-  /inputs
-    create-user.schema.ts
-    update-order.schema.ts
-  /outputs
-    user-response.schema.ts
-```
-
-Or organize by domain feature:
-
+Schema files are created based on the entities used within a feature. In below example note now order and orderNotes have 2 schema files.
 ```
 /features
   /users
@@ -64,10 +50,18 @@ Or organize by domain feature:
     user.service.ts
   /orders
     order.schema.ts
+    orderNotes.schema.ts
     order.service.ts
+    orderNotes.service.ts
 ```
 
 ---
+## Standard Types to Define
+Usually every entity would have types created through schemas for following.
+1. The shape of the entitiy, usually what's stored in database.
+2. A type to represent input, common in crud context.
+3. A type to represent output shape.
+
 
 ## Avoiding Schema Duplication
 
