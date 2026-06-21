@@ -15,3 +15,51 @@ Tests live in `<feature>/__tests__/` with the `.unit.ts` / `.integration.ts` suf
 ## Starting Point
 
 The rule for now: **business rules get unit tests; services and workflows get integration tests.** Controllers, end-to-end flows, and exhaustive edge-case matrices come later — this baseline is the minimum worth having, not the ceiling.
+
+## Integration Test Flavours
+
+Both flavours live in the same `.integration.ts` file. Use `describe` blocks to signal intent — e.g. `describe('CommentService / service layer')` vs `describe('CommentService / leave comment use case')`.
+
+### Service-layer
+
+Verifies the cross-cutting behaviour of a service method — that it wires together correctly with repositories, job queues, downstream services, and any other collaborators. The goal is confidence that the full chain holds, not just the logic at a single method boundary.
+
+- Repositories and adapters must be real or in-memory — not stubbed at the call level.
+- If the method contains time-bound logic, simulate the clock. Cover all relevant temporal cases: before the threshold, at the threshold, and after it.
+- Every infrastructure side effect (job queued, email dispatched) must be asserted — not just the return value.
+
+### Use-case
+
+Shaped as a user story with a named actor and a named scenario. The test should read like a spec, not a method call sequence.
+
+- Both positive and negative polarities must exist. A use case with only a happy path is incomplete.
+- If time simulation is needed, it must reflect a realistic scenario — a real-world moment that the logic is designed to handle, not an arbitrary value chosen for convenience.
+- Infrastructure side effects (email sent or not sent, job queued or not queued) must be asserted as part of the scenario's contract.
+
+## Integration Test Checklist
+
+Run through the relevant column before marking an integration test done.
+
+| Service-layer | Use-case |
+|---|---|
+| The real service method is called — not a mock of it | The test is named after a scenario, not a method |
+| Repositories and adapters are real or in-memory | Both positive and negative polarities are covered |
+| Time-bound logic uses a simulated clock | Time simulation (if any) maps to a real-world scenario |
+| All temporal cases are covered: before, at, and after the threshold | Infrastructure side effects are asserted — sent or not sent, queued or not queued |
+| Every infrastructure side effect is asserted | |
+
+## What Doesn't Count as an Integration Test
+
+### Service-layer anti-patterns
+
+- **Mocking the service's own dependencies** — if repositories and queues are stubbed at the call level, it's a unit test wearing integration clothes.
+- **Asserting only the return value** — if a job was supposed to be queued or an email dispatched and you didn't assert it, the test is incomplete.
+- **Hardcoded times without clock simulation** — if the method branches on time and the test uses a fixed timestamp without controlling the clock, the temporal cases are untested.
+- **Asserting that the method didn't throw** — that's not a behavioural assertion; it tells you nothing about what the method actually produced.
+
+### Use-case anti-patterns
+
+- **Named after a method** — `createComment` is a method name; `owner receives email when a different user comments` is a use case. If the name doesn't describe a scenario, it's not a use case test.
+- **Only the happy path** — a use case test with no negative case leaves the most important boundary untested.
+- **Arbitrary time values** — picking a timestamp because it's convenient (epoch zero, far future) rather than because it represents a real moment the logic is designed to handle produces tests that don't reflect reality.
+- **Checking persistence but not side effects** — if the scenario's contract includes sending an email and you only asserted that the record was saved, the test is silent on the most user-visible part of the behaviour.
