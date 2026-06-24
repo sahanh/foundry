@@ -6,14 +6,13 @@ AppContext is the single injected dependency that carries all cross-cutting infr
 
 ```
 AppContext
+  traceId   — UUID identifying the current operation (see system/logging.md)
   system
     db      — Drizzle client (see working-with-databases.md)
-    logger  — logging adapter (see system/logging.md)
-    email   — email adapter
-    queue   — job queue adapter
+    logger  — logging adapter, required (see system/logging.md)
 ```
 
-New system-layer adapters are added under `AppContext.system` as they are introduced. The domain layer never imports an adapter directly — it always goes through the context.
+`traceId` is operation-level metadata, not an infrastructure adapter — it sits at the top level. Additional system-layer adapters are added under `AppContext.system` as the application introduces them. The domain layer never imports an adapter directly — it always goes through the context.
 
 ## Constructor Injection
 

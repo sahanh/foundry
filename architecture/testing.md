@@ -22,10 +22,11 @@ Every service receives an `AppContext` through its constructor (see [app-context
 
 ```
 testCtx = {
+  traceId: 'test-trace-id',
   system: {
-    db: testDatabaseClient,   // real test DB or in-memory
-    email: emailSpy,          // capture adapter — records what was sent
-    queue: queueSpy,          // capture adapter — records what was queued
+    db: testDatabaseClient,      // real test DB or in-memory
+    logger: noopLogger,          // silent in tests unless debugging
+    // add spy adapters for any other system adapters the service uses
   }
 }
 
@@ -34,7 +35,7 @@ service = new TodoCommentService(comment, testCtx)
 
 **Database** — use a real test database or an in-memory equivalent. Do not stub `ctx.system.db` at the call level; that collapses an integration test into a unit test.
 
-**Infrastructure side effects** — use capture/spy adapters for `email` and `queue`. After the service method runs, assert on what the spy recorded. This is the concrete mechanism behind the rule that every infrastructure side effect must be asserted.
+**Infrastructure side effects** — for any system adapter that dispatches a side effect, use a capture/spy adapter in the test context. After the service method runs, assert on what the spy recorded. This is the concrete mechanism behind the rule that every infrastructure side effect must be asserted.
 
 ## Integration Test Flavours
 

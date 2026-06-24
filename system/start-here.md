@@ -11,11 +11,13 @@ Each subfolder is one adapter:
 ```
 system/
   db/       - database (see database.md)
-  email/    - email sending
-  queue/    - job queuing
+  logger/   - logging — required (see logging.md)
 ```
 
-Add a subfolder when the application gains a new infrastructure dependency. The subfolder name should describe the capability, not the vendor (`email/` not `sendgrid/`, `queue/` not `bullmq/`).
+**Required adapters** must be implemented before any feature work begins:
+- `logger/` — logging is mandatory in every application. See logging.md.
+
+Additional adapters are added as the application needs them — one subfolder per capability. The subfolder name should describe the capability, not the vendor (`email/` not `sendgrid/`, `queue/` not `bullmq/`).
 
 ## The Relationship Rule
 
@@ -31,3 +33,4 @@ An adapter's job is to translate between the domain's needs and the external sys
 ## Docs in This Folder
 
 - [database.md](./database.md) — table definitions, Drizzle conventions, and migration standards
+- [logging.md](./logging.md) — trace ID, log levels, structured logging, and what to log

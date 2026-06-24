@@ -181,6 +181,34 @@ const Config = z.object({
 });
 ```
 
+### Mirror Storage Constraints
+
+Zod field constraints must match or be stricter than the corresponding database column constraints. The schema is always the enforcer — the database must never be the first thing that rejects input.
+
+For every string field stored in the database, the Zod schema must reflect the column's size limit at minimum:
+
+```typescript
+// DB column: title varchar(255)
+const TodoSchema = z.object({
+  title: z.string().min(1).max(255),
+});
+```
+
+**Default when a limit is not specified in the requirements:** use the DB column limit. A brief that says nothing about title length does not mean there is no limit — it means the column size is the limit, and the schema must encode it.
+
+**Content rules** (e.g. no embedded links, no HTML) belong as `.refine()` validators on the schema field — they are input shape rules, not business rules, and live in the schema where the field is defined:
+
+```typescript
+const TodoSchema = z.object({
+  description: z.string().max(1000).refine(
+    val => !/<a\s|https?:\/\//i.test(val),
+    { message: 'Links are not allowed in descriptions' }
+  ),
+});
+```
+
+This tier of validation sits between raw type-checking and business rules. It lives in the Zod schema, not in `shared/validation.ts`.
+
 ### Explicit Over Implicit
 
 When schema intent isn't obvious, be explicit:
@@ -229,3 +257,4 @@ When adding new methods:
 - **Manual type maintenance** — Separate type definitions that drift from schemas
 - **Loose typing** — Overuse of optional, any, or unknown without narrowing
 - **Missing validation** — Types without runtime validation at boundaries
+- **Unconstrained string fields** — `z.string()` on a field backed by a DB column with a size limit. The schema must enforce the limit; the database must not be the first line of defence.
