@@ -2,7 +2,7 @@
 
 The engineering playbook: how we structure and build services. Each doc covers one concern; this file is the map.
 
-**The concern docs:** service-first-architecture (services) · implementation-schemas · implementation-validation · workflow-orchestration · testing. Reference: named-decisions, implementation-strategy-pattern, typescript-coding-standards.
+**The concern docs:** service-first-architecture (services) · implementation-schemas · implementation-validation · workflow-orchestration · working-with-databases · testing. Reference: named-decisions, implementation-strategy-pattern, typescript-coding-standards.
 
 When a feature is done, evaluate it with [end-here.md](./end-here.md) — a retrospective checklist that points back into these docs.
 
@@ -15,6 +15,8 @@ Business logic lives in the **service layer** — never in controllers or integr
 The service layer is **integration-agnostic** — the same logic works behind REST, GraphQL, a worker, or a scheduled job. Build it first, then wire a delivery mechanism to it.
 
 Together, services, workflows, and shared validation form the **domain layer** — the feature's framework-agnostic business code, as opposed to controllers and integration code. When a rule applies across the feature's business code (not just one service), docs refer to the domain layer.
+
+Beneath the domain layer sits the **infrastructure layer** — adapters that connect the application to external systems (database, email, queue). The domain calls into these adapters; adapters never import from the domain. Infrastructure adapters live in `src/system/` and are documented separately in [system/start-here.md](../system/start-here.md).
 
 See service-first-architecture.md (services) and workflow-orchestration.md (multi-service coordination).
 
@@ -33,10 +35,14 @@ Each layer you uncover becomes a service scoped to that entity — see service-f
 
 Organize by **feature/domain, not by technical layer**. Everything for one capability lives in one folder (per the File Structure below), so adding a feature means adding a folder, not touching `services/`, `schemas/`, `exceptions/` directories scattered across the codebase. Features stay co-located, understandable in one place, and movable independently.
 
+`src/system/` is reserved for infrastructure (db, email, queue, and similar); every other direct child of `src/` is a feature folder.
+
 ## File Structure
 
 ```
 src/
+  system/
+    db/           - all Drizzle table definitions in one file (see system/database.md)
   <feature>/
     exceptions.ts   - one domain exception per feature; carries structured context; thrown by
                       services, workflows, and validation (see implementation-validation.md)

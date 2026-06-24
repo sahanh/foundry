@@ -39,7 +39,12 @@ A "feature" is one business capability — one folder under `src/`. Run sections
 - [ ] Do services avoid calling each other, with coordination going up into the workflow?
 - [ ] Is the workflow's validation thin — inputs and existence checks only?
 
-### 7. Testing → [testing.md](./testing.md)
+### 7. Database → [working-with-databases.md](./working-with-databases.md)
+- [ ] Do services call Drizzle directly — no repository layer between them?
+- [ ] Does each service only touch the tables that belong to its feature?
+- [ ] Is cross-feature data access going through the owning feature's service, not the DB directly?
+
+### 8. Testing → [testing.md](./testing.md)
 - [ ] Do `shared/validation.ts` guards have unit tests?
 - [ ] Do services and workflows have integration tests?
 - [ ] Right location (`__tests__/`) and suffixes (`.unit.ts` / `.integration.ts`)?
