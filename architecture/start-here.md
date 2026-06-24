@@ -4,7 +4,7 @@ The engineering playbook: how we structure and build services. Each doc covers o
 
 **The concern docs:** service-first-architecture (services) · implementation-schemas · implementation-validation · workflow-orchestration · working-with-databases · app-context · testing. Reference: named-decisions, implementation-strategy-pattern, typescript-coding-standards.
 
-When a feature is done, evaluate it with [end-here.md](./end-here.md) — a retrospective checklist that points back into these docs.
+When implementation is complete, run [checklist.md](../checklist.md) — a mandatory post-implementation checklist. Every box must be ticked for every feature before the work is considered done.
 
 ---
 

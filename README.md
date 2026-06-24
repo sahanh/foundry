@@ -7,6 +7,8 @@ The playbook is organised into two concerns:
 - **[architecture/](./architecture/start-here.md)** — how to structure and build features: services, workflows, validation, schemas, testing, and the rules that govern the domain layer. Start here.
 - **[system/](./system/start-here.md)** — the infrastructure layer that the domain sits on top of: database, email, queue, and other adapters.
 
+When implementation is complete, run **[checklist.md](./checklist.md)** before considering the work done. It is mandatory — not a suggestion.
+
 ## Conventions
 
 - **Package manager:** use `pnpm`. Do not use `npm` or `yarn`.
