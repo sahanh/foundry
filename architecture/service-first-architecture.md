@@ -27,7 +27,7 @@ This pattern keeps business operations cohesive and discoverable.
 
 ### 2. Lifecycle Management
 
-**Services are lifecycle-agnostic.** A service does not instantiate itself or decide how long it lives. Dependencies are wired *externally* — by a container, a factory, or an injected context (the reference implementation passes an `AppContext`). The service is constructed with what it needs and stays unaware of how.
+**Services are lifecycle-agnostic.** A service does not instantiate itself or decide how long it lives. Dependencies are wired *externally* — by a container, a factory, or an injected context. Every service receives an `AppContext` alongside its domain entity, giving it access to all system-layer infrastructure (db, logger, email, queue) through `ctx.system`. See [app-context.md](./app-context.md).
 
 - **No self-instantiation** — avoid `getInstance()`, lazy singletons, or similar patterns inside a service.
 - **No global state** — don't reach for module-level singletons or globals; take dependencies through the constructor.
@@ -80,9 +80,16 @@ Use this checklist when designing service architecture:
 
 ### 4. Decide Domain Boundaries First
 
-Before writing any code, explicitly decide what belongs inside this feature and what belongs in a separate feature. This decision cannot be derived from the code — it requires a deliberate call, and it gates everything that follows: folder structure, service naming, and what gets tested together.
+> **Important.** Before any code is written, ask: based on the requirements, what are the feature boundaries and how should the services be structured?
+>
+> This is not a question to answer alone. Present the proposed structure to the user and get explicit confirmation before implementation begins. The answer shapes folder names, service names, and what gets tested together — changing it mid-implementation is expensive.
 
-**Write the decision down** (see [Named Decisions](./named-decisions.md)) before implementation starts. It must be acknowledged, not assumed.
+The confirmation is a concise feature-and-service list. One line per feature, services named by their role. No file paths, no folder diagrams — just enough for the user to confirm the breakdown is right:
+
+```
+Feature: todo
+Services: TodoService, TodoCollectionService, TodoCommentService, TodoCommentCollectionService
+```
 
 #### The boundary question
 
@@ -94,7 +101,7 @@ The default is to keep related behaviour together until there is a clear reason 
 
 Comments could live as `TodoCommentService` / `TodoCommentCollectionService` inside the `todo` feature, or as a standalone `comment` feature. The right call depends on whether comments are ever needed outside the context of a todo. If not, keep them inside `todo`. If they are (or grow to be), extract then.
 
-This decision must be made and recorded before the first file is created.
+Get user confirmation on this call before the first file is created.
 
 ### 5. Service Decomposition
 

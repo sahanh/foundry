@@ -4,7 +4,7 @@ How the service layer interacts with the database. Infrastructure specifics (tab
 
 ## Core Principle
 
-**Services are the database seam.** There is no repository layer between a service and the database. A service calls the database directly, and it is the only entry point for data operations on its entity.
+**Services are the database seam.** There is no repository layer between a service and the database. A service calls the database directly via `ctx.system.db`, and it is the only entry point for data operations on its entity. The Drizzle client reaches the service through AppContext — see [app-context.md](./app-context.md).
 
 ## Feature Ownership
 

@@ -16,6 +16,26 @@ Tests live in `<feature>/__tests__/` with the `.unit.ts` / `.integration.ts` suf
 
 The rule for now: **business rules get unit tests; services and workflows get integration tests.** Controllers, end-to-end flows, and exhaustive edge-case matrices come later — this baseline is the minimum worth having, not the ceiling.
 
+## Integration Test Setup — AppContext
+
+Every service receives an `AppContext` through its constructor (see [app-context.md](./app-context.md)). Integration tests construct a **test AppContext** and supply it when instantiating the service under test. No service code changes between production and test — only the context differs.
+
+```
+testCtx = {
+  system: {
+    db: testDatabaseClient,   // real test DB or in-memory
+    email: emailSpy,          // capture adapter — records what was sent
+    queue: queueSpy,          // capture adapter — records what was queued
+  }
+}
+
+service = new TodoCommentService(comment, testCtx)
+```
+
+**Database** — use a real test database or an in-memory equivalent. Do not stub `ctx.system.db` at the call level; that collapses an integration test into a unit test.
+
+**Infrastructure side effects** — use capture/spy adapters for `email` and `queue`. After the service method runs, assert on what the spy recorded. This is the concrete mechanism behind the rule that every infrastructure side effect must be asserted.
+
 ## Integration Test Flavours
 
 Both flavours live in the same `.integration.ts` file. Use `describe` blocks to signal intent — e.g. `describe('CommentService / service layer')` vs `describe('CommentService / leave comment use case')`.

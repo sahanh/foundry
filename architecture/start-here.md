@@ -2,7 +2,7 @@
 
 The engineering playbook: how we structure and build services. Each doc covers one concern; this file is the map.
 
-**The concern docs:** service-first-architecture (services) · implementation-schemas · implementation-validation · workflow-orchestration · working-with-databases · testing. Reference: named-decisions, implementation-strategy-pattern, typescript-coding-standards.
+**The concern docs:** service-first-architecture (services) · implementation-schemas · implementation-validation · workflow-orchestration · working-with-databases · app-context · testing. Reference: named-decisions, implementation-strategy-pattern, typescript-coding-standards.
 
 When a feature is done, evaluate it with [end-here.md](./end-here.md) — a retrospective checklist that points back into these docs.
 
