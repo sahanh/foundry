@@ -78,15 +78,46 @@ Use this checklist when designing service architecture:
 - [ ] Does extracting a new service improve consumer experience?
 - [ ] Is the constructor-injected entity used by every method?
 
-### 4. Service Decomposition
+### 4. Decide Domain Boundaries First
+
+Before writing any code, explicitly decide what belongs inside this feature and what belongs in a separate feature. This decision cannot be derived from the code — it requires a deliberate call, and it gates everything that follows: folder structure, service naming, and what gets tested together.
+
+**Write the decision down** (see [Named Decisions](./named-decisions.md)) before implementation starts. It must be acknowledged, not assumed.
+
+#### The boundary question
+
+For each related entity or behaviour, ask: does this belong inside the current feature, or does it earn its own feature folder?
+
+The default is to keep related behaviour together until there is a clear reason to extract — a second feature that needs to share it, a team boundary, or scope large enough that it obscures the host feature. Extract as a refactor, not in anticipation.
+
+**Example — todo with comments:**
+
+Comments could live as `TodoCommentService` / `TodoCommentCollectionService` inside the `todo` feature, or as a standalone `comment` feature. The right call depends on whether comments are ever needed outside the context of a todo. If not, keep them inside `todo`. If they are (or grow to be), extract then.
+
+This decision must be made and recorded before the first file is created.
+
+### 5. Service Decomposition
 
 When a feature involves multiple entities, the feature-design process (start-here.md) gives you a set of entities, each scoped to a layer you uncovered working backward from core value. Classify each resulting service and validate the decomposition.
 
-#### Service Types
+#### Service Types and Naming
+
+Decide the service's role first, then name it. Premature naming locks in a scope assumption before the responsibility is clear.
 
 - **Operation Executor** — Implements the core business operation. This is the reason the system exists.
 - **Entity Manager** — Manages operations within a single entity's scope (configuration, relationships, internal structure).
 - **Collection Manager** — Manages the lifecycle of entities owned by a parent (create, list, find, delete).
+
+Service names follow directly from the role. The naming pattern is consistent across all levels of the feature hierarchy:
+
+| Role | Pattern | Example |
+|---|---|---|
+| Single-entity operations | `{Entity}Service` | `TodoService` |
+| Collection / bulk operations | `{Entity}CollectionService` | `TodoCollectionService` |
+| Single sub-entity operations | `{Parent}{Child}Service` | `TodoCommentService` |
+| Sub-entity collection / bulk | `{Parent}{Child}CollectionService` | `TodoCommentCollectionService` |
+
+A collection service may depend on its single-entity counterpart for per-entity logic — that dependency goes in one direction only (collection → single, never the reverse).
 
 #### Validation: Constructor Injection Test
 

@@ -15,6 +15,8 @@ Drizzle table definitions and Zod schemas serve different purposes and are maint
 
 They will overlap heavily but are not derived from each other. The service maps between them when needed.
 
+**Table naming:** Drizzle table names use plural (`todos`, `orders`). This is the deliberate exception to the domain layer's singular convention — tables are collections, and plural is standard SQL practice. Domain class and schema names remain singular; only the table name is plural.
+
 ## Migrations
 
 ### Generating and applying migrations

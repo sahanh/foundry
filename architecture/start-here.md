@@ -37,6 +37,8 @@ Organize by **feature/domain, not by technical layer**. Everything for one capab
 
 `src/system/` is reserved for infrastructure (db, email, queue, and similar); every other direct child of `src/` is a feature folder.
 
+**Any folder that fits neither category requires explicit confirmation from the user before it is created.** A shared utilities folder, a cross-cutting helpers folder, anything that is not a named domain feature and not an infrastructure adapter — these are not the developer's call to make unilaterally. Stop and confirm. This applies at every level of the `src/` tree, not just the top level.
+
 ## File Structure
 
 ```
@@ -65,5 +67,34 @@ src/
 - **Scattered business rules** — logic spread across controllers, middleware, and utilities instead of consolidated in the service layer.
 
 ## File Naming
-1. use kebab-case
-2. use .<suffix>.ts depends on service, exception, unit, integration, workflow.
+
+1. Use kebab-case for all file and folder names.
+2. Use the appropriate `.{suffix}.ts` extension: `.service.ts`, `.exception.ts`, `.unit.ts`, `.integration.ts`, `.workflow.ts`.
+
+### Singular vs plural
+
+The domain layer uses **singular** throughout — feature folders, file names, class names, and schema names. A service operates on one entity, so the concept is singular everywhere it appears.
+
+```
+todo/                    ✓
+todos/                   ✗
+
+todo.service.ts          ✓
+TodoService              ✓
+TodoSchema               ✓
+```
+
+Drizzle table names are the deliberate exception — they use **plural** because tables are collections (`todos`, `orders`). This is the one place domain naming and database naming intentionally diverge.
+
+### Service naming
+
+Service names follow the service's responsibility. Decide the role before deciding the name.
+
+| Role | Pattern | Example |
+|---|---|---|
+| Single-entity operations | `{Entity}Service` | `TodoService` |
+| Collection / bulk operations | `{Entity}CollectionService` | `TodoCollectionService` |
+| Single sub-entity operations | `{Parent}{Child}Service` | `TodoCommentService` |
+| Sub-entity collection / bulk | `{Parent}{Child}CollectionService` | `TodoCommentCollectionService` |
+
+A collection service may use its single-entity counterpart internally for per-entity logic. See service-first-architecture.md for how to decide service roles and domain boundaries.
