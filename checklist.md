@@ -24,6 +24,7 @@ A "feature" is one business capability — one folder under `src/`. Run all sect
 - [ ] Are input and variant schemas derived (pick / omit / partial) instead of duplicated?
 - [ ] Any `any`, optionals that aren't genuinely optional, or stringly-typed fields that should be enums?
 - [ ] Do string fields backed by DB columns have matching `.max()` constraints? Are content rules expressed as `.refine()`?
+- [ ] Does every entity `id` use a prefixed `entityId('…')`, domain-minted — not a bare UUID or a DB-generated key? ([identifiers.md](./architecture/identifiers.md))
 
 ### 4. Services → [architecture/service-first-architecture.md](./architecture/service-first-architecture.md)
 - [ ] Was the domain boundary decision confirmed with the user before implementation started?
