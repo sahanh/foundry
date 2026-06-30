@@ -1,6 +1,6 @@
 # AppContext
 
-AppContext is the single injected dependency that carries all cross-cutting infrastructure access into the domain layer. Services and workflows receive it through their constructor and use it to reach system-layer adapters — the database, logger, email, queue, and any other infrastructure the domain needs.
+AppContext is the single injected dependency that carries all cross-cutting infrastructure access into the domain layer. Services and orchestrations receive it through their constructor and use it to reach system-layer adapters — the database, logger, email, queue, and any other infrastructure the domain needs.
 
 ## Structure
 

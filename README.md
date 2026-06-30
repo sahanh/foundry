@@ -4,10 +4,12 @@ This is the engineering standard for this project. It is not a reference to cons
 
 The playbook is organised into two concerns:
 
-- **[architecture/](./architecture/start-here.md)** — how to structure and build features: services, workflows, validation, schemas, testing, and the rules that govern the domain layer. Start here.
+- **[architecture/](./architecture/start-here.md)** — how to structure and build features: services, orchestrations, validation, schemas, testing, and the rules that govern the domain layer. Start here.
 - **[system/](./system/start-here.md)** — the infrastructure layer that the domain sits on top of: database, email, queue, and other adapters.
 
 When implementation is complete, run **[checklist.md](./checklist.md)** before considering the work done. It is mandatory — not a suggestion.
+
+Renamed or removed concepts are recorded in **[CHANGELOG.md](./CHANGELOG.md)** — if something you expected is gone, look there for what replaced it and how to migrate.
 
 ## Conventions
 

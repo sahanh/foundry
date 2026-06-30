@@ -14,7 +14,7 @@ Each table belongs to exactly one feature — a feature can own multiple tables,
 
 If feature A needs data owned by feature B, it goes through feature B's service. Direct database access across feature boundaries is not allowed.
 
-This mirrors the rule that services within a feature coordinate through workflows — cross-feature data access follows the same principle: go through the owning service, not around it.
+This mirrors the rule that services within a feature coordinate through orchestrations — cross-feature data access follows the same principle: go through the owning service, not around it. An orchestration owns no tables of its own; it reaches data only through the services it coordinates, so the single-owner-per-table seam is never widened.
 
 ## Anti-Patterns
 

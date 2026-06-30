@@ -2,7 +2,7 @@
 
 The `system/` folder holds the infrastructure adapters for the application. An infrastructure adapter is code that connects the application to an external system — a database, an email provider, a job queue. Each adapter lives in its own subfolder and exposes a clean interface that the domain layer calls without knowing the underlying technology.
 
-This folder is the counterpart to `architecture/` — where architecture covers the domain layer (services, workflows, validation), system covers the infrastructure layer those services sit on top of.
+This folder is the counterpart to `architecture/` — where architecture covers the domain layer (services, orchestrations, validation), system covers the infrastructure layer those services sit on top of.
 
 ## What Lives Here
 
