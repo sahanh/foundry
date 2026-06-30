@@ -8,13 +8,13 @@ How to test a feature. This is the starting baseline — the high-value layers �
 |--------|-----------|------|-----|
 | `shared/validation.ts` — domain-level business-rule guards | **Unit** | `<name>.unit.ts` | The business rules in isolation — a cheap, exhaustive surface. Stub any lookup a guard performs. |
 | Services | **Integration** | `<name>.integration.ts` | A service runs its logic over dependencies (repositories, etc.); test it wired to real or in-memory adapters. |
-| Workflows | **Integration** | `<name>.integration.ts` | A workflow composes multiple services; test the composed flow. |
+| Orchestrations | **Integration** | `<name>.integration.ts` | An orchestration composes multiple services; test the composed flow. |
 
 Tests live in `<feature>/__tests__/` with the `.unit.ts` / `.integration.ts` suffixes (see start-here.md → File Naming).
 
 ## Starting Point
 
-The rule for now: **business rules get unit tests; services and workflows get integration tests.** Controllers, end-to-end flows, and exhaustive edge-case matrices come later — this baseline is the minimum worth having, not the ceiling.
+The rule for now: **business rules get unit tests; services and orchestrations get integration tests.** Controllers, end-to-end flows, and exhaustive edge-case matrices come later — this baseline is the minimum worth having, not the ceiling.
 
 ## Integration Test Setup — AppContext
 

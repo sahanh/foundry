@@ -1,13 +1,13 @@
 # Validation
 
-Validation strategy for the domain layer — services and workflows. Services are the primary site (they own business logic); workflows validate thinly.
+Validation strategy for the domain layer — services and orchestrations. Services are the primary site (they own business logic); orchestrations validate thinly.
 
 ## Core Principle
 
-**The domain layer validates everything.** Treat services and workflows as a standalone library — they cannot assume anything about how they will be consumed. Every input is validated against business rules and system constraints before use, and failures throw the feature's domain exception.
+**The domain layer validates everything.** Treat services and orchestrations as a standalone library — they cannot assume anything about how they will be consumed. Every input is validated against business rules and system constraints before use, and failures throw the feature's domain exception.
 
 - **Services are primary** — they own the business logic, so the bulk of validation lives there.
-- **Workflows are thin** — a workflow validates only the inputs handed to it (via shared guards); everything beyond input validity belongs to the services it calls.
+- **Orchestrations are thin** — a orchestration validates only the inputs handed to it (via shared guards); everything beyond input validity belongs to the services it calls.
 
 ---
 
@@ -15,7 +15,7 @@ Validation strategy for the domain layer — services and workflows. Services ar
 
 1. **It knows the constraints** — Database column limits, business rules, relationship requirements. The domain layer is closest to the model and understands what's valid.
 
-2. **Multiple integration points** — The same service or workflow may be consumed via API, queue worker, CLI, or scheduled job. Each integration point shouldn't duplicate validation logic.
+2. **Multiple integration points** — The same service or orchestration may be consumed via API, queue worker, CLI, or scheduled job. Each integration point shouldn't duplicate validation logic.
 
 3. **Defense in depth** — Even if an integration layer validates inputs, the domain layer validates again. External validation is a convenience; domain-layer validation is the guarantee.
 
@@ -50,7 +50,7 @@ When validation fails, the domain layer throws exceptions that let integrators h
 
 ### Input Failures — the Schema Library
 
-Malformed input (wrong type, bad format, missing required field) is caught at the boundary by the schema library (e.g. Zod's `.parse()`). A dedicated input-validation exception is usually unnecessary — the schema library throws its own. This is the first line of defense wherever data enters a service or workflow.
+Malformed input (wrong type, bad format, missing required field) is caught at the boundary by the schema library (e.g. Zod's `.parse()`). A dedicated input-validation exception is usually unnecessary — the schema library throws its own. This is the first line of defense wherever data enters a service or orchestration.
 
 ### The Domain Exception
 
@@ -66,9 +66,9 @@ It covers all business-rule violations within the feature: not found, constraint
 
 - **Services** — on any business-rule violation in their own logic.
 - **`shared/validation.ts` guards** — when a shared check fails (see Shared Validation Helpers).
-- **Workflows** — only *via* those shared guards, as part of their thin input validation. A workflow does not raise business-rule failures of its own.
+- **Orchestrations** — only *via* those shared guards, as part of their thin input validation. A orchestration does not raise business-rule failures of its own.
 
-Because it's one exception per feature, a guard, a service, and a workflow all throw (and an integrator catches) the same type.
+Because it's one exception per feature, a guard, a service, and a orchestration all throw (and an integrator catches) the same type.
 
 ### When to Add Granular Exceptions
 
@@ -103,9 +103,9 @@ The integrator catches the exception and decides presentation: JSON error respon
 |-------|-----------|--------|
 | **Service** | its own inputs (schema parse) **and** all business rules for its entity (uniqueness, relationships, state); calls shared guards for recurring checks | feature domain exception (+ schema library on bad input) |
 | **`shared/validation.ts`** | a single shared business-rule check, reused by ≥2 callers | feature domain exception |
-| **Workflow** | **only the inputs handed to it** — schema parse + shared guards to confirm referenced entities exist; then delegates | feature domain exception, only via the shared guards |
+| **Orchestration** | **only the inputs handed to it** — schema parse + shared guards to confirm referenced entities exist; then delegates | feature domain exception, only via the shared guards |
 
-The rule: a workflow's validation is **thin and input-bounded**. Anything past "are my inputs well-formed and do the referenced entities exist?" is the job of the services it calls.
+The rule: a orchestration's validation is **thin and input-bounded**. Anything past "are my inputs well-formed and do the referenced entities exist?" is the job of the services it calls.
 
 ## Validation Flow
 
@@ -121,10 +121,10 @@ Validate business rules (uniqueness, relationships, state)
 Proceed with operation
 ```
 
-Workflow — thin, then delegate:
+Orchestration — thin, then delegate:
 
 ```
-Inputs arrive at workflow
+Inputs arrive at orchestration
         ↓
 Validate against schema (type, format, required)
         ↓  (failure → schema library error)
@@ -151,13 +151,13 @@ A guard **may perform IO** — it commonly checks existence or uniqueness agains
 - **Uniqueness** — a name or identifier is unique within its scope.
 - **Relationship / ownership invariants** — this entity belongs to that parent; this operation is allowed for this owner.
 
-Only the checks **reused by two or more** services/workflows belong here. A check used by exactly one service stays inline in that service — extract it on the *second* caller, not in anticipation. This mirrors the playbook's "extract as a refactor, not upfront" stance.
+Only the checks **reused by two or more** services/orchestrations belong here. A check used by exactly one service stays inline in that service — extract it on the *second* caller, not in anticipation. This mirrors the playbook's "extract as a refactor, not upfront" stance.
 
 ### Relationship to In-Service Validation
 
 Shared helpers do **not** replace a service's own boundary validation. A service still validates its input at the boundary (schema parse, then its own rules) — defense in depth, per the Validation Flow above. `shared/validation.ts` holds the *shared subset* of business rules so they live in one place, not a substitute for each service validating its own inputs.
 
-These guards are also what a **workflow** uses for its thin input validation — confirming referenced entities exist before delegating to services.
+These guards are also what a **orchestration** uses for its thin input validation — confirming referenced entities exist before delegating to services.
 
 ---
 
@@ -169,4 +169,4 @@ These guards are also what a **workflow** uses for its thin input validation —
 - **Partial validation** — Validating some fields but not others
 - **Implicit constraints** — Database errors surfacing instead of explicit validation
 - **Over-engineered exceptions** — Creating granular exception types before they're needed
-- **Business rules in a workflow** — Validation beyond input/existence checks that belongs in a service
+- **Business rules in a orchestration** — Validation beyond input/existence checks that belongs in a service

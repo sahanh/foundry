@@ -2,11 +2,11 @@
 
 How to design and write the `services/` submodule of a feature. Influenced by Domain-Driven Design (DDD).
 
-> **Scope:** this doc covers services — one entity, one service, the business logic for it. For overarching architecture (layering, thin controllers), folder layout, and the feature-design process, see start-here.md. For coordinating multiple services, see workflow-orchestration.md.
+> **Scope:** this doc covers services — one entity, one service, the business logic for it. For overarching architecture (layering, thin controllers), folder layout, and the feature-design process, see start-here.md. For coordinating multiple services, see orchestration.md — an orchestration is a service-shaped type that is the only domain unit allowed to inject and coordinate several services.
 
 ## Core Principle
 
-**A service owns the business logic for its entity.** All business rules, calculations, and entity transformations for a domain entity live in its service — not in controllers or integration code. Multi-service coordination is a separate concern (workflows); a service stays focused on its own entity.
+**A service owns the business logic for its entity.** All business rules, calculations, and entity transformations for a domain entity live in its service — not in controllers or integration code. Multi-service coordination is a separate concern (orchestrations); a service stays focused on its own entity and never injects or calls another service.
 
 ---
 
@@ -57,7 +57,7 @@ Ideally, a single service class accomplishes a user use case from start to finis
 
 Internal complexity is acceptable — many files, deep organization, thorough testing. But the consumer-facing API should be simple.
 
-**Trigger:** If consumers must interact with more than 2-3 services to accomplish a use case, consider a facade — or a workflow (see workflow-orchestration.md) when the use case spans multiple services.
+**Trigger:** If consumers must interact with more than 2-3 services to accomplish a use case, consider a facade — or an orchestration (see orchestration.md) when the use case spans multiple services.
 
 #### When NOT to Extract
 

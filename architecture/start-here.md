@@ -2,7 +2,7 @@
 
 The engineering playbook: how we structure and build services. Each doc covers one concern; this file is the map.
 
-**The concern docs:** service-first-architecture (services) · implementation-schemas · implementation-validation · workflow-orchestration · working-with-databases · app-context · testing. Reference: named-decisions, implementation-strategy-pattern, typescript-coding-standards.
+**The concern docs:** service-first-architecture (services) · implementation-schemas · implementation-validation · orchestration · working-with-databases · app-context · testing. Reference: named-decisions, implementation-strategy-pattern, typescript-coding-standards.
 
 When implementation is complete, run [checklist.md](../checklist.md) — a mandatory post-implementation checklist. Every box must be ticked for every feature before the work is considered done.
 
@@ -10,15 +10,15 @@ When implementation is complete, run [checklist.md](../checklist.md) — a manda
 
 ## Layering
 
-Business logic lives in the **service layer** — never in controllers or integration code. Controllers (route handlers, queue consumers, CLI commands) are thin glue: parse the request, call a service or workflow, format the response. They hold no business rules.
+Business logic lives in the **service layer** — never in controllers or integration code. Controllers (route handlers, queue consumers, CLI commands) are thin glue: parse the request, call a service or orchestration, format the response. They hold no business rules.
 
 The service layer is **integration-agnostic** — the same logic works behind REST, GraphQL, a worker, or a scheduled job. Build it first, then wire a delivery mechanism to it.
 
-Together, services, workflows, and shared validation form the **domain layer** — the feature's framework-agnostic business code, as opposed to controllers and integration code. When a rule applies across the feature's business code (not just one service), docs refer to the domain layer.
+Together, services, orchestrations, and shared validation form the **domain layer** — the feature's framework-agnostic business code, as opposed to controllers and integration code. When a rule applies across the feature's business code (not just one service), docs refer to the domain layer.
 
 Beneath the domain layer sits the **infrastructure layer** — adapters that connect the application to external systems (database, email, queue). The domain calls into these adapters; adapters never import from the domain. Infrastructure adapters live in `src/system/` and are documented separately in [system/start-here.md](../system/start-here.md).
 
-See service-first-architecture.md (services) and workflow-orchestration.md (multi-service coordination).
+See service-first-architecture.md (services) and orchestration.md (multi-service coordination).
 
 ## Designing a Feature
 
@@ -47,15 +47,15 @@ src/
     db/           - all Drizzle table definitions in one file (see system/database.md)
   <feature>/
     exceptions.ts   - one domain exception per feature; carries structured context; thrown by
-                      services, workflows, and validation (see implementation-validation.md)
+                      services, orchestrations, and validation (see implementation-validation.md)
     services/       - one service, several, or nested sub-feature folders (e.g. activity/)
                       for complex clusters — each holding its own services
                       (see service-first-architecture.md)
-    workflows/      - compose multiple services: sequencing and coordination, no business rules
-                      (see workflow-orchestration.md)
+    orchestrations/ - compose multiple services: sequencing and coordination, no business rules
+                      (see orchestration.md)
     schemas/        - Zod schemas + inferred type exports (see implementation-schemas.md)
     shared/
-      validation.ts - shared business-rule guards reused by services/workflows; throw a domain
+      validation.ts - shared business-rule guards reused by services/orchestrations; throw a domain
                       exception (see implementation-validation.md)
       utils.ts      - non-domain helper functions
     __tests__/      - <name>.unit.ts (unit) · <name>.integration.ts (integration)
@@ -69,7 +69,7 @@ src/
 ## File Naming
 
 1. Use kebab-case for all file and folder names.
-2. Use the appropriate `.{suffix}.ts` extension: `.service.ts`, `.exception.ts`, `.unit.ts`, `.integration.ts`, `.workflow.ts`.
+2. Use the appropriate `.{suffix}.ts` extension: `.service.ts`, `.orchestration.ts`, `.exception.ts`, `.unit.ts`, `.integration.ts`.
 
 ### Singular vs plural
 

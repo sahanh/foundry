@@ -11,7 +11,7 @@ Run this after implementation is complete — not during, not as a planning refe
 A "feature" is one business capability — one folder under `src/`. Run all sections below for each.
 
 ### 1. Layering → [architecture/start-here.md](./architecture/start-here.md)
-- [ ] Is every business rule in a service or workflow — never in a controller, route handler, or middleware?
+- [ ] Is every business rule in a service or orchestration — never in a controller, route handler, or middleware?
 - [ ] Could this logic run unchanged behind a different delivery mechanism (HTTP, worker, CLI)?
 
 ### 2. Structure & naming → [architecture/start-here.md](./architecture/start-here.md)
@@ -35,12 +35,14 @@ A "feature" is one business capability — one folder under `src/`. Run all sect
 ### 5. Validation & exceptions → [architecture/implementation-validation.md](./architecture/implementation-validation.md)
 - [ ] Does each service validate its own inputs — schema parse, then its business rules?
 - [ ] Are checks reused by ≥ 2 callers (and only those) extracted to `shared/validation.ts`?
-- [ ] One domain exception per feature, carrying structured context — thrown by services, guards, and workflows alike?
+- [ ] One domain exception per feature, carrying structured context — thrown by services, guards, and orchestrations alike?
 
-### 6. Workflows → [architecture/workflow-orchestration.md](./architecture/workflow-orchestration.md)
-- [ ] For each multi-service use case, does a workflow own the sequencing — with no business rules of its own?
-- [ ] Do services avoid calling each other, with coordination going up into the workflow?
-- [ ] Is the workflow's validation thin — inputs and existence checks only?
+### 6. Orchestrations → [architecture/orchestration.md](./architecture/orchestration.md)
+- [ ] For each multi-service use case, does an orchestration own the sequencing — with no business rules of its own?
+- [ ] Do services avoid injecting or calling each other, with coordination going up into an orchestration?
+- [ ] Is the orchestration's validation thin — inputs and existence checks only?
+- [ ] Is the orchestration triggered by altitude (it coordinates 2+ services), not by duration?
+- [ ] When a use case was promoted from a service method to an orchestration, were the direct callers of the superseded service method re-evaluated?
 
 ### 7. Database → [architecture/working-with-databases.md](./architecture/working-with-databases.md)
 - [ ] Do services call Drizzle directly via `ctx.system.db` — no repository layer between them?
@@ -53,7 +55,7 @@ A "feature" is one business capability — one folder under `src/`. Run all sect
 
 ### 9. Testing → [architecture/testing.md](./architecture/testing.md)
 - [ ] Do `shared/validation.ts` guards have unit tests?
-- [ ] Do services and workflows have integration tests?
+- [ ] Do services and orchestrations have integration tests?
 - [ ] Right location (`__tests__/`) and suffixes (`.unit.ts` / `.integration.ts`)?
 - [ ] Does every integration test use a test AppContext with a real or in-memory DB?
 - [ ] Are infrastructure side effects (emails, jobs) asserted via spy adapters — not ignored?
