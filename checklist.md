@@ -48,6 +48,11 @@ A "feature" is one business capability — one folder under `src/`. Run all sect
 - [ ] Does each service only touch the tables that belong to its feature?
 - [ ] Is cross-feature data access going through the owning feature's service, not the DB directly?
 
+### 7a. Atomicity → [architecture/atomicity.md](./architecture/atomicity.md)
+- [ ] Does each multi-write use case run inside one `ctx.transaction` boundary owned by the outermost caller?
+- [ ] Are all non-DB side effects dispatched *after* the boundary commits — never inside it?
+- [ ] Is the use case correctly classified: atomic (transaction) vs durable (compensation)?
+
 ### 8. AppContext → [architecture/app-context.md](./architecture/app-context.md)
 - [ ] Does every service receive AppContext through its constructor?
 - [ ] Is all infrastructure access (db, logger) going through `ctx.system` — no direct imports of adapters?

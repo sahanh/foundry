@@ -37,6 +37,11 @@ service = new TodoCommentService(comment, testCtx)
 
 **Infrastructure side effects** — for any system adapter that dispatches a side effect, use a capture/spy adapter in the test context. After the service method runs, assert on what the spy recorded. This is the concrete mechanism behind the rule that every infrastructure side effect must be asserted.
 
+**Atomicity** — a use case that runs inside a transaction boundary (see [atomicity.md](./atomicity.md)) must be tested for all-or-nothing behaviour:
+
+- **Rollback** — force a failure partway through the use case (e.g. the second service throws) and assert that **no** rows were written — every write from earlier steps is rolled back — and that **no** side-effect spy was called, since effects are dispatched only after commit.
+- **Commit** — on the happy path, assert that every write is present and each side effect fired exactly once, after the boundary committed.
+
 ## Integration Test Flavours
 
 Both flavours live in the same `.integration.ts` file. Use `describe` blocks to signal intent — e.g. `describe('CommentService / service layer')` vs `describe('CommentService / leave comment use case')`.

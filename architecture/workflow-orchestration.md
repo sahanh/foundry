@@ -34,11 +34,20 @@ A workflow validates only the inputs handed to it — schema parse, plus shared 
 
 A workflow exposes a single way to drive it. Every consumer — HTTP handler, queue worker, scheduled job — invokes it the same way, just as services are integration-agnostic.
 
+### 5. The Workflow Owns the Transaction Boundary
+
+For a synchronous multi-service use case, the workflow is the outermost caller, so it owns the atomic boundary: it opens `ctx.transaction` and passes the derived `txCtx` to every service it coordinates, so all their writes commit together or roll back together. Non-transactional side effects (email, queue) are dispatched *after* the boundary commits, never inside it. The services stay unaware — they just use `ctx.system.db`. Full rules in [atomicity.md](./atomicity.md).
+
 ---
 
 ## Beyond the Convention
 
-*How* a workflow runs reliably — retries, idempotency, rollback/compensation, resuming a long-running workflow after a crash — is an implementation and runtime concern, not a convention. It belongs to a durable-execution engine or your own job/queue plumbing, chosen per project. This doc covers only how to **structure** a workflow; the runtime handles the rest.
+*How* a workflow runs reliably splits by lifetime:
+
+- **Synchronous use cases** — a workflow that completes within one operation is made all-or-nothing by a transaction boundary it owns. See [atomicity.md](./atomicity.md).
+- **Durable / long-running workflows** — anything that waits on the outside world, sleeps, retries, or must survive a crash cannot be wrapped in a transaction. Reliability there comes from retries, idempotency, and rollback/compensation, owned by a durable-execution engine or your own job/queue plumbing (the [workflow runtime](../packages/workflow/README.md)), chosen per project.
+
+This doc covers how to **structure** a workflow; the atomicity doc and the runtime cover how it runs.
 
 ---
 
