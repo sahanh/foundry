@@ -20,7 +20,7 @@ Using schema libraries (e.g., Zod, Yup, io-ts), you define the schema once and d
 ```typescript
 // Schema definition
 const UserSchema = z.object({
-  id: z.string().uuid(),
+  id: entityId('user'),
   email: z.string().email(),
   name: z.string().min(1).max(255),
 });
@@ -28,6 +28,8 @@ const UserSchema = z.object({
 // Type inference — not manually defined
 type User = z.infer<typeof UserSchema>;
 ```
+
+Entity `id` fields use the prefixed `entityId('…')` helper, not a bare UUID — see [identifiers.md](./identifiers.md) for the full convention.
 
 ---
 
@@ -84,7 +86,7 @@ Leverage schema library utilities and TypeScript's built-in utility types:
 ```typescript
 // Base entity schema
 const UserSchema = z.object({
-  id: z.string().uuid(),
+  id: entityId('user'),
   email: z.string().email(),
   name: z.string().min(1).max(255),
   createdAt: z.date(),
@@ -122,12 +124,12 @@ const TimestampFields = z.object({
 
 // Compose into entity schemas
 const UserSchema = z.object({
-  id: z.string().uuid(),
+  id: entityId('user'),
   email: z.string().email(),
 }).merge(TimestampFields);
 
 const OrderSchema = z.object({
-  id: z.string().uuid(),
+  id: entityId('order'),
   total: z.number(),
 }).merge(TimestampFields);
 ```

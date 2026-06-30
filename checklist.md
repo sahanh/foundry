@@ -24,6 +24,7 @@ A "feature" is one business capability — one folder under `src/`. Run all sect
 - [ ] Are input and variant schemas derived (pick / omit / partial) instead of duplicated?
 - [ ] Any `any`, optionals that aren't genuinely optional, or stringly-typed fields that should be enums?
 - [ ] Do string fields backed by DB columns have matching `.max()` constraints? Are content rules expressed as `.refine()`?
+- [ ] Does every entity `id` use a prefixed `entityId('…')`, domain-minted — not a bare UUID or a DB-generated key? ([identifiers.md](./architecture/identifiers.md))
 
 ### 4. Services → [architecture/service-first-architecture.md](./architecture/service-first-architecture.md)
 - [ ] Was the domain boundary decision confirmed with the user before implementation started?
@@ -48,6 +49,11 @@ A "feature" is one business capability — one folder under `src/`. Run all sect
 - [ ] Do services call Drizzle directly via `ctx.system.db` — no repository layer between them?
 - [ ] Does each service only touch the tables that belong to its feature?
 - [ ] Is cross-feature data access going through the owning feature's service, not the DB directly?
+
+### 7a. Atomicity → [architecture/atomicity.md](./architecture/atomicity.md)
+- [ ] Does each multi-write use case run inside one `ctx.transaction` boundary owned by the outermost caller?
+- [ ] Are all non-DB side effects dispatched *after* the boundary commits — never inside it?
+- [ ] Is the use case correctly classified: atomic (transaction) vs durable (compensation)?
 
 ### 8. AppContext → [architecture/app-context.md](./architecture/app-context.md)
 - [ ] Does every service receive AppContext through its constructor?

@@ -6,13 +6,14 @@ AppContext is the single injected dependency that carries all cross-cutting infr
 
 ```
 AppContext
-  traceId   — UUID identifying the current operation (see system/logging.md)
+  traceId       — UUID identifying the current operation (see system/logging.md)
+  transaction   — opens an atomic boundary (see atomicity.md)
   system
-    db      — Drizzle client (see working-with-databases.md)
-    logger  — logging adapter, required (see system/logging.md)
+    db          — Drizzle client (see working-with-databases.md)
+    logger      — logging adapter, required (see system/logging.md)
 ```
 
-`traceId` is operation-level metadata, not an infrastructure adapter — it sits at the top level. Additional system-layer adapters are added under `AppContext.system` as the application introduces them. The domain layer never imports an adapter directly — it always goes through the context.
+`traceId` is operation-level metadata, not an infrastructure adapter — it sits at the top level. `transaction` is a method, covered below. Additional system-layer adapters are added under `AppContext.system` as the application introduces them. The domain layer never imports an adapter directly — it always goes through the context.
 
 ## Constructor Injection
 
@@ -37,6 +38,19 @@ Injecting through AppContext means:
 ## Wiring
 
 AppContext is assembled externally — in the application bootstrap, a factory, or a test setup — and injected into services. A service never constructs its own context or reaches for a global instance. This is the same rule as lifecycle management in [service-first-architecture.md](./service-first-architecture.md).
+
+## Transaction Boundary
+
+`ctx.transaction` opens an atomic, all-or-nothing boundary for a use case:
+
+```ts
+await ctx.transaction(async (txCtx) => {
+  await new OrderService(order, txCtx).place();
+  await new InventoryService(item, txCtx).reserve();
+}); // commit on return · rollback on any throw
+```
+
+It wraps `ctx.system.db.transaction`, derives a context whose `system.db` is the transaction handle, and passes that `txCtx` to every service so all their writes run on the same transaction. A service is unaware it is inside a boundary — it always calls `ctx.system.db`, which is the transaction when one is open. A nested `ctx.transaction` joins the open one rather than opening a second top-level transaction. Full rules — who owns the boundary, why side effects wait until after commit, and how this differs from durable workflows — are in [atomicity.md](./atomicity.md).
 
 ## In Tests
 

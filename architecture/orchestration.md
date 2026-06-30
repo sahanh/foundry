@@ -38,7 +38,11 @@ An orchestration validates only the inputs handed to it — schema parse, plus s
 
 An orchestration exposes a single way to drive each use case. Every consumer — HTTP handler, queue worker, scheduled job — invokes it the same way, just as services are integration-agnostic.
 
-### 5. Owns No Table
+### 5. Owns the Transaction Boundary
+
+For a synchronous multi-service use case, the orchestration is the outermost caller, so it owns the atomic boundary: it opens `ctx.transaction` and passes the derived `txCtx` to every service it coordinates, so all their writes commit together or roll back together. Non-transactional side effects (email, queue) are dispatched *after* the boundary commits, never inside it. The services stay unaware — they just use `ctx.system.db`. Full rules in [atomicity.md](./atomicity.md).
+
+### 6. Owns No Table
 
 An orchestration is **not** the database seam. Services remain the only code that reads from or writes to their tables (see [Working with Databases](./working-with-databases.md)); an orchestration reaches data only *through* the services it coordinates. It owns no table, so the single-seam, one-owner-per-table rule is untouched — an orchestration coordinates owners, it does not become one.
 
@@ -68,11 +72,14 @@ This keeps the service layer primitive (its purpose) while ensuring growth in co
 
 ---
 
-## Beyond the Convention: Reliability Is Infrastructure
+## Beyond the Convention: Reliability by Lifetime
 
-*How* a multi-service use case runs **reliably** — retries, idempotency, rollback/compensation, durability, resuming after a crash — is an implementation and runtime concern, not a domain convention. It belongs to a durable-execution engine or job/queue plumbing.
+*How* a multi-service use case runs **reliably** splits by lifetime:
 
-The name **"workflow"** is deliberately reserved for that future **infrastructure** layer — a durable-execution engine that takes a use case and runs it as checkpointed steps. An *orchestration* (domain) describes *what* services are coordinated and in what order; a *workflow engine* (infrastructure) decides *how* that coordination executes durably. Keeping the names distinct keeps the layers distinct. This doc covers only how to **structure** coordination in the domain; the runtime layer is a separate, deferred concern.
+- **Synchronous use cases** — an orchestration that completes within one operation is made all-or-nothing by the transaction boundary it owns (Guideline 5). See [atomicity.md](./atomicity.md).
+- **Durable / long-running** — anything that waits on the outside world, sleeps, retries, or must survive a crash cannot be wrapped in a transaction. Reliability there comes from retries, idempotency, and rollback/compensation, owned by a durable-execution engine — the [workflow runtime](../packages/workflow/README.md).
+
+This is the boundary where the names divide: an *orchestration* (domain) describes *what* services are coordinated and in what order; the *workflow runtime* (infrastructure) decides *how* a durable coordination executes as checkpointed steps. The name **"workflow"** belongs to that runtime layer, keeping domain and infrastructure distinct. This doc covers how to **structure** coordination in the domain; atomicity.md and the workflow runtime cover how it runs.
 
 ---
 

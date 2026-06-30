@@ -17,6 +17,8 @@ They will overlap heavily but are not derived from each other. The service maps 
 
 **Table naming:** Drizzle table names use plural (`todos`, `orders`). This is the deliberate exception to the domain layer's singular convention — tables are collections, and plural is standard SQL practice. Domain class and schema names remain singular; only the table name is plural.
 
+**Primary keys:** the primary-key column holds the whole prefixed entity ID (e.g. `task_01HX…`) as a fixed-length `varchar`, sized to the ID length. IDs are minted in the domain at creation, never by a column default. See [architecture/identifiers.md](../architecture/identifiers.md) for the format and generation rule.
+
 **Column constraints must be reflected in Zod schemas:** every column with a size or format constraint (e.g. `varchar(255)`) must have a corresponding constraint in its Zod schema field (e.g. `.max(255)`). The schema is the enforcer — the database must never be the first thing that rejects input. See implementation-schemas.md → Mirror Storage Constraints.
 
 ## Migrations
