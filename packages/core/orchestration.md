@@ -111,3 +111,7 @@ The orchestration sits *between* controllers and services. It is Service-First's
 - **Validation beyond inputs** — an orchestration enforcing business rules that belong in a service.
 - **Orchestration-by-duration** — creating an orchestration because a use case "runs long" rather than because it coordinates multiple services. Duration is an integration concern.
 - **Stranded callers** — promoting a service operation to an orchestration without re-evaluating the existing direct callers of the superseded service method.
+
+---
+
+**Verify:** when done, check [end-here.md](./end-here.md) → Orchestrations.

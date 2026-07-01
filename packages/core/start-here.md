@@ -6,7 +6,7 @@
 
 **The concern docs:** service-first-architecture (services) · implementation-schemas · identifiers · implementation-validation · orchestration · atomicity · working-with-databases · app-context · testing. Reference: named-decisions, implementation-strategy-pattern. Driven infrastructure that lives inside the core is documented under [system/](./system/start-here.md). Repo-wide TypeScript coding standards (which apply to every package and app, not just the core) live in `common/` — see [typescript-coding-standards.md](../../common/typescript-coding-standards.md).
 
-When implementation is complete, run [checklist.md](../../checklist.md) — a mandatory post-implementation checklist. Every box must be ticked for every feature before the work is considered done.
+When implementation is complete, verify against [end-here.md](./end-here.md) — the mandatory verify companion to this file. Every box must be ticked for every feature before the work is considered done. You are usually routed there by the [review protocol](../../review.md), which maps what you touched.
 
 ---
 

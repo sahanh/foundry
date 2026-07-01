@@ -69,3 +69,7 @@ id: z.string().uuid()     ✗   (opaque; not self-describing)
 - **DB-generated IDs** (column default) instead of domain-minted — the ID isn't known until after the write, and generation can't be tested in isolation.
 - **A prefix that doesn't match the entity, or one prefix reused across entities** — defeats the self-describing purpose.
 - **Storing the prefix and body in separate columns** — the ID is one value; split it and every join, log, and URL has to reassemble it.
+
+---
+
+**Verify:** when done, check [end-here.md](./end-here.md) → Schemas (the `id` check).

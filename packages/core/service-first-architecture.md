@@ -164,3 +164,7 @@ The same feature spans a range of granularity, sized to its scope. A todo featur
 - **Singleton services** — Services managing their own instance lifecycle
 - **Framework coupling** — Business logic dependent on HTTP framework specifics
 - **Self-instantiation** — A service reaching for globals or `getInstance()` instead of taking dependencies through its constructor
+
+---
+
+**Verify:** when done, check [end-here.md](./end-here.md) → Services.

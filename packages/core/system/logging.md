@@ -67,3 +67,7 @@ ctx.system.logger.error('failed to dispatch email', { todoId, ownerId, reason })
 - **Plain string messages with no fields** — `logger.info('failed for user 123')` embeds context in the message string, making it unsearchable. Use structured fields instead.
 - **Swallowing errors silently** — catching an exception and not logging it hides failures. Always log at `error` before suppressing or re-throwing.
 - **Logging sensitive data at `debug`** — `debug` is still a log level that can be enabled in production. Sensitive data must never be logged at any level.
+
+---
+
+**Verify:** when done, check [end-here.md](./end-here.md) → Logger adapter.

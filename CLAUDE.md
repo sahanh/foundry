@@ -2,6 +2,20 @@
 
 Repo-wide working instructions for this project. Read alongside the guidelines themselves.
 
+## Keeping the seams in sync
+
+**When you add, change, or remove any part of a guideline, check that the navigation and
+verification seams still reflect it — in the *same* change.** These are:
+
+- the relevant **`start-here.md`** (the forward pass — what to read before building at that level),
+- the relevant **`end-here.md`** (the verify companion — the checks for that level), and
+- the root **[`review.md`](./review.md)** protocol (its enumerated taxonomy and routing table).
+
+If a rule moved, was renamed, or a new construct/level was introduced, a stale `end-here` box or an
+unrouted node in `review.md` will silently let non-conforming code pass review. So after editing a
+guideline, ask: does an `end-here` check need adding/updating/removing? Does `review.md`'s taxonomy
+or routing table need a new row or a repointed link? Fix them alongside the guideline, not later.
+
 ## Maintaining the Changelog
 
 **Every change that adds, changes, or removes a guideline** — any convention, rule, or structure

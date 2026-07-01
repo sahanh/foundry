@@ -260,3 +260,7 @@ When adding new methods:
 - **Loose typing** — Overuse of optional, any, or unknown without narrowing
 - **Missing validation** — Types without runtime validation at boundaries
 - **Unconstrained string fields** — `z.string()` on a field backed by a DB column with a size limit. The schema must enforce the limit; the database must not be the first line of defence.
+
+---
+
+**Verify:** when done, check [end-here.md](./end-here.md) → Schemas.

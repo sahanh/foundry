@@ -9,7 +9,7 @@ This is the engineering standard for this project. It is not a reference to cons
 - **[apps/](./apps/start-here.md)** — the driving adapters: HTTP, CLI, workers, MCP servers (inbound entry points that consume the core).
 - **[packages/](./packages/start-here.md)** — libraries, including driven adapters that graduated out of the core.
 
-When implementation is complete, run **[checklist.md](./checklist.md)** before considering the work done. It is mandatory — not a suggestion.
+Each level has two seams: a **`start-here.md`** to read *before* you build, and an **`end-here.md`** to verify *after*. When a change is complete, run the **[review protocol](./review.md)** — it maps what you touched, routes each area to the guideline that owns it, and validates against the matching `end-here`. It is mandatory — not a suggestion.
 
 Renamed or removed concepts are recorded in **[CHANGELOG.md](./CHANGELOG.md)** — if something you expected is gone, look there for what replaced it and how to migrate.
 

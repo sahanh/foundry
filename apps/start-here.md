@@ -7,3 +7,5 @@
 An app is thin: parse/receive the transport request, call a service or orchestration, format the response. It holds no business rules.
 
 **Content to follow.** This doc will eventually collect the driving-adapter guidance that currently lives scattered elsewhere — thin-controller rules, entry-point logging and trace-ID ingestion, "validation in integrators only," and reusing the core's schemas at the boundary rather than redefining input shapes.
+
+When a change here is complete, verify against [end-here.md](./end-here.md) — the verify companion to this file. You are usually routed there by the [review protocol](../review.md).

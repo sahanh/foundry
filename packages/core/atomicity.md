@@ -96,3 +96,7 @@ A read-then-write uniqueness check is still subject to a race under concurrency 
 - **Partial use case** — some writes inside the boundary and some outside it, so a failure leaves the database half-updated.
 - **Relying on a guard read for uniqueness under concurrency** — a check-then-insert with no database constraint behind it.
 - **Trying to make a durable workflow atomic** — holding a transaction across sleeps or retries; this is the durable runtime's job, via compensation.
+
+---
+
+**Verify:** when done, check [end-here.md](./end-here.md) → Atomicity.

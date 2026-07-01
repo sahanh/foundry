@@ -52,3 +52,7 @@ Migrations run as an explicit step in the deployment pipeline before the applica
 - **Schema change without a migration** — the table definition and migration history go out of sync.
 - **Migration on app startup** — ties deployment concerns to application boot; a failed migration takes the application down with it.
 - **`defaultNow()` / a column default on a domain timestamp column** — bypasses the injected clock (breaking deterministic tests), and `defaultNow()` also stores microsecond precision that a JS `Date` truncates to milliseconds, breaking later timestamp comparisons. Stamp in the domain via `ctx.system.helpers` instead.
+
+---
+
+**Verify:** when done, check [end-here.md](./end-here.md) → Database adapter.

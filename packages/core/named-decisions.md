@@ -97,3 +97,7 @@ Signals to upgrade:
 
 - **[Strategy Pattern](./implementation-strategy-pattern.md)** — for when each branch is substantial enough to warrant its own class. Named Decisions is the lighter alternative when the branches are small and the caller wants a simple outcome.
 - This is "functional core, imperative shell" applied at handler scope, with the decision helper as the functional core.
+
+---
+
+**Verify:** the Patterns sweep in the [review protocol](../../review.md) (Step 4) covers this.

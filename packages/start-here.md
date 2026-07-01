@@ -8,3 +8,5 @@
 - **Graduated driven adapters** — a driven adapter (see [code-placement.md](../code-placement.md)) that has outgrown `core/src/system/` earns its own package here: `packages/<name>/` (e.g. a durable-execution `workflow/` engine). It graduates only on a real signal — reused beyond the core, heavy enough to own its lifecycle, or a genuine engine. `core` depends on it; it never depends on `core`'s domain.
 
 **Content to follow.** This doc will eventually document the pattern for building a standalone driven-adapter package — the general "focused interface, no business logic, name by capability" rules and the graduation criteria — so a package that leaves `core` follows the standard without reaching back into it.
+
+When a change here is complete, verify against [end-here.md](./end-here.md) — the verify companion to this file. You are usually routed there by the [review protocol](../review.md).

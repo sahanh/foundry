@@ -35,3 +35,4 @@ An adapter's job is to translate between the domain's needs and the external sys
 
 - [database.md](./database.md) — table definitions, Drizzle conventions, and migration standards
 - [logging.md](./logging.md) — trace ID, log levels, structured logging, and what to log
+- [end-here.md](./end-here.md) — the verify companion: confirm a driven adapter stays a clean, replaceable seam. You are usually routed here by the [review protocol](../../../review.md).

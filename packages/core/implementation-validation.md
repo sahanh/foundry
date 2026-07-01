@@ -170,3 +170,7 @@ These guards are also what a **orchestration** uses for its thin input validatio
 - **Implicit constraints** — Database errors surfacing instead of explicit validation
 - **Over-engineered exceptions** — Creating granular exception types before they're needed
 - **Business rules in a orchestration** — Validation beyond input/existence checks that belongs in a service
+
+---
+
+**Verify:** when done, check [end-here.md](./end-here.md) → Validation & exceptions.

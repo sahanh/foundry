@@ -89,3 +89,7 @@ Run through the relevant column before marking an integration test done.
 - **Only the happy path** — a use case test with no negative case leaves the most important boundary untested.
 - **Arbitrary time values** — picking a timestamp because it's convenient (epoch zero, far future) rather than because it represents a real moment the logic is designed to handle produces tests that don't reflect reality.
 - **Checking persistence but not side effects** — if the scenario's contract includes sending an email and you only asserted that the record was saved, the test is silent on the most user-visible part of the behaviour.
+
+---
+
+**Verify:** when done, check [end-here.md](./end-here.md) → Testing.

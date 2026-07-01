@@ -98,3 +98,7 @@ Integration tests construct a test AppContext with controlled adapters:
 - `system.email`, `system.queue` — spy or capture adapters so side effects can be asserted
 
 The service under test receives the test context through its constructor. No service code changes between production and test — only the context differs. See [testing.md](./testing.md) for how this applies to integration test setup.
+
+---
+
+**Verify:** when done, check [end-here.md](./end-here.md) → AppContext.

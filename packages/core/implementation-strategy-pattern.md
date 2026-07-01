@@ -113,3 +113,7 @@ Each evaluator class contains only its own logic and can be tested independently
 - **Many small branches with a simple outcome** — When the caller only needs a bool, enum, or single value back, see [Named Decisions](./named-decisions.md) for a lighter, function-based extraction.
 
 The goal is maintainability. Apply Strategy when it genuinely simplifies testing and extension.
+
+---
+
+**Verify:** the Patterns sweep in the [review protocol](../../review.md) (Step 4) covers this.

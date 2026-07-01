@@ -23,3 +23,7 @@ This mirrors the rule that services within a feature coordinate through orchestr
 - **Repository wrapping the database client** — a class that proxies database calls without adding domain logic. The service already provides this abstraction.
 - **Cross-feature table access** — a service querying or writing to a table owned by a different feature, bypassing that feature's service and its business rules.
 - **Business logic in query construction** — complex conditionals embedded in a database call that should live in the service method or a named decision helper instead.
+
+---
+
+**Verify:** when done, check [end-here.md](./end-here.md) → Database.

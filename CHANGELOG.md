@@ -5,6 +5,26 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-01 — `checklist.md` decomposed into `end-here.md` seams + a root review protocol
+
+The single root **`checklist.md`** is **gone**. Verification is now split into a per-seam `end-here.md` (the verify companion to each `start-here.md`) plus a root **[review.md](./review.md)** protocol that drives the check.
+
+### Why
+
+One monolithic, feature-shaped checklist made a narrow change carry the full cognitive load, and it had no verification path at all for non-feature edits (a `system/` adapter, an app, a graduated package). A flat checklist is also the wrong *mechanism*: too rigid if atomic, too vague if "read the guides." The verify pass is now an agentic **map → route → validate** protocol over a fixed taxonomy, routing each touched area to only the guideline that owns it.
+
+### What changed
+
+- Each seam now has a **`start-here.md`** (read before) and an **`end-here.md`** (verify after): [packages/core/end-here.md](./packages/core/end-here.md), [packages/core/system/end-here.md](./packages/core/system/end-here.md), [apps/end-here.md](./apps/end-here.md), [packages/end-here.md](./packages/end-here.md).
+- **[review.md](./review.md)** is the new root verify pass — persona + map/route/validate + the enumerated taxonomy and routing table. (Name/location provisional.)
+- `checklist.md`'s content was redistributed: its per-feature sections → `packages/core/end-here.md`; its system/app checks → the `system/` and `apps/` `end-here.md`; its sanity sweeps → the protocol's always-run cross-cutting sweeps.
+
+### Who is affected
+
+Anyone who linked to or ran **`checklist.md`**, or who relied on it as the post-implementation gate. Read [review.md](./review.md) for the new flow and the `end-here.md` for the seam you touched. The forward pass (`start-here.md`) is unchanged.
+
+---
+
 ## 2026-07-01 — `architecture/` → `packages/core/`; new `code-placement.md`, `apps/`, `packages/`
 
 The playbook now mirrors the code topology it prescribes. The `architecture/` folder is gone; a new root **[code-placement.md](./code-placement.md)** is the first thing to read.
@@ -60,7 +80,7 @@ truth. Read these sections and check your code against them:
 
 - [packages/core/app-context.md](./packages/core/app-context.md) → **The Clock** and **Persistence Timestamps**
 - [packages/core/system/database.md](./packages/core/system/database.md) → **Timestamps** (and the matching anti-pattern)
-- [checklist.md](./checklist.md) → §7 Database and §8 AppContext
+- [packages/core/end-here.md](./packages/core/end-here.md) → **Database** and **AppContext** (was `checklist.md` §7/§8)
 
 ---
 
@@ -128,8 +148,8 @@ Steps:
 5. **Reconsider any "workflow" you created because something runs long.** If it coordinates only
    one service, it is **not** an orchestration — it's a service method. How it executes (inline,
    job, durable) is an integration decision, made per consumer.
-6. **Update references** in docs/code: cross-links to `orchestration.md`, and the post-
-   implementation [checklist.md](./checklist.md) (the "Orchestrations" section).
+6. **Update references** in docs/code: cross-links to `orchestration.md`, and the
+   [packages/core/end-here.md](./packages/core/end-here.md) **Orchestrations** section (was `checklist.md`).
 
 ### Not changed / not yet built
 

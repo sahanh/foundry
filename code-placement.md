@@ -7,7 +7,7 @@
 - **[apps/start-here.md](./apps/start-here.md)** — the driving adapters (HTTP, CLI, workers, MCP servers).
 - **[packages/start-here.md](./packages/start-here.md)** — libraries, including driven adapters that graduated out of the core.
 
-When implementation is complete, run [checklist.md](./checklist.md).
+When implementation is complete, run the [review protocol](./review.md) — it maps what you touched and validates each area against its `end-here`.
 
 ---
 

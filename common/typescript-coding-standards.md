@@ -96,3 +96,7 @@ This makes the intended output type a checked assertion rather than a side effec
 ## Schema and Zod Conventions
 
 Type definitions and Zod-specific conventions (inferring types from schemas, schema composition, avoiding `any`) are covered in [implementation-schemas.md](../packages/core/implementation-schemas.md).
+
+---
+
+**Verify:** the TypeScript sweep in the [review protocol](../review.md) (Step 4) covers this.

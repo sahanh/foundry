@@ -1,0 +1,89 @@
+# Review Protocol
+
+> **Naming/location is provisional.** This file is the root **verify pass** for the playbook. Rename or relocate it as you prefer — note that `/review` and `/code-review` already exist as tools, so a distinct name (e.g. `self-review.md`, `conformance-review.md`) may avoid confusion.
+
+This is a self-driving instruction for a reviewer — a person or a sub-agent — checking that changed code adheres to the playbook. It is **not** a flat checklist. A flat checklist over a comprehensive playbook is either too rigid (atomic boxes that miss the point) or too open ("read the guides and review the code"). Instead you **map, then route, then validate**: you first classify *what was touched* into a fixed taxonomy, then let that map tell you *which guidelines to open*, and validate each touched area against only those.
+
+The forward pass — reading before you build — is the `start-here.md` at each seam. This is the backward pass.
+
+## Persona
+
+You are an experienced reviewer ensuring the changed code adheres to this playbook. You do not review line-by-line first. You **map the change into the taxonomy, route each mapped area to the guideline that owns it, then validate area by area.** You never invent categories — every touch is classified into one of the enumerated nodes below.
+
+---
+
+## Step 1 — Map
+
+Explore the diff (not the whole repo). Produce a **table of contents of touched areas** — for each, its **level** in the taxonomy and its **file(s)**. This is the *areas* touched, not a line-by-line list. Classify every touch into exactly one leaf node.
+
+**The taxonomy (the only options):**
+
+```
+L1 — where in the repo?
+  apps/<app>                → driving adapter (app)          → L2b
+  packages/core/            → the domain core                → L2a
+  packages/<other>/         → graduated package (driven adapter)
+  repo root / config        → cross-cutting
+
+L2a — inside packages/core/
+  src/system/<adapter>      → driven adapter (db, logger, clock, queue, email, …)
+  src/<feature>/            → domain feature module          → L3
+
+L2b — inside an app
+  transport / bootstrap     → server / session / AppContext assembly
+  handlers / controllers    → per route / tool / command handler
+
+L3 — inside a feature module
+  services/*.service.ts             → service (or sub-feature service)
+  orchestrations/*.orchestration.ts → orchestration
+  schemas/*.ts                      → schema
+  shared/validation.ts              → shared validation guard
+  exceptions.ts                     → domain exception
+  __tests__/*                       → tests
+```
+
+The taxonomy mirrors the repo's own topology (see [code-placement.md](./code-placement.md)), so it cannot drift from how the code is actually organized.
+
+**If a touch adds new code or a new file/folder,** first confirm its placement is correct at all: run [code-placement.md](./code-placement.md) Q1–Q3. A misplaced file fails review before any concern-doc check.
+
+## Step 2 — Route
+
+For each mapped node, look up its guideline(s) and the `end-here` that owns its verification:
+
+| Mapped node | Validate against (guideline) | end-here |
+|---|---|---|
+| app handler / controller | [code-placement.md](./code-placement.md) (thin controller, schema reuse), [logging.md](./packages/core/system/logging.md) | [apps/end-here.md](./apps/end-here.md) |
+| app transport / bootstrap | [code-placement.md](./code-placement.md), [app-context.md](./packages/core/app-context.md) (assembly) | [apps/end-here.md](./apps/end-here.md) |
+| driven adapter (`system/`) | [system/start-here.md](./packages/core/system/start-here.md), [database.md](./packages/core/system/database.md) / [logging.md](./packages/core/system/logging.md) | [system/end-here.md](./packages/core/system/end-here.md) |
+| feature service | [service-first-architecture.md](./packages/core/service-first-architecture.md), [implementation-validation.md](./packages/core/implementation-validation.md) | [core/end-here.md](./packages/core/end-here.md) → Services |
+| orchestration | [orchestration.md](./packages/core/orchestration.md), [atomicity.md](./packages/core/atomicity.md) | [core/end-here.md](./packages/core/end-here.md) → Orchestrations |
+| schema | [implementation-schemas.md](./packages/core/implementation-schemas.md), [identifiers.md](./packages/core/identifiers.md) | [core/end-here.md](./packages/core/end-here.md) → Schemas |
+| shared validation / exceptions | [implementation-validation.md](./packages/core/implementation-validation.md) | [core/end-here.md](./packages/core/end-here.md) → Validation & exceptions |
+| db access in a service | [working-with-databases.md](./packages/core/working-with-databases.md), [atomicity.md](./packages/core/atomicity.md) | [core/end-here.md](./packages/core/end-here.md) → Database / Atomicity |
+| tests | [testing.md](./packages/core/testing.md) | [core/end-here.md](./packages/core/end-here.md) → Testing |
+| graduated package | [code-placement.md](./code-placement.md) (building a driven adapter) | [packages/end-here.md](./packages/end-here.md) |
+
+## Step 3 — Validate
+
+For each mapped node, validate its changed area against the routed guideline + `end-here`. Read the guideline for the *why*; use the `end-here` boxes as the pass/fail gate. Nodes are independent — you may validate them one at a time, or **launch a sub-agent per node** (each reads one guideline + that area's diff) and collect the results. Do not validate an area against a guideline it wasn't routed to.
+
+## Step 4 — Cross-cutting sweeps (always)
+
+These apply to *any* change regardless of what was touched — run them once across the whole diff:
+
+- **TypeScript** → [typescript-coding-standards.md](./common/typescript-coding-standards.md) — arrow functions for module-level defs, `type` over `interface`, no non-null assertions, explicit return types on exports, string-literal unions over enums.
+- **Logging** → [logging.md](./packages/core/system/logging.md) — `ctx.system.logger` at method entry / business events / side effects; errors logged with full context before re-throw; trace ID flowing throughout.
+- **Patterns** → [implementation-strategy-pattern.md](./packages/core/implementation-strategy-pattern.md) · [named-decisions.md](./packages/core/named-decisions.md) — substantial type-branching that should be a Strategy; tangled policy that should be a named decision.
+
+**The review lens.** Beyond the specific guidelines, hold the playbook's cross-cutting invariants against every node — they don't care what you touched:
+
+- **One home for every piece of code** — a feature, a driven adapter, or a driving-adapter app; anything else needs explicit confirmation.
+- **Dependencies point one way** — driving → domain → driven; the core never imports an app, a driven adapter never imports the domain.
+- **Business logic lives in the domain, integration-agnostic** — not in controllers or adapters.
+- **Single source of truth; define once, derive the rest** — schemas infer types; boundaries reuse core schemas.
+- **Climb on a real signal, not in anticipation** — services, sub-features, adapter graduation, shared-validation extraction all wait for the second signal.
+- **All-or-nothing; side effects after commit** — one transaction boundary, effects dispatched post-commit.
+
+## Step 5 — Report
+
+Report per node: the guideline it was checked against, conformance, and any blockers (a box that could not be ticked). A blocker is a blocker, not a note.
