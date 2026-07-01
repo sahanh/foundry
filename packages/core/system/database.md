@@ -1,6 +1,6 @@
 # Database
 
-Infrastructure conventions for the database layer. For how services interact with the database, see [architecture/working-with-databases.md](../architecture/working-with-databases.md).
+Infrastructure conventions for the database layer. For how services interact with the database, see [working-with-databases.md](../working-with-databases.md).
 
 ## Table Definitions
 
@@ -17,9 +17,9 @@ They will overlap heavily but are not derived from each other. The service maps 
 
 **Table naming:** Drizzle table names use plural (`todos`, `orders`). This is the deliberate exception to the domain layer's singular convention — tables are collections, and plural is standard SQL practice. Domain class and schema names remain singular; only the table name is plural.
 
-**Primary keys:** the primary-key column holds the whole prefixed entity ID (e.g. `task_01HX…`) as a fixed-length `varchar`, sized to the ID length. IDs are minted in the domain at creation, never by a column default. See [architecture/identifiers.md](../architecture/identifiers.md) for the format and generation rule.
+**Primary keys:** the primary-key column holds the whole prefixed entity ID (e.g. `task_01HX…`) as a fixed-length `varchar`, sized to the ID length. IDs are minted in the domain at creation, never by a column default. See [identifiers.md](../identifiers.md) for the format and generation rule.
 
-**Timestamps:** domain timestamp columns (`createdAt`, `updatedAt`, and similar) are `NOT NULL` with **no column default** — no `defaultNow()`, no `$defaultFn`. Like IDs, they are stamped in the domain at write time, via `ctx.system.helpers` (which reads the injected clock), never by the database. This makes the injected clock the single source of time — so timestamps are controllable in tests — and makes a forgotten stamp fail loud as a NOT-NULL violation rather than silently taking server time. See [architecture/app-context.md](../architecture/app-context.md) → Persistence Timestamps.
+**Timestamps:** domain timestamp columns (`createdAt`, `updatedAt`, and similar) are `NOT NULL` with **no column default** — no `defaultNow()`, no `$defaultFn`. Like IDs, they are stamped in the domain at write time, via `ctx.system.helpers` (which reads the injected clock), never by the database. This makes the injected clock the single source of time — so timestamps are controllable in tests — and makes a forgotten stamp fail loud as a NOT-NULL violation rather than silently taking server time. See [app-context.md](../app-context.md) → Persistence Timestamps.
 
 **Column constraints must be reflected in Zod schemas:** every column with a size or format constraint (e.g. `varchar(255)`) must have a corresponding constraint in its Zod schema field (e.g. `.max(255)`). The schema is the enforcer — the database must never be the first thing that rejects input. See implementation-schemas.md → Mirror Storage Constraints.
 

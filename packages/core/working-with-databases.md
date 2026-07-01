@@ -1,6 +1,6 @@
 # Working with Databases
 
-How the service layer interacts with the database. Infrastructure specifics (table definitions, migrations) are covered in [system/database.md](../system/database.md).
+How the service layer interacts with the database. Infrastructure specifics (table definitions, migrations) are covered in [system/database.md](./system/database.md).
 
 ## Core Principle
 

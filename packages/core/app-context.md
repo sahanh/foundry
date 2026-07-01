@@ -85,7 +85,7 @@ ctx.system.db.update(tasks)
   .where(eq(tasks.id, id));
 ```
 
-Domain timestamp columns are defined `NOT NULL` with **no DB default**, so the app clock is the only source and a forgotten stamp fails loud — see [system/database.md](../system/database.md).
+Domain timestamp columns are defined `NOT NULL` with **no DB default**, so the app clock is the only source and a forgotten stamp fails loud — see [system/database.md](./system/database.md).
 
 `helpers` lives under `ctx.system` as a home for **pure utilities that compose adapters** (like stamping timestamps from the clock). Keep it scoped: no domain logic lives here — that stays in services. It is not a general junk drawer.
 

@@ -2,10 +2,12 @@
 
 This is the engineering standard for this project. It is not a reference to consult occasionally — it is the specification to follow when building any part of the codebase. If you are new to the project, read it before writing code.
 
-The playbook is organised into two concerns:
+**Start with [code-placement.md](./code-placement.md)** — it defines the repository's shape (`apps/` + `packages/`) and the one rule for where any piece of code belongs. Everything else sits underneath it:
 
-- **[architecture/](./architecture/start-here.md)** — how to structure and build features: services, orchestrations, validation, schemas, testing, and the rules that govern the domain layer. Start here.
-- **[system/](./system/start-here.md)** — the infrastructure layer that the domain sits on top of: database, email, queue, and other adapters.
+- **[packages/core/](./packages/core/start-here.md)** — the domain core: how to structure and build features (services, orchestrations, validation, schemas, testing) and the rules that govern the domain layer.
+- **[packages/core/system/](./packages/core/system/start-here.md)** — the driven infrastructure the core sits on: database, logger, clock, and other adapters.
+- **[apps/](./apps/start-here.md)** — the driving adapters: HTTP, CLI, workers, MCP servers (inbound entry points that consume the core).
+- **[packages/](./packages/start-here.md)** — libraries, including driven adapters that graduated out of the core.
 
 When implementation is complete, run **[checklist.md](./checklist.md)** before considering the work done. It is mandatory — not a suggestion.
 
@@ -13,7 +15,10 @@ Renamed or removed concepts are recorded in **[CHANGELOG.md](./CHANGELOG.md)** �
 
 ## Conventions
 
+Repo-wide standards apply to every package and app, not just the domain core. Cross-cutting standard docs live in **[common/](./common/)**:
+
 - **Package manager:** use `pnpm`. Do not use `npm` or `yarn`.
+- **TypeScript:** [common/typescript-coding-standards.md](./common/typescript-coding-standards.md) — coding standards for all TypeScript in the repo.
 
 ## When in doubt
 

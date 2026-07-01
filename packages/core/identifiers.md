@@ -1,6 +1,6 @@
 # Entity Identifiers
 
-How every persisted entity gets its `id`. Schema representation is covered in [implementation-schemas.md](./implementation-schemas.md); the primary-key column is covered in [system/database.md](../system/database.md).
+How every persisted entity gets its `id`. Schema representation is covered in [implementation-schemas.md](./implementation-schemas.md); the primary-key column is covered in [system/database.md](./system/database.md).
 
 ## Core Principle
 
@@ -60,7 +60,7 @@ id: z.string().uuid()     ✗   (opaque; not self-describing)
 
 ## Operation IDs Are Not Entity IDs
 
-`AppContext.traceId` stays a UUID (see [system/logging.md](../system/logging.md) and [app-context.md](./app-context.md)). It identifies an *operation*, not a persisted entity, and is out of scope for this convention. Do not apply the prefixed-ID format to trace IDs, and do not use a UUID for an entity `id`.
+`AppContext.traceId` stays a UUID (see [system/logging.md](./system/logging.md) and [app-context.md](./app-context.md)). It identifies an *operation*, not a persisted entity, and is out of scope for this convention. Do not apply the prefixed-ID format to trace IDs, and do not use a UUID for an entity `id`.
 
 ## Anti-Patterns
 

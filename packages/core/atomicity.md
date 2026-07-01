@@ -2,7 +2,7 @@
 
 How a use case stays all-or-nothing. Every write in a single use case commits together or not at all, enforced by one transaction boundary owned by the outermost caller and carried on `ctx`.
 
-> **Scope:** this doc covers *synchronous* use cases — those that complete within one operation. Long-running, durable workflows (the [workflow runtime](../packages/workflow/README.md)) are explicitly **not** atomic and use compensation instead; see [Atomic vs Durable](#atomic-vs-durable) below.
+> **Scope:** this doc covers *synchronous* use cases — those that complete within one operation. Long-running, durable workflows (the [workflow runtime](../workflow/README.md)) are explicitly **not** atomic and use compensation instead; see [Atomic vs Durable](#atomic-vs-durable) below.
 
 ## Core Principle
 
@@ -58,14 +58,14 @@ await new FulfillmentService(ctx).enqueue(order);
 
 ## Atomic vs Durable
 
-Atomic orchestration and the durable [workflow runtime](../packages/workflow/README.md) solve different problems. A use case is one or the other — never both.
+Atomic orchestration and the durable [workflow runtime](../workflow/README.md) solve different problems. A use case is one or the other — never both.
 
 | | Atomic orchestration | Durable workflow |
 |---|---|---|
 | Spans | one operation, one transaction | time, restarts, external waits |
 | Failure model | rollback (all-or-nothing) | compensation + idempotent tasks |
 | Sleeps / retries / parallel | none | yes |
-| Home | services & orchestrations (this doc) | [`packages/workflow/`](../packages/workflow/README.md) |
+| Home | services & orchestrations (this doc) | [`packages/workflow/`](../workflow/README.md) |
 
 You **cannot** hold a transaction across a sleep, a retry, or a process restart — so anything that waits on the outside world or must survive a crash belongs to the durable runtime, where reliability comes from compensation and idempotent tasks, not a shared transaction.
 

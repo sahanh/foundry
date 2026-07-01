@@ -5,6 +5,44 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-01 — `architecture/` → `packages/core/`; new `code-placement.md`, `apps/`, `packages/`
+
+The playbook now mirrors the code topology it prescribes. The `architecture/` folder is gone; a new root **[code-placement.md](./code-placement.md)** is the first thing to read.
+
+### Why
+
+1. **There was no home for inbound entry points.** The playbook described the domain (features) and driven infrastructure (`system/`), but never assigned a folder to *driving* adapters — HTTP controllers, CLI, workers, **MCP servers**. With nowhere correct to put them, they ended up filed beside feature folders. `code-placement.md` gives them a home: `apps/`.
+2. **`src/` and folder names were overloaded.** The domain is a reusable **core package** meant to sit beside an integration framework (which ships its own `src/`), so it needs a package identity, not a generic `src/`. And the guidelines described `packages/core` while explaining it in a folder called `architecture/` — the names didn't mirror the code. Now they do.
+
+### What changed conceptually
+
+The repo is `apps/` + `packages/`. `packages/core` is the domain hexagon (domain layer + its driven infrastructure in `core/src/system/`). Adapters are classified by **direction**: *driven* (the domain calls out to them — db, logger, clock) live in `core/src/system/` and graduate to their own `packages/<name>/` on a real signal; *driving* (they call into the domain — HTTP, CLI, MCP) live in `apps/`. A single placement rule (Q1–Q3) decides where any code goes. See [code-placement.md](./code-placement.md).
+
+### Where things moved
+
+| Before | After |
+|---|---|
+| `architecture/` (all docs) | `packages/core/` |
+| `architecture/start-here.md` (macro sections) | `code-placement.md` (Layering, Folder Organization, File Structure) |
+| `system/` | `packages/core/system/` |
+| — | `code-placement.md` (new, root) |
+| — | `apps/start-here.md`, `packages/start-here.md` (new stubs) |
+
+`checklist.md`, `CHANGELOG.md`, and `README.md` stay at the root; their links were repathed.
+
+### Migrating your project
+
+This restructure is about the **playbook's own folders** — but the model it formalizes may not match how your project is laid out. Run this self-audit against your codebase (read [code-placement.md](./code-placement.md) first):
+
+- [ ] For each direct child of `src/`, classify it with the criteria: a **feature** (domain), **driven infrastructure**, or an **inbound entry point** (transport).
+- [ ] Any inbound entry point (HTTP, CLI, queue consumer, tool server) sitting beside your feature folders → relocate it to `apps/`. It is a driving adapter, not domain and not `system/`.
+- [ ] Move your domain features into `packages/core/src/`, and `src/system/` into `packages/core/src/system/`.
+- [ ] Any driven adapter that is heavy, reused beyond the core, or owns its own lifecycle → consider graduating it to its own `packages/<name>/`.
+- [ ] Verify the dependency direction end to end: `apps → core → driven infrastructure`. Nothing inbound should live inside the core; the core should import no app.
+- [ ] At each entry point, reuse the core's schemas at the boundary — don't redefine input shapes that then drift from the domain's real constraints.
+
+---
+
 ## 2026-07-01 — Injected clock & domain-stamped timestamps
 
 Time is now an injected system adapter, not `new Date()`. Introduced:
@@ -20,8 +58,8 @@ column default for `createdAt`/`updatedAt`, or mocks time with a global `vi.setS
 to bring it into line. We're not prescribing a migration script; the guidelines are the source of
 truth. Read these sections and check your code against them:
 
-- [architecture/app-context.md](./architecture/app-context.md) → **The Clock** and **Persistence Timestamps**
-- [system/database.md](./system/database.md) → **Timestamps** (and the matching anti-pattern)
+- [packages/core/app-context.md](./packages/core/app-context.md) → **The Clock** and **Persistence Timestamps**
+- [packages/core/system/database.md](./packages/core/system/database.md) → **Timestamps** (and the matching anti-pattern)
 - [checklist.md](./checklist.md) → §7 Database and §8 AppContext
 
 ---
@@ -32,7 +70,7 @@ The domain-layer concept formerly called a **workflow** is now an **orchestratio
 
 If you came looking for `workflow-orchestration.md`, the `workflows/` folder, or the
 `.workflow.ts` suffix and didn't find them — this is why. See
-[architecture/orchestration.md](./architecture/orchestration.md) for the full concept.
+[architecture/orchestration.md](./packages/core/orchestration.md) for the full concept.
 
 ### Why
 
