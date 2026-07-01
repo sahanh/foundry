@@ -68,22 +68,26 @@ Why an injected clock rather than the common `vi.setSystemTime` approach: system
 
 ## Persistence Timestamps — `ctx.system.helpers`
 
-Timestamps that land in the database come from the clock too — so they are controllable in tests — but a database can't reach the injected clock (a column default runs in the DB or at module load, never per-request). So the **service stamps explicitly**, using a small helper built on the clock. This is not a repository: the service still owns the write and calls `ctx.system.db` directly; the helper only supplies the timestamp values.
+Timestamps that land in the database come from the clock too — so they are controllable in tests — but a database can't reach the injected clock (a column default runs in the DB or at module load, never per-request). So the **service stamps explicitly**, using a small helper built on the clock. This is not a repository: the service still owns the write and calls `ctx.system.db` directly; the helper only reads the injected clock and stamps the write.
 
-Two methods, one per write shape:
+The helper **takes the write's values and returns them stamped** — one call is the whole write shape, so there is no separate "spread the timestamps in" step to forget. Two methods, one per write shape:
 
-- `timestamps()` → `{ createdAt, updatedAt }`, both from a **single** captured `now()` (so a new row's created/updated match exactly — never call `now()` twice for one row).
-- `updatedAt()` → `{ updatedAt }`.
+- `timestamps(values)` → a **new** object `{ ...values, createdAt, updatedAt }`, both stamps from a **single** captured `now()` (so a new row's created/updated match exactly — never call `now()` twice for one row).
+- `updatedAt(values)` → `{ ...values, updatedAt }`.
+
+Both are **pure**: they return a new object and never mutate `values`, and they preserve the input type — `timestamps<T>(values: T): T & { createdAt: Date; updatedAt: Date }`.
 
 ```ts
 // create
-ctx.system.db.insert(tasks).values({ ...input, ...ctx.system.helpers.timestamps() });
+ctx.system.db.insert(tasks).values(ctx.system.helpers.timestamps({ ...input }));
 
 // update
 ctx.system.db.update(tasks)
-  .set({ ...changes, ...ctx.system.helpers.updatedAt() })
+  .set(ctx.system.helpers.updatedAt({ ...changes }))
   .where(eq(tasks.id, id));
 ```
+
+The helper is the **sole** source of `createdAt`/`updatedAt` — pass the write's values *through* it and never also stamp those columns by hand. No `createdAt: now` in the values, no second `ctx.system.clock.now()` for the same row: a manual stamp sitting next to the helper is duplicate, un-clock-controlled time.
 
 Domain timestamp columns are defined `NOT NULL` with **no DB default**, so the app clock is the only source and a forgotten stamp fails loud — see [system/database.md](./system/database.md).
 

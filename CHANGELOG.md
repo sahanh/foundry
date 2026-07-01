@@ -5,6 +5,14 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-01 — Timestamp helpers take and return the write values
+
+The timestamp helpers changed shape. Previously `ctx.system.helpers.timestamps()` took no argument and returned bare `{ createdAt, updatedAt }` fields that the caller spread into the write (`.values({ ...input, ...ctx.system.helpers.timestamps() })`); `updatedAt()` likewise returned `{ updatedAt }`. Now each helper **takes the write's values and returns them stamped** — `timestamps(values)` / `updatedAt(values)` — and is the sole source of those columns.
+
+Affects any create/update that spread the bare helper result, or that hand-wrote `createdAt`/`updatedAt` alongside it. Re-check against [packages/core/app-context.md](./packages/core/app-context.md) → Persistence Timestamps and the timestamp item in [packages/core/end-here.md](./packages/core/end-here.md).
+
+---
+
 ## 2026-07-01 — `checklist.md` decomposed into `end-here.md` seams + a root review protocol
 
 The single root **`checklist.md`** is **gone**. Verification is now split into a per-seam `end-here.md` (the verify companion to each `start-here.md`) plus a root **[review.md](./review.md)** protocol that drives the check.

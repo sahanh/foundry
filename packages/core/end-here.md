@@ -47,7 +47,7 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 - [ ] Do services call Drizzle directly via `ctx.system.db` — no repository layer between them?
 - [ ] Does each service only touch the tables that belong to its feature?
 - [ ] Is cross-feature data access going through the owning feature's service, not the DB directly?
-- [ ] Are domain timestamp columns `NOT NULL` with no DB default, stamped via `ctx.system.helpers` (`timestamps()` on create, `updatedAt()` on update)?
+- [ ] Are domain timestamp columns `NOT NULL` with no DB default, stamped by wrapping the write's values in `ctx.system.helpers` (`timestamps(values)` on create, `updatedAt(values)` on update) — and set nowhere else (no hand-written `createdAt`/`updatedAt`)?
 
 ## Atomicity → [atomicity.md](./atomicity.md)
 - [ ] Does each multi-write use case run inside one `ctx.transaction` boundary owned by the outermost caller?
