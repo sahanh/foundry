@@ -1,0 +1,30 @@
+# CLAUDE.md
+
+Repo-wide working instructions for this project. Read alongside the guidelines themselves.
+
+## Maintaining the Changelog
+
+**Every change that adds, changes, or removes a guideline** — any convention, rule, or structure
+someone must follow — updates [`CHANGELOG.md`](./CHANGELOG.md) in the *same* change. This is not
+optional. (Trivial edits that change no rule — typo and formatting fixes — are exempt.)
+
+The changelog exists for one reason: so that someone whose work predates a change can discover their
+code may no longer conform, and find where to look. It is a **signpost, not a tutorial**.
+
+### Anatomy of an entry
+
+Newest entries at the top. Each entry has three parts:
+
+1. **Dated heading** — `## YYYY-MM-DD — <concise title of the change>`.
+2. **What changed** — a short statement of what was introduced, renamed, or removed. For a rename or
+   removal, name the *old* thing (the old file, folder, or term) so someone searching for it lands
+   here.
+3. **Adherence pointer** — name who is affected (code written before this change), then link the
+   specific guideline docs **and sections** to read and check against.
+
+**The defining rule: point, don't re-teach.** The changelog does **not** prescribe migration steps,
+restate the rule, or explain how to fix code. The guidelines are the single source of truth — the
+entry says only *what changed* and *which sections to read* to confirm you adhere. Anyone who needs
+to bring their code into line reads the linked guideline, not the changelog.
+
+See the existing entries in [`CHANGELOG.md`](./CHANGELOG.md) for the shape.
