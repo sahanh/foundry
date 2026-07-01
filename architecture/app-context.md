@@ -11,6 +11,8 @@ AppContext
   system
     db          — Drizzle client (see working-with-databases.md)
     logger      — logging adapter, required (see system/logging.md)
+    clock       — injectable now-source (see The Clock below)
+    helpers     — pure utilities that compose adapters (see Persistence Timestamps below)
 ```
 
 `traceId` is operation-level metadata, not an infrastructure adapter — it sits at the top level. `transaction` is a method, covered below. Additional system-layer adapters are added under `AppContext.system` as the application introduces them. The domain layer never imports an adapter directly — it always goes through the context.
@@ -52,11 +54,47 @@ await ctx.transaction(async (txCtx) => {
 
 It wraps `ctx.system.db.transaction`, derives a context whose `system.db` is the transaction handle, and passes that `txCtx` to every service so all their writes run on the same transaction. A service is unaware it is inside a boundary — it always calls `ctx.system.db`, which is the transaction when one is open. A nested `ctx.transaction` joins the open one rather than opening a second top-level transaction. Full rules — who owns the boundary, why side effects wait until after commit, and how this differs from durable workflows — are in [atomicity.md](./atomicity.md).
 
+## The Clock — `ctx.system.clock`
+
+Time enters the domain through one injected adapter — `ctx.system.clock.now()` — never through `new Date()` scattered across services. Scattering `new Date()` makes time an uncontrollable, hidden input: every service silently reaches the wall clock, and ordering and timestamps become impossible to assert. The clock is an adapter for the same reason `db` and `logger` are — the domain reaches infrastructure only through the context.
+
+- `now(): Date` returns an **absolute instant**. Every domain time read — stamping a row, an expiry check, an "is X before Y" comparison — goes through it.
+- In production the factory is omitted and defaults to `() => new Date()` — real wall-clock time, zero behavior change.
+- In tests you inject a clock pinned to a fixed instant, so a test can assert that a row's `createdAt`, a related row's `startedAt`, and an event's stamp are all exactly that instant.
+
+Why an injected clock rather than the common `vi.setSystemTime` approach: system-time mocking mutates a **global**, which is process-wide and hostile to parallel integration tests (two tests freezing time clobber each other). An injected clock is parallel-safe by construction — each context carries its own.
+
+**No timezone in the domain.** The clock deals only in absolute instants. Timezone conversion is a presentation concern owned by the layer that communicates between the app and the domain (the API / edge), never by services. The domain stores and compares absolute time; the edge localizes for the viewer.
+
+## Persistence Timestamps — `ctx.system.helpers`
+
+Timestamps that land in the database come from the clock too — so they are controllable in tests — but a database can't reach the injected clock (a column default runs in the DB or at module load, never per-request). So the **service stamps explicitly**, using a small helper built on the clock. This is not a repository: the service still owns the write and calls `ctx.system.db` directly; the helper only supplies the timestamp values.
+
+Two methods, one per write shape:
+
+- `timestamps()` → `{ createdAt, updatedAt }`, both from a **single** captured `now()` (so a new row's created/updated match exactly — never call `now()` twice for one row).
+- `updatedAt()` → `{ updatedAt }`.
+
+```ts
+// create
+ctx.system.db.insert(tasks).values({ ...input, ...ctx.system.helpers.timestamps() });
+
+// update
+ctx.system.db.update(tasks)
+  .set({ ...changes, ...ctx.system.helpers.updatedAt() })
+  .where(eq(tasks.id, id));
+```
+
+Domain timestamp columns are defined `NOT NULL` with **no DB default**, so the app clock is the only source and a forgotten stamp fails loud — see [system/database.md](../system/database.md).
+
+`helpers` lives under `ctx.system` as a home for **pure utilities that compose adapters** (like stamping timestamps from the clock). Keep it scoped: no domain logic lives here — that stays in services. It is not a general junk drawer.
+
 ## In Tests
 
 Integration tests construct a test AppContext with controlled adapters:
 
 - `system.db` — a test database client (real test DB or in-memory)
+- `system.clock` — a clock pinned to a fixed instant, so timestamps are deterministic and assertable
 - `system.email`, `system.queue` — spy or capture adapters so side effects can be asserted
 
 The service under test receives the test context through its constructor. No service code changes between production and test — only the context differs. See [testing.md](./testing.md) for how this applies to integration test setup.

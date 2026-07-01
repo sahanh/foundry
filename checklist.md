@@ -49,6 +49,7 @@ A "feature" is one business capability — one folder under `src/`. Run all sect
 - [ ] Do services call Drizzle directly via `ctx.system.db` — no repository layer between them?
 - [ ] Does each service only touch the tables that belong to its feature?
 - [ ] Is cross-feature data access going through the owning feature's service, not the DB directly?
+- [ ] Are domain timestamp columns `NOT NULL` with no DB default, stamped via `ctx.system.helpers` (`timestamps()` on create, `updatedAt()` on update)?
 
 ### 7a. Atomicity → [architecture/atomicity.md](./architecture/atomicity.md)
 - [ ] Does each multi-write use case run inside one `ctx.transaction` boundary owned by the outermost caller?
@@ -58,6 +59,7 @@ A "feature" is one business capability — one folder under `src/`. Run all sect
 ### 8. AppContext → [architecture/app-context.md](./architecture/app-context.md)
 - [ ] Does every service receive AppContext through its constructor?
 - [ ] Is all infrastructure access (db, logger) going through `ctx.system` — no direct imports of adapters?
+- [ ] Do domain time reads come from `ctx.system.clock.now()` rather than `new Date()`?
 
 ### 9. Testing → [architecture/testing.md](./architecture/testing.md)
 - [ ] Do `shared/validation.ts` guards have unit tests?

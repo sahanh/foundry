@@ -5,6 +5,27 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-01 — Injected clock & domain-stamped timestamps
+
+Time is now an injected system adapter, not `new Date()`. Introduced:
+
+- **`ctx.system.clock`** — the single injectable now-source for every domain time read.
+- **`ctx.system.helpers`** — `timestamps()` (create) and `updatedAt()` (update) to stamp rows from
+  that clock.
+- **A schema rule** — domain timestamp columns are `NOT NULL` with no DB default (no `defaultNow()`,
+  no `$defaultFn`); timestamps are stamped in the domain, never by the database.
+
+If your code predates this — it reaches for `new Date()` in services, relies on `defaultNow()` or a
+column default for `createdAt`/`updatedAt`, or mocks time with a global `vi.setSystemTime` — you need
+to bring it into line. We're not prescribing a migration script; the guidelines are the source of
+truth. Read these sections and check your code against them:
+
+- [architecture/app-context.md](./architecture/app-context.md) → **The Clock** and **Persistence Timestamps**
+- [system/database.md](./system/database.md) → **Timestamps** (and the matching anti-pattern)
+- [checklist.md](./checklist.md) → §7 Database and §8 AppContext
+
+---
+
 ## 2026-07-01 — "Workflow" renamed to "Orchestration"
 
 The domain-layer concept formerly called a **workflow** is now an **orchestration**.
