@@ -93,6 +93,12 @@ Signals to upgrade:
 
 ---
 
+## It's An Extraction, Not An Escape Hatch
+
+A Named Decision extracts *branching* into a pure, domain-named helper — it does not move business rules out of the service. The helper is the service's functional core: it stays with the service that owns the policy, and the service still calls it and performs the side effect. Naming `shouldRetry` makes the service's own retry policy pure and testable; it doesn't make that policy live "outside" the service. So the pattern never loosens the rule that **every business rule lives in a service or orchestration** — see [end-here.md](./end-here.md). Nor is it a home for *cross-entity* rules: a decision helper reads the values its single caller already holds, so a rule that must reach across entities belongs to an orchestration or a shared domain service, not here (that gap is tracked as concern #12).
+
+---
+
 ## Related
 
 - **[Strategy Pattern](./implementation-strategy-pattern.md)** — for when each branch is substantial enough to warrant its own class. Named Decisions is the lighter alternative when the branches are small and the caller wants a simple outcome.
