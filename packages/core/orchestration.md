@@ -77,7 +77,7 @@ This keeps the service layer primitive (its purpose) while ensuring growth in co
 *How* a multi-service use case runs **reliably** splits by lifetime:
 
 - **Synchronous use cases** — an orchestration that completes within one operation is made all-or-nothing by the transaction boundary it owns (Guideline 5). See [atomicity.md](./atomicity.md).
-- **Durable / long-running** — anything that waits on the outside world, sleeps, retries, or must survive a crash cannot be wrapped in a transaction. Reliability there comes from retries, idempotency, and rollback/compensation, owned by a durable-execution engine — the [workflow runtime](../workflow/README.md).
+- **Durable / long-running** — anything that waits on the outside world, sleeps, retries, or must survive a crash cannot be wrapped in a transaction. Reliability there comes from retries, idempotency, and rollback/compensation, owned by a durable-execution engine — the workflow runtime.
 
 This is the boundary where the names divide: an *orchestration* (domain) describes *what* services are coordinated and in what order; the *workflow runtime* (infrastructure) decides *how* a durable coordination executes as checkpointed steps. The name **"workflow"** belongs to that runtime layer, keeping domain and infrastructure distinct. This doc covers how to **structure** coordination in the domain; atomicity.md and the workflow runtime cover how it runs.
 
