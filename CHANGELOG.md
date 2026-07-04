@@ -5,6 +5,26 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-05 — Removed the durable workflow runtime
+
+The playbook no longer references a durable **workflow runtime** / `packages/workflow/` engine. It
+was load-bearing but never specified: `atomicity.md` and `orchestration.md` delegated all
+long-running/durable work to a `packages/workflow/` package (and a `ctx.task` API) that had no spec —
+routing readers to a void. Those references are gone. The name **"workflow"** is no longer reserved,
+and `packages/workflow/` is no longer a graduated-package example.
+
+Long-running, multi-step execution that waits, sleeps, retries, or must survive a restart is now
+stated plainly as **outside this playbook's current scope** (raise it, per the README's *When in
+doubt*) rather than handed to a non-existent engine.
+
+Affects any code or notes that routed durable work to `packages/workflow/`, referenced the "workflow
+runtime," or used `ctx.task`. Re-check against [packages/core/atomicity.md](./packages/core/atomicity.md)
+→ *What a Transaction Cannot Span* and *When NOT to Open a Boundary*, and
+[packages/core/orchestration.md](./packages/core/orchestration.md) → *Reliability: Synchronous
+Coordination Only*.
+
+---
+
 ## 2026-07-01 — Timestamp helpers take and return the write values
 
 The timestamp helpers changed shape. Previously `ctx.system.helpers.timestamps()` took no argument and returned bare `{ createdAt, updatedAt }` fields that the caller spread into the write (`.values({ ...input, ...ctx.system.helpers.timestamps() })`); `updatedAt()` likewise returned `{ updatedAt }`. Now each helper **takes the write's values and returns them stamped** — `timestamps(values)` / `updatedAt(values)` — and is the sole source of those columns.
@@ -104,10 +124,7 @@ If you came looking for `workflow-orchestration.md`, the `workflows/` folder, or
 
 1. **The word was overloaded.** "Workflow" implies long-running / durable / infrastructure. That
    dragged an execution-model meaning into what is purely a *domain coordination* concept.
-2. **It collides with future infrastructure.** A durable-execution **engine** (retries,
-   idempotency, crash-resume) is a planned, separate infrastructure layer that genuinely deserves
-   the name "workflow." The name is now **reserved** for that engine.
-3. **The trigger was stated as a symptom.** A workflow was described as "more than one service."
+2. **The trigger was stated as a symptom.** A workflow was described as "more than one service."
    The real, principled boundary is **altitude / coordination** — duration is *not* a domain
    concern, it belongs to the integration/infrastructure layer.
 
@@ -138,7 +155,7 @@ Two clarifications were added:
 | `*.workflow.ts` | `*.orchestration.ts` |
 | concept: "workflow" | concept: "orchestration" |
 | name: `ClaimTaskWorkflow` (or a loose `claimTask` function) | `ClaimTaskOrchestration` (a class) |
-| "workflow" = durable/long-running execution | reserved for the future **infrastructure** engine |
+| "workflow" = durable/long-running execution | not a term the playbook uses |
 
 Steps:
 
@@ -159,7 +176,6 @@ Steps:
 6. **Update references** in docs/code: cross-links to `orchestration.md`, and the
    [packages/core/end-here.md](./packages/core/end-here.md) **Orchestrations** section (was `checklist.md`).
 
-### Not changed / not yet built
+### Scope of this change
 
-The durable-execution **workflow engine** and a step-shaped authoring standard are deliberately
-deferred and tracked separately — this change is vocabulary and structure in the domain layer only.
+This change is vocabulary and structure in the domain layer only.

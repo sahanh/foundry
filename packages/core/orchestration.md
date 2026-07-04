@@ -16,7 +16,7 @@ This is the counterpart to Service-First: services stay integration-agnostic and
 
 An orchestration earns its place when a single use case spans **more than one service** — the same signal as Service-First's facade trigger ("more than 2-3 services to accomplish a use case"). Until then there is no orchestration: a use case one service accomplishes start to finish is a service concern.
 
-**The trigger is altitude, not duration.** An orchestration exists because a use case *coordinates multiple services* — never because it "runs long." How long a unit takes to execute, and whether it runs synchronously or as a background/durable job, is an **integration concern** decided per consumer (HTTP, worker, scheduled job), not a property of the domain. A single service method may legitimately take minutes; that does not make it an orchestration. Conversely, a fast three-service coordination *is* an orchestration. Keep duration out of the decision.
+**The trigger is altitude, not duration.** An orchestration exists because a use case *coordinates multiple services* — never because it "runs long." How long a unit takes to execute, and whether it runs synchronously or as a background job, is an **integration concern** decided per consumer (HTTP, worker, scheduled job), not a property of the domain. A single service method may legitimately take minutes; that does not make it an orchestration. Conversely, a fast three-service coordination *is* an orchestration. Keep duration out of the decision.
 
 ---
 
@@ -72,14 +72,11 @@ This keeps the service layer primitive (its purpose) while ensuring growth in co
 
 ---
 
-## Beyond the Convention: Reliability by Lifetime
+## Reliability: Synchronous Coordination Only
 
-*How* a multi-service use case runs **reliably** splits by lifetime:
+An orchestration describes *what* services are coordinated and in what order — a **domain** concept, silent on how long the coordination takes to run. A synchronous coordination is made **reliable** by the transaction boundary the orchestration owns (Guideline 5): it completes within one operation and is all-or-nothing. See [atomicity.md](./atomicity.md).
 
-- **Synchronous use cases** — an orchestration that completes within one operation is made all-or-nothing by the transaction boundary it owns (Guideline 5). See [atomicity.md](./atomicity.md).
-- **Durable / long-running** — anything that waits on the outside world, sleeps, retries, or must survive a crash cannot be wrapped in a transaction. Reliability there comes from retries, idempotency, and rollback/compensation, owned by a durable-execution engine — the workflow runtime.
-
-This is the boundary where the names divide: an *orchestration* (domain) describes *what* services are coordinated and in what order; the *workflow runtime* (infrastructure) decides *how* a durable coordination executes as checkpointed steps. The name **"workflow"** belongs to that runtime layer, keeping domain and infrastructure distinct. This doc covers how to **structure** coordination in the domain; atomicity.md and the workflow runtime cover how it runs.
+A coordination that must wait on the outside world, sleep, retry, or survive a crash **cannot** be wrapped in that boundary — see [atomicity.md → What a Transaction Cannot Span](./atomicity.md#what-a-transaction-cannot-span). Reliably executing that kind of long-running, multi-step work is **outside this playbook's current scope**: raise it (README → *When in doubt*) rather than forcing it into an orchestration-plus-transaction. Either way duration stays out of the domain — an orchestration is triggered by altitude, not by how it runs.
 
 ---
 

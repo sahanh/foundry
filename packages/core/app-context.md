@@ -52,7 +52,7 @@ await ctx.transaction(async (txCtx) => {
 }); // commit on return · rollback on any throw
 ```
 
-It wraps `ctx.system.db.transaction`, derives a context whose `system.db` is the transaction handle, and passes that `txCtx` to every service so all their writes run on the same transaction. A service is unaware it is inside a boundary — it always calls `ctx.system.db`, which is the transaction when one is open. A nested `ctx.transaction` joins the open one rather than opening a second top-level transaction. Full rules — who owns the boundary, why side effects wait until after commit, and how this differs from durable workflows — are in [atomicity.md](./atomicity.md).
+It wraps `ctx.system.db.transaction`, derives a context whose `system.db` is the transaction handle, and passes that `txCtx` to every service so all their writes run on the same transaction. A service is unaware it is inside a boundary — it always calls `ctx.system.db`, which is the transaction when one is open. A nested `ctx.transaction` joins the open one rather than opening a second top-level transaction. Full rules — who owns the boundary, why side effects wait until after commit, and what a transaction cannot span — are in [atomicity.md](./atomicity.md).
 
 ## The Clock — `ctx.system.clock`
 

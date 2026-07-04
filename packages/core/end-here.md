@@ -52,7 +52,7 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 ## Atomicity → [atomicity.md](./atomicity.md)
 - [ ] Does each multi-write use case run inside one `ctx.transaction` boundary owned by the outermost caller?
 - [ ] Are all non-DB side effects dispatched *after* the boundary commits — never inside it?
-- [ ] Is the use case correctly classified: atomic (transaction) vs durable (compensation)?
+- [ ] Is the use case genuinely synchronous — completing in one operation, not one that waits on the outside world, sleeps, retries, or must survive a restart (which a transaction cannot span, and which this playbook does not yet cover)?
 
 ## AppContext → [app-context.md](./app-context.md)
 - [ ] Does every service receive AppContext through its constructor?

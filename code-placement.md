@@ -26,7 +26,7 @@ packages/              ← libraries: consumed, never run on their own
     src/
       system/            driven adapters the core depends on (db, logger, clock)
       <feature>/         the domain layer (business logic)
-  workflow/              a driven adapter that graduated out of core (example)
+  notifications/         a driven adapter that graduated out of core (example)
 ```
 
 **`packages/core` is the hexagon**: the domain layer (framework-agnostic business logic) together with the driven infrastructure it cannot live without (`core/src/system/`). It is meant to be reusable and to sit *beside* an integration framework — which ships its own `src/` — and be consumed by it. That is why it has a package identity (`@app/core`) rather than being a loose `src/` folder: you import it by name, the way you import any dependency.
@@ -98,7 +98,7 @@ Q3 is the same "climb on a real signal, not in anticipation" ladder used for ser
 | MCP server (tools call your services) | no | inbound | — | `apps/mcp/` |
 | REST API (Express/Hono routes) | no | inbound | — | `apps/rest-api/` |
 | Queue worker (consumes jobs) | no | inbound | — | `apps/worker/` |
-| Durable-execution engine | no | outbound | heavy engine, reused → **graduates** | `packages/workflow/` |
+| Notifications (templates, multi-channel, read by a settings page) | no | outbound | own lifecycle + non-domain consumer → **graduates** | `packages/notifications/` |
 | Database (Drizzle/Postgres) | no | outbound | baseline → stays | `packages/core/src/system/db/` |
 | Logger | no | outbound | baseline → stays | `packages/core/src/system/logger/` |
 | Clock (injectable now-source) | no | outbound | baseline → stays | `packages/core/src/system/clock/` |

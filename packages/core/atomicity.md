@@ -2,7 +2,7 @@
 
 How a use case stays all-or-nothing. Every write in a single use case commits together or not at all, enforced by one transaction boundary owned by the outermost caller and carried on `ctx`.
 
-> **Scope:** this doc covers *synchronous* use cases — those that complete within one operation. Long-running, durable workflows (the workflow runtime) are explicitly **not** atomic and use compensation instead; see [Atomic vs Durable](#atomic-vs-durable) below.
+> **Scope:** this doc covers *synchronous* use cases — those that complete within one operation. A use case that waits on the outside world, sleeps, retries, or must survive a restart cannot be made atomic by a shared transaction and is **out of scope here**; see [What a Transaction Cannot Span](#what-a-transaction-cannot-span) below.
 
 ## Core Principle
 
@@ -56,20 +56,13 @@ await new FulfillmentService(ctx).enqueue(order);
 
 ---
 
-## Atomic vs Durable
+## What a Transaction Cannot Span
 
-Atomic orchestration and the durable workflow runtime solve different problems. A use case is one or the other — never both.
+A transaction is all-or-nothing but effectively instantaneous — it holds locks and a connection open for its whole duration, so it **cannot be held across a wait**. A sleep, a retry with backoff, an external call you must await, or a process restart all break it.
 
-| | Atomic orchestration | Durable workflow |
-|---|---|---|
-| Spans | one operation, one transaction | time, restarts, external waits |
-| Failure model | rollback (all-or-nothing) | compensation + idempotent tasks |
-| Sleeps / retries / parallel | none | yes |
-| Home | services & orchestrations (this doc) | `packages/workflow/` |
+So a use case that must wait on the outside world, sleep, retry, or survive a crash **cannot be made atomic by one shared transaction**. That kind of long-running, multi-step execution is **outside this playbook's current scope** — if you hit one, raise it (see the README's *When in doubt*) rather than stretching a transaction across the waits, or splitting the use case silently across several commits and hoping.
 
-You **cannot** hold a transaction across a sleep, a retry, or a process restart — so anything that waits on the outside world or must survive a crash belongs to the durable runtime, where reliability comes from compensation and idempotent tasks, not a shared transaction.
-
-**Per-task atomicity inside a durable workflow.** The two compose at the task level: an individual `ctx.task` may wrap *its own* writes in a transaction. Atomicity there is per-task, never per-workflow — the workflow as a whole is durable, and each task it runs can be atomic.
+**Atomicity still applies per step.** Within such a longer process, each discrete step's *own* writes can be wrapped in its own transaction. Atomicity is per step, never across the whole process — the process as a whole is not atomic, but each individual write it performs can be.
 
 ---
 
@@ -85,7 +78,7 @@ A read-then-write uniqueness check is still subject to a race under concurrency 
 
 - **Read-only use cases** — nothing to commit; wrapping them adds overhead and signals intent that isn't there.
 - **Single-write use cases** — one write is already atomic; a boundary is ceremony.
-- **Durable / long-running use cases** — see [Atomic vs Durable](#atomic-vs-durable); use the workflow runtime.
+- **Long-running use cases** — those that wait on the outside world, sleep, retry, or must survive a restart; a transaction cannot span them. See [What a Transaction Cannot Span](#what-a-transaction-cannot-span).
 
 ---
 
@@ -95,7 +88,7 @@ A read-then-write uniqueness check is still subject to a race under concurrency 
 - **A second top-level transaction** — an inner service opening its own boundary instead of joining the outer one, splitting one use case across two commits.
 - **Partial use case** — some writes inside the boundary and some outside it, so a failure leaves the database half-updated.
 - **Relying on a guard read for uniqueness under concurrency** — a check-then-insert with no database constraint behind it.
-- **Trying to make a durable workflow atomic** — holding a transaction across sleeps or retries; this is the durable runtime's job, via compensation.
+- **Holding a transaction across a wait** — keeping a boundary open across a sleep, a retry, or an external call; a transaction cannot span those (see [What a Transaction Cannot Span](#what-a-transaction-cannot-span)).
 
 ---
 
