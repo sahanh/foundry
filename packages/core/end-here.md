@@ -26,7 +26,7 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 
 ## Services → [service-first-architecture.md](./service-first-architecture.md)
 - [ ] Was the domain boundary decision confirmed with the user before implementation started?
-- [ ] Does the constructor-injected entity get used by every method? (If not, logic is misplaced.)
+- [ ] Is every constructor-injected dependency used across the service's methods, and is no object repeatedly passed as a method parameter that should be injected instead? (Cohesion decides what the constructor takes — not an entity count; an unused injected scope means logic is misplaced.)
 - [ ] Does a consumer touch ≤ 2–3 services to accomplish a use case?
 - [ ] Is the granularity right for the scope — not split prematurely, not left coarse after it grew?
 - [ ] Are services lifecycle-agnostic — no self-instantiation, no reaching for globals?

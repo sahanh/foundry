@@ -19,14 +19,14 @@ AppContext
 
 ## Constructor Injection
 
-AppContext is passed to a service alongside its domain entity:
+AppContext is passed to a service alongside the domain scope it operates on — one entity in the common case:
 
 ```
 new TodoService(todo, ctx)
 new TodoCommentService(comment, ctx)
 ```
 
-The service stores the context and uses it across all its methods. This keeps dependencies explicit — a service's constructor signature is a complete declaration of what it needs.
+What else a constructor takes is not fixed — the scope may be one entity, several, or nothing beyond `ctx`; it is derived from cohesion, per [service-first-architecture.md → Validation: The Constructor Declares the Scope](./service-first-architecture.md). The service stores the context and uses it across all its methods. This keeps dependencies explicit — a service's constructor signature is a complete declaration of what it needs.
 
 ## Why AppContext, Not Direct Imports
 

@@ -23,7 +23,7 @@ orderService.calculateTotal();
 orderService.applyDiscount(discountCode);
 ```
 
-This pattern keeps business operations cohesive and discoverable.
+This pattern keeps business operations cohesive and discoverable. A single entity is the common shape, not a ceiling — what a constructor takes is derived from cohesion, not fixed by a rule; see *Validation: The Constructor Declares the Scope* under Service Decomposition below.
 
 ### 2. Lifecycle Management
 
@@ -76,7 +76,7 @@ Use this checklist when designing service architecture:
 - [ ] Do arguments feel natural to the consumer?
 - [ ] Is the number of services the consumer interacts with ≤ 2-3?
 - [ ] Does extracting a new service improve consumer experience?
-- [ ] Is the constructor-injected entity used by every method?
+- [ ] Is every constructor-injected dependency used across the service's methods — and is nothing repeatedly passed as a method parameter that should be injected instead?
 
 ### 4. Decide Domain Boundaries First
 
@@ -126,21 +126,29 @@ Service names follow directly from the role. The naming pattern is consistent ac
 
 A collection service may depend on its single-entity counterpart for per-entity logic — that dependency goes in one direction only (collection → single, never the reverse).
 
-#### Validation: Constructor Injection Test
+#### Validation: The Constructor Declares the Scope
 
-Once you have candidate services, validate the decomposition by examining constructor dependencies:
+Once you have candidate services, validate the decomposition by examining constructor dependencies. The playbook does not prescribe what any service's constructor takes — service design cannot be enforced by a rule. What it gives is the principle to derive the constructor from: **high cohesion**. A service's constructor declares the domain scope its methods collectively operate on — inject exactly that, and nothing more. (This is the classic cohesion test: a class is cohesive when its methods all use the state it holds; the LCOM metric formalizes it.)
 
-**The entity injected via constructor should be used by every method.** If not, it signals misplaced logic:
+Constructor arity follows from the scope, not the other way round. One entity is the **common case, not a law** — the scope may be one entity, several, or nothing beyond `ctx`. Choose the shape that makes the service trivial to instantiate and test: an explicit constructor is a complete, fixture-friendly declaration of what the service needs, in line with the lifecycle rules above (dependencies through the constructor, never globals).
 
-- **Parameter repetition smell** — If multiple methods need the same entity passed as a parameter (rather than using the constructor-injected one), those methods belong in a service scoped to that entity.
-- **Unused dependency smell** — If some methods don't use the constructor-injected entity at all, those methods belong in a different service.
+Two smells read directly off the constructor — both are cohesion failures, not violations of an entity count:
+
+- **Unused dependency smell** — an injected dependency that some methods never touch is not part of this service's scope. Either those methods belong in a different service, or the dependency should not be injected.
+- **Parameter repetition smell** — the same object passed as a parameter to method after method is a dependency wanting to be injected: those methods share a scope the constructor should declare.
+
+The principle applied — illustrations, not prescriptions:
+
+- `new TodoService(todo, ctx)` — the common single-entity case; every method operates on the injected todo.
+- A `TodoCollectionService` owns no single instance — its constructor declares whatever scope its methods actually share, which may be a parent entity, some other bounding object, or nothing beyond `ctx`. Derive it from cohesion, not from the role's name.
+- If todos and comments grow behaviour that genuinely operates on both — say a `TodoCommentAnalysisService` — injecting *two* entities (`new TodoCommentAnalysisService(todo, comment, ctx)`) is perfectly cohesive, provided its methods use both.
 
 #### Granularity Scales with Scope
 
 The same feature spans a range of granularity, sized to its scope. A todo feature, for example:
 
 - **Simple** — one `TodoService` owns todo CRUD, comments, and attachments.
-- **Grown** — comments earn `TodoCommentsService` once the constructor-injection smell appears (comment methods aren't really operating on the todo).
+- **Grown** — comments earn `TodoCommentsService` once the cohesion smell appears (comment methods aren't really operating on the injected todo).
 - **Complex** — a cluster (activity = comments + status changes + attachments) graduates into a nested sub-feature folder `activity/` with its own services (`ActivityCommentsService`, `ActivityAttachmentService`).
 
 **The ladder:** inline in one service → its own service → nested sub-feature folder. Climb one rung at a time. Folder nesting mirrors the ownership tree the feature-design process produces (`todo ⊃ activity ⊃ comment/attachment`).

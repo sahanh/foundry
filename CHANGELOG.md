@@ -5,6 +5,26 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-06 — Constructor-injection test reframed: cohesion decides the constructor, not an entity count
+
+The service-decomposition rule "the entity injected via constructor should be used by every method"
+assumed every service owns exactly one entity — leaving `{Entity}CollectionService` (nothing single to
+inject) and multi-entity services with no answer. The rule is now stated as what it always was
+underneath: a **high-cohesion** check. The constructor declares the domain scope the service's methods
+share; arity follows from that scope (one entity, several, or `ctx` only) and is **never prescribed**;
+the two smells (unused dependency, repeated parameter) are cohesion diagnostics, not violations of an
+entity count. The section formerly titled *Validation: Constructor Injection Test* is now *Validation:
+The Constructor Declares the Scope*.
+
+Affects anyone who applied the old one-entity rule — in particular any collection or multi-entity
+service designed (or avoided) because of it. Re-check against
+[packages/core/service-first-architecture.md](./packages/core/service-first-architecture.md) → *Service
+Decomposition → Validation: The Constructor Declares the Scope*,
+[packages/core/app-context.md](./packages/core/app-context.md) → *Constructor Injection*, and the
+constructor box in [packages/core/end-here.md](./packages/core/end-here.md) → *Services*.
+
+---
+
 ## 2026-07-05 — New: logic-placement.md (placement & promotion spine)
 
 A new domain-core guideline, [packages/core/logic-placement.md](./packages/core/logic-placement.md),

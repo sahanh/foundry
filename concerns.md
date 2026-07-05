@@ -37,15 +37,6 @@ actor/principal field**, and services are constructed as `new TodoService(todo, 
 
 **Anchor:** `app-context.md`, `implementation-validation.md`.
 
-### 5. Collection services break the constructor-injection test and the docs never resolve it — `open`
-
-The decomposition rule is "the injected entity is used by every method" (`service-first-architecture.md:133`),
-but a `{Entity}CollectionService` (`TodoCollectionService.create()`/`list()`) has no single entity to inject —
-it creates and lists them. The docs bless collection services as a role (`start-here.md:89`) but never carve
-them out of the injected-entity test or state what their constructor takes (parent entity? just `ctx`?).
-
-**Anchor:** `service-first-architecture.md`, `app-context.md:22`.
-
 ### 6. Cross-cutting helpers have no legal home under the folder rules — `open`
 
 `newId()`/`entityId()` and the mandated "single prefix registry" (`identifiers.md:19`), the `AppContext`
@@ -156,6 +147,12 @@ layer still needs its spec:
 ## Resolved (no longer valid)
 
 Dropped from the backlog because the restructures closed them. Listed so an old concern can be traced.
+
+- **Collection services break the constructor-injection test** *(was #5)* — resolved 2026-07-06 by
+  reframing the one-entity test as a high-cohesion guideline
+  (`service-first-architecture.md` → *Validation: The Constructor Declares the Scope*): the constructor
+  declares the domain scope the methods share, arity is derived from cohesion (one entity, several, or
+  `ctx` only) and never prescribed — so a collection service no longer breaks anything.
 
 - **workflow README contradicts its PRD/database-design** *(was #1)* — the entire `packages/workflow/` tree
   (`README.md`, `prd.md`, `database-design.md`, `documentation.md`, `project-strcuture.md`,

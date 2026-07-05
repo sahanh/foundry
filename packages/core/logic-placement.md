@@ -70,7 +70,7 @@ Logic has a current home and climbs to a heavier one when a signal appears. The 
 |---|---|---|---|
 | **R0** | inline in a service method | first implementation | [service-first](./service-first-architecture.md) |
 | **R1** | extracted **private method** (same service) | the method grows long, or the same step repeats **within that one service** | [service-first](./service-first-architecture.md) |
-| **R2** | its **own service** (same feature) | the *constructor-injection smell* — the logic isn't really about this service's entity | [service-first](./service-first-architecture.md) |
+| **R2** | its **own service** (same feature) | the *cohesion smell* — the logic doesn't operate on this service's injected scope | [service-first](./service-first-architecture.md) |
 | **R3** | **`shared/`** (feature-level) — `utils.ts` (pure helper) or `validation.ts` (guard) | a **2nd service in the feature** needs the same helper/assertion | [implementation-validation](./implementation-validation.md) |
 | **R4** | **orchestration** | the use case coordinates **2+ services**, or another feature's **data** flows into it | [orchestration](./orchestration.md) |
 
@@ -173,7 +173,7 @@ Run this on any service-layer touch — new logic, or a change that might have i
    `shared/utils.ts` if it's a pure helper.
 2. Does the use case coordinate **2+ services**, or does another feature's **data** flow into it? →
    **orchestration (R4)**, in the outcome-owning feature.
-3. Does the behavior **not really belong to this service's entity** (constructor-injection smell)? →
+3. Does the behavior **not operate on this service's injected scope** (the cohesion smell — see service-first → *The Constructor Declares the Scope*)? →
    **its own service (R2)**, same feature.
 4. Otherwise → it **stays where it is** (R0/R1). Don't climb without a signal.
 
