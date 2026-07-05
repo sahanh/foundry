@@ -79,6 +79,7 @@ These apply to *any* change regardless of what was touched — run them once acr
 
 - **One home for every piece of code** — a feature, a driven adapter, or a driving-adapter app; anything else needs explicit confirmation.
 - **Dependencies point one way** — driving → domain → driven; the core never imports an app, a driven adapter never imports the domain.
+- **Cross-feature crossings have exactly two shapes** — an owner-exported guard (a verdict; returns `void`) or an orchestration (data). Any other cross-feature import in domain code — a foreign service injected, a foreign table read, a guard returning an entity — fails review.
 - **Business logic lives in the domain, integration-agnostic** — not in controllers or adapters.
 - **Single source of truth; define once, derive the rest** — schemas infer types; boundaries reuse core schemas.
 - **Climb on a real signal, not in anticipation** — services, sub-features, adapter graduation, shared-validation extraction all wait for the second signal.

@@ -47,7 +47,8 @@ Inside a single feature folder:
   schemas/        - Zod schemas + inferred type exports (see implementation-schemas.md)
   shared/
     validation.ts - shared business-rule guards reused by services/orchestrations; throw a domain
-                    exception (see implementation-validation.md)
+                    exception; may be exported as the feature's cross-feature contract — the one
+                    thing another feature's domain code may import (see implementation-validation.md)
     utils.ts      - non-domain helper functions
   __tests__/      - <name>.unit.ts (unit) · <name>.integration.ts (integration)
                     (see testing.md)

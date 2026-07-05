@@ -30,6 +30,8 @@ The orchestration reads as an ordered list of service calls. If a step does more
 
 Cross-service coordination goes **up** into an orchestration, never sideways between services. A service that imports another service is a smell — the dependency belongs in the orchestration. This keeps each service independently testable and unaware of the others. The orchestration is the **only** domain unit permitted to inject more than one service.
 
+A shared-validation **guard** is not a service — including one exported by another feature. A service calling `requireActiveUser(ctx, id)` is asserting a rule, not injecting a collaborator; that is a *verdict* crossing, not a sideways call. See [implementation-validation.md → Cross-Feature Guards](./implementation-validation.md#cross-feature-guards).
+
 ### 3. Validation Is Thin
 
 An orchestration validates only the inputs handed to it — schema parse, plus shared `validation.ts` guards to confirm referenced entities exist — then delegates. It defines no business rules of its own; every domain rule, state check, and invariant lives in the services it calls. See [Validation](./implementation-validation.md).
@@ -69,6 +71,8 @@ A use case often starts as a single-service operation and later grows a second-s
 3. **Prefer the orchestration going forward.** Once an orchestration exists for a use case, consumers use it rather than re-stitching the raw service methods themselves. Optionally, note in the orchestration which service operation(s) it supersedes, so the relationship is discoverable.
 
 This keeps the service layer primitive (its purpose) while ensuring growth in coordination is captured in one visible place instead of duplicated across consumers.
+
+**Verdict vs. data — when a cross-feature concern does _not_ trigger promotion.** Needing another feature's *data* in the flow (its entity fields feed the use case) is a genuine second-service concern: promote. Needing only another feature's *verdict* (a yes/no its guard can answer) is **not** — call the exported guard and stay a single-service method. Don't promote a use case to an orchestration merely to ask another feature a question; that inflates the orchestration layer. See [implementation-validation.md → Cross-Feature Guards](./implementation-validation.md#cross-feature-guards).
 
 ---
 

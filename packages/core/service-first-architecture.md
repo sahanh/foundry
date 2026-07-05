@@ -6,7 +6,7 @@ How to design and write the `services/` submodule of a feature. Influenced by Do
 
 ## Core Principle
 
-**A service owns the business logic for its entity.** All business rules, calculations, and entity transformations for a domain entity live in its service — not in controllers or integration code. Multi-service coordination is a separate concern (orchestrations); a service stays focused on its own entity and never injects or calls another service.
+**A service owns the business logic for its entity.** All business rules, calculations, and entity transformations for a domain entity live in its service — not in controllers or integration code. Multi-service coordination is a separate concern (orchestrations); a service stays focused on its own entity and never injects or calls another service. (Calling another feature's exported validation *guard* is not a service call — a guard is a plain function that asserts a rule and returns `void`; see [implementation-validation.md → Cross-Feature Guards](./implementation-validation.md#cross-feature-guards).)
 
 ---
 

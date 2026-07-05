@@ -30,11 +30,13 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 - [ ] Does a consumer touch ≤ 2–3 services to accomplish a use case?
 - [ ] Is the granularity right for the scope — not split prematurely, not left coarse after it grew?
 - [ ] Are services lifecycle-agnostic — no self-instantiation, no reaching for globals?
+- [ ] Does a service reach other features only via their exported guards (verdicts), never by injecting their services or reading their tables?
 
 ## Validation & exceptions → [implementation-validation.md](./implementation-validation.md)
 - [ ] Does each service validate its own inputs — schema parse, then its business rules?
 - [ ] Are checks reused by ≥ 2 callers (and only those) extracted to `shared/validation.ts`?
 - [ ] One domain exception per feature, carrying structured context — thrown by services, guards, and orchestrations alike?
+- [ ] Does every **cross-feature** guard return `void`, read only its owner's tables, and throw its owner's exception — never returning the entity to the caller?
 
 ## Orchestrations → [orchestration.md](./orchestration.md)
 - [ ] For each multi-service use case, does an orchestration own the sequencing — with no business rules of its own?
@@ -46,7 +48,7 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 ## Database → [working-with-databases.md](./working-with-databases.md)
 - [ ] Do services call Drizzle directly via `ctx.system.db` — no repository layer between them?
 - [ ] Does each service only touch the tables that belong to its feature?
-- [ ] Is cross-feature data access going through the owning feature's service, not the DB directly?
+- [ ] Is cross-feature access going through the owning feature's service (from an orchestration) or its exported guard (from a service), never the DB directly?
 - [ ] Are domain timestamp columns `NOT NULL` with no DB default, stamped by wrapping the write's values in `ctx.system.helpers` (`timestamps(values)` on create, `updatedAt(values)` on update) — and set nowhere else (no hand-written `createdAt`/`updatedAt`)?
 
 ## Atomicity → [atomicity.md](./atomicity.md)

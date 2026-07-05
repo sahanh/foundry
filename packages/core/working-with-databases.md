@@ -14,9 +14,12 @@ Each table belongs to exactly one feature — a feature can own multiple tables,
 
 ## Cross-Feature Data Access
 
-If feature A needs data owned by feature B, it goes through feature B's service. Direct database access across feature boundaries is not allowed.
+If feature A needs something owned by feature B, it never reaches B's tables directly — but *how* it goes through B depends on whether it needs a verdict or data:
 
-This mirrors the rule that services within a feature coordinate through orchestrations — cross-feature data access follows the same principle: go through the owning service, not around it. An orchestration owns no tables of its own; it reaches data only through the services it coordinates, so the single-owner-per-table seam is never widened.
+- **From a service — a verdict.** When A's own service must assert a rule B owns ("is this user active?"), it calls B's exported **cross-feature guard** from B's `shared/validation.ts`. The guard reads only B's tables, throws B's exception, and returns `void`. A's service never injects B's service (that would break Service-First) and never touches B's tables. See [implementation-validation.md → Cross-Feature Guards](./implementation-validation.md#cross-feature-guards).
+- **From an orchestration — data.** When B's *entity* must flow into the use case, that use case is multi-service by definition: an [orchestration](./orchestration.md) reaches the data through B's service and hands it onward. An orchestration owns no tables of its own, so the single-owner-per-table seam is never widened.
+
+The one thing that never happens either way: A reading or writing B's tables directly. The only legal cross-feature import for domain code is another feature's `shared/validation.ts`.
 
 ## Anti-Patterns
 

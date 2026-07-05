@@ -5,6 +5,26 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-05 — Cross-feature access: owner-exported guards for verdicts, orchestrations for data
+
+Two playbook rules deadlocked whenever a business rule needed another feature's data: a feature must
+reach another's data *through its service* (working-with-databases), yet a service *never injects or
+calls another service* (service-first / orchestration). Cross-feature checks like "is this user
+active?" had no legal path. There are now two named legal crossings, and the shared-guard contract
+gained a cross-feature tier: a **cross-feature guard returns `void`** (asserts a verdict, throws the
+owner's exception), while anything needing the other feature's **data** is an orchestration.
+
+Affects any code where a feature reads another feature's tables, injects another feature's service,
+or has a `shared/validation.ts` guard that returns an entity to a cross-feature caller (e.g.
+pre-existing `requireAuthor`-style checks). Re-check against
+[packages/core/implementation-validation.md](./packages/core/implementation-validation.md#cross-feature-guards)
+→ *Cross-Feature Guards*, [packages/core/working-with-databases.md](./packages/core/working-with-databases.md)
+→ *Cross-Feature Data Access*, [packages/core/orchestration.md](./packages/core/orchestration.md)
+→ *Services Never Call Each Other* & *Promotion*, and the new boxes in
+[packages/core/end-here.md](./packages/core/end-here.md) → Validation / Services / Database.
+
+---
+
 ## 2026-07-05 — Removed the durable workflow runtime
 
 The playbook no longer references a durable **workflow runtime** / `packages/workflow/` engine. It

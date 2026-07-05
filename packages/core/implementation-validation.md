@@ -137,7 +137,7 @@ Call services in sequence  ← each service validates its own business rules
 
 ## Shared Validation Helpers
 
-**By default, validation lives inside the service that owns the operation** — that is the rule. This layer is the exception: when the *same* business-rule check keeps recurring across services (the author-existence check we kept writing in every todo/comment service is the canonical example), extract that shared subset into `shared/validation.ts` so it lives in one place. The shared module is for de-duplicating recurring domain validation, not the default home for validation.
+**By default, validation lives inside the service that owns the operation** — that is the rule. This layer is the exception: when the *same* business-rule check keeps recurring across a feature's services (a parent-exists check written in several of the feature's own services is the typical case), extract that shared subset into `shared/validation.ts` so it lives in one place. The shared module is for de-duplicating recurring domain validation, not the default home for validation.
 
 ### The Contract
 
@@ -147,11 +147,30 @@ A guard **may perform IO** — it commonly checks existence or uniqueness agains
 
 ### What Belongs There
 
-- **Referential checks** — "the referenced user/parent/owner exists" (e.g. `requireAuthor`).
+- **Referential checks** — "the referenced parent/owner exists" (e.g. a guard confirming a parent record exists before a child is attached).
 - **Uniqueness** — a name or identifier is unique within its scope.
 - **Relationship / ownership invariants** — this entity belongs to that parent; this operation is allowed for this owner.
 
 Only the checks **reused by two or more** services/orchestrations belong here. A check used by exactly one service stays inline in that service — extract it on the *second* caller, not in anticipation. This mirrors the playbook's "extract as a refactor, not upfront" stance.
+
+### Cross-Feature Guards
+
+A feature's `shared/validation.ts` is also its **published contract**: those guards are the one thing another feature's domain code may import from it. When feature A must assert a rule that feature B owns — a todo service checking "is this user active?" — B *exports* the guard and A calls it. Nothing else of B's crosses the boundary: not its tables, not its services.
+
+This is where the guard contract **tightens**. A guard used only *within* its own feature keeps the full contract above — it may return the entity it just confirmed. A **cross-feature guard returns `void`**: it asserts and throws, and hands nothing back. It reads only its owner's tables (through the `ctx` passed in) and throws its owner's domain exception. The *verdict* crosses the boundary; the *data* does not.
+
+The routing rule follows directly:
+
+- **A needs B's _verdict_** — a yes/no about B's state → B exports a cross-feature guard; A calls it and stays a service.
+- **A needs B's _data_** — a field of B's entity flows into A's own logic → that is genuinely multi-service; promote to an [orchestration](./orchestration.md), the one unit allowed to inject both services. A guard is the wrong tool here — the moment you want it to *return* B's entity, it is no longer a guard.
+
+The `void` return is what keeps the two apart: you cannot smuggle data through a guard that hands nothing back, so a check can never quietly decay into a read. A cross-feature guard whose signature returns an entity is the **guard-as-read-API** drift — and it is visible in one line.
+
+This is the Domain Service from Domain-Driven Design — a named, stateless domain operation owned by one model — constrained to a published, verdict-only shape, the same boundary a modular monolith draws with a module's public API.
+
+**Reuse threshold.** The "extract on the second caller" rule above is about de-duplicating a check *within* a feature. A cross-feature guard is different: it is a boundary contract, so it lives in the owner's `shared/validation.ts` from the **first** cross-feature caller — there is no other legal place for the crossing to happen. The canonical author-existence check (`requireAuthor` / `requireActiveUser`) is therefore a guard the **user** feature exports from `user/shared/validation.ts`, called by the todo and comment services — not a todo-feature guard reaching into the users table.
+
+**Keep the feature dependency graph acyclic.** Exporting guards makes one feature depend on another's contract; let those dependencies point one direction (a `todo` feature depending on `user`, not the reverse). A cycle of cross-feature guards is a sign two features are really one.
 
 ### Relationship to In-Service Validation
 
@@ -170,6 +189,8 @@ These guards are also what a **orchestration** uses for its thin input validatio
 - **Implicit constraints** — Database errors surfacing instead of explicit validation
 - **Over-engineered exceptions** — Creating granular exception types before they're needed
 - **Business rules in a orchestration** — Validation beyond input/existence checks that belongs in a service
+- **Guard as read API** — A cross-feature guard that returns an entity instead of `void`, letting the caller read another feature's data through what is nominally a check
+- **Foreign guard, local exception** — A caller catching another feature's guard exception only to re-wrap it in its own; the owner's exception should propagate unchanged
 
 ---
 
