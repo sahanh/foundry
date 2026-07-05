@@ -5,6 +5,27 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-05 — New: logic-placement.md (placement & promotion spine)
+
+A new domain-core guideline, [packages/core/logic-placement.md](./packages/core/logic-placement.md),
+now owns the decision of *which construct a piece of business logic lives in* — an inline service
+method, its own service, a shared `shared/validation.ts` guard, or an orchestration — and *when to
+promote it* as requirements grow. It names two independent axes (service-count altitude vs feature
+boundary), the promotion ladder as one lifecycle, the **backfill obligation** (every promotion
+re-points the old callers — generalizing orchestration's *stranded callers* rule to every rung), and
+where a promoted guard/orchestration lives.
+
+Affects anyone deciding where new service-layer logic goes, or refactoring logic that outgrew its
+home — consult it whenever you touch the service layer. **Note:** this pass introduces the spine; the
+promotion/granularity detail currently *also* in [service-first-architecture.md](./packages/core/service-first-architecture.md)
+(§5), [orchestration.md](./packages/core/orchestration.md) (*When an Orchestration Exists* / *Promotion*),
+and [implementation-validation.md](./packages/core/implementation-validation.md) (second-caller
+extraction) will be consolidated into the spine in a follow-up — until then those sections remain the
+detailed reference. Verify via [packages/core/end-here.md](./packages/core/end-here.md) → *Placement &
+promotion*.
+
+---
+
 ## 2026-07-05 — Cross-feature access: owner-exported guards for verdicts, orchestrations for data
 
 Two playbook rules deadlocked whenever a business rule needed another feature's data: a feature must

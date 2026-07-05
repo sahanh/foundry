@@ -45,6 +45,11 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 - [ ] Is the orchestration triggered by altitude (it coordinates 2+ services), not by duration?
 - [ ] When a use case was promoted from a service method to an orchestration, were the direct callers of the superseded service method re-evaluated?
 
+## Placement & promotion → [logic-placement.md](./logic-placement.md)
+- [ ] Is each piece of logic at the lowest rung that fits — not split into its own service, guard, or orchestration before a real (second) signal?
+- [ ] Is any orchestration triggered by service count (2+ services), not merely by crossing a feature boundary?
+- [ ] On any promotion, does the old home delegate to the new construct (no orphaned copy) and were existing callers re-evaluated so none are stranded?
+
 ## Database → [working-with-databases.md](./working-with-databases.md)
 - [ ] Do services call Drizzle directly via `ctx.system.db` — no repository layer between them?
 - [ ] Does each service only touch the tables that belong to its feature?

@@ -63,6 +63,8 @@ For each mapped node, look up its guideline(s) and the `end-here` that owns its 
 | tests | [testing.md](./packages/core/testing.md) | [core/end-here.md](./packages/core/end-here.md) → Testing |
 | graduated package | [code-placement.md](./code-placement.md) (building a driven adapter) | [packages/end-here.md](./packages/end-here.md) |
 
+Service, orchestration, and shared-validation nodes also consult [logic-placement.md](./packages/core/logic-placement.md) for *which construct the logic belongs in and when to promote it* — the construct docs above own each construct's internal rules; the placement/promotion decision is owned there.
+
 ## Step 3 — Validate
 
 For each mapped node, validate its changed area against the routed guideline + `end-here`. Read the guideline for the *why*; use the `end-here` boxes as the pass/fail gate. Nodes are independent — you may validate them one at a time, or **launch a sub-agent per node** (each reads one guideline + that area's diff) and collect the results. Do not validate an area against a guideline it wasn't routed to.
@@ -82,7 +84,8 @@ These apply to *any* change regardless of what was touched — run them once acr
 - **Cross-feature crossings have exactly two shapes** — an owner-exported guard (a verdict; returns `void`) or an orchestration (data). Any other cross-feature import in domain code — a foreign service injected, a foreign table read, a guard returning an entity — fails review.
 - **Business logic lives in the domain, integration-agnostic** — not in controllers or adapters.
 - **Single source of truth; define once, derive the rest** — schemas infer types; boundaries reuse core schemas.
-- **Climb on a real signal, not in anticipation** — services, sub-features, adapter graduation, shared-validation extraction all wait for the second signal.
+- **Climb on a real signal, not in anticipation** — services, sub-features, adapter graduation, shared-validation extraction all wait for the second signal. The placement/promotion decision and this signal are owned by [logic-placement.md](./packages/core/logic-placement.md).
+- **Promotions are backfilled** — when logic moved up a rung (method → own service, → shared guard, → orchestration), the old home now delegates and existing callers were re-evaluated; nothing was left stranded.
 - **All-or-nothing; side effects after commit** — one transaction boundary, effects dispatched post-commit.
 
 ## Step 5 — Report
