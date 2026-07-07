@@ -80,12 +80,19 @@ engine, never given as a convention for retried API calls.)
 ### 11. Common persistence conventions are partly undecided — `partial`
 
 Decided: who sets `createdAt`/`updatedAt` — the service, via `ctx.system.helpers` sourced from the injected
-clock (`app-context.md:69-92`, `system/database.md:22`). The type-level enum question is also settled toward
-string-literal unions + `z.enum()`. Still undecided: **soft-delete vs hard-delete**, **audit trails** for
-domain data, and the **DB-column** enum question (`varchar` + Zod enum vs Postgres `pgEnum`) — `database.md`
-never states which. Without a rule these get decided ad hoc per feature.
+clock (`app-context.md` → Persistence timestamps, `system/database.md:22`) — and the type-level enum question
+(string-literal unions + `z.enum()`). **Decided 2026-07-07:** **hard-delete is the default**, with soft-delete
+a signal-driven exception using a nullable `deletedAt` tombstone stamped via `ctx.system.helpers`
+(`softDelete(values)`) and filtered once in the owning service (`working-with-databases.md` → Deletes,
+`system/database.md` → Table Definitions); and the **DB-column** enum question — store a `varchar` guarded by
+the schema's `z.enum()`, never `pgEnum` (`system/database.md` → Table Definitions / Anti-Patterns).
 
-**Anchor:** `app-context.md`, `system/database.md`.
+Still undecided — deliberately out of scope at the persistence-convention level: **audit trails** for domain
+data (a row-level history of who changed what, when). Not decided here; raise it as its own concern if a
+feature needs one. A real "who changed it" trail also depends on #4 — `AppContext` carries no actor/principal
+to attribute a change to.
+
+**Anchor:** `working-with-databases.md`, `system/database.md`, `app-context.md`.
 
 ## Scaling / five-year pressure points
 

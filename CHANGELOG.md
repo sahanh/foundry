@@ -5,6 +5,25 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-07 — Persistence conventions decided: hard-delete default, enum columns as varchar + z.enum()
+
+Two open persistence questions (concerns #11) are now decided rules. **Deletes:** hard-delete is the
+default; **soft-delete** is a signal-driven exception with a prescribed shape — a nullable `deletedAt`
+tombstone stamped via a new `ctx.system.helpers.softDelete(values)` and filtered once in the owning
+service. **Enum columns:** an enum-valued DB column is a `varchar` guarded by the schema's `z.enum()`,
+never Postgres **`pgEnum`**. (Audit trails, the third item under #11, are deliberately left out of scope
+at this level.)
+
+Affects any feature that deletes rows (a hand-rolled soft-delete flag, or a `deletedAt` filtered at call
+sites) or stores an enum-valued column (especially one backed by `pgEnum`). Re-check against
+[packages/core/working-with-databases.md](./packages/core/working-with-databases.md) → *Deletes*,
+[packages/core/system/database.md](./packages/core/system/database.md) → *Table Definitions* /
+*Anti-Patterns*, [packages/core/app-context.md](./packages/core/app-context.md) → *Persistence timestamps*,
+and the new boxes in [packages/core/end-here.md](./packages/core/end-here.md) → *Database* and
+[packages/core/system/end-here.md](./packages/core/system/end-here.md) → *Database adapter*.
+
+---
+
 ## 2026-07-07 — Orchestrations may own a cross-entity invariant
 
 Previously an orchestration held **no** business rules of its own — every rule lived in a service or a

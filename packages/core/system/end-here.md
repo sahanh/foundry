@@ -22,7 +22,9 @@ You usually arrive here routed by the root review protocol when it maps a touch 
 - [ ] Drizzle table names are **plural** (`todos`, `orders`)?
 - [ ] The primary-key column holds the **whole prefixed entity ID** (not split, not a bare UUID)?
 - [ ] Domain timestamp columns are `NOT NULL` with **no column default** (stamped by the app clock, not the DB)?
+- [ ] Is any soft-delete column a **nullable** `deletedAt` tombstone (the one nullable domain timestamp) — no column default, stamped in the domain?
 - [ ] Column constraints are reflected in the Zod schemas (schema ≥ DB, schema rejects first)?
+- [ ] Are enum-valued columns stored as `varchar` guarded by the schema's `z.enum([...])` — **not** `pgEnum`?
 - [ ] Migrations shipped in the same commit as the schema change, and are append-only?
 
 ## Logger adapter → [logging.md](./logging.md)

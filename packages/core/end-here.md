@@ -57,6 +57,7 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 - [ ] Does each service only touch the tables that belong to its feature?
 - [ ] Is cross-feature access going through the owning feature's service (from an orchestration) or its exported guard (from a service), never the DB directly?
 - [ ] Are domain timestamp columns `NOT NULL` with no DB default, stamped by wrapping the write's values in `ctx.system.helpers` (`timestamps(values)` on create, `updatedAt(values)` on update) — and set nowhere else (no hand-written `createdAt`/`updatedAt`)?
+- [ ] Are deletes hard by default — with soft-delete used only on a real signal, via a nullable `deletedAt` stamped through `ctx.system.helpers` (`softDelete(values)`) and filtered (`deletedAt IS NULL`) once in the owning service, not at call sites?
 
 ## Atomicity → [atomicity.md](./atomicity.md)
 - [ ] Does each multi-write use case run inside one `ctx.transaction` boundary owned by the outermost caller?

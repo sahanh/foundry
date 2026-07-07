@@ -77,12 +77,13 @@ Why an injected clock rather than the common `vi.setSystemTime` approach: system
 
 Timestamps that land in the database come from the clock too — so they are controllable in tests — but a database can't reach the injected clock (a column default runs in the DB or at module load, never per-request). So the **service stamps explicitly**, using a small helper built on the clock. This is not a repository: the service still owns the write and calls `ctx.system.db` directly; the helper only reads the injected clock and stamps the write.
 
-The helper **takes the write's values and returns them stamped** — one call is the whole write shape, so there is no separate "spread the timestamps in" step to forget. Two methods, one per write shape:
+The helper **takes the write's values and returns them stamped** — one call is the whole write shape, so there is no separate "spread the timestamps in" step to forget. Three methods, one per write shape:
 
 - `timestamps(values)` → a **new** object `{ ...values, createdAt, updatedAt }`, both stamps from a **single** captured `now()` (so a new row's created/updated match exactly — never call `now()` twice for one row).
 - `updatedAt(values)` → `{ ...values, updatedAt }`.
+- `softDelete(values)` → `{ ...values, deletedAt, updatedAt }`, both from a **single** captured `now()` — the soft-delete write shape, so a tombstoned row's `deletedAt` and `updatedAt` match exactly. Only for features that soft-delete (see [working-with-databases.md](./working-with-databases.md) → Deletes); hard-delete is the default and needs no helper.
 
-Both are **pure**: they return a new object and never mutate `values`, and they preserve the input type — `timestamps<T>(values: T): T & { createdAt: Date; updatedAt: Date }`.
+All three are **pure**: they return a new object and never mutate `values`, and they preserve the input type — `timestamps<T>(values: T): T & { createdAt: Date; updatedAt: Date }`.
 
 ```ts
 // create
@@ -94,9 +95,9 @@ ctx.system.db.update(tasks)
   .where(eq(tasks.id, id));
 ```
 
-The helper is the **sole** source of `createdAt`/`updatedAt` — pass the write's values *through* it and never also stamp those columns by hand. No `createdAt: now` in the values, no second `ctx.system.clock.now()` for the same row: a manual stamp sitting next to the helper is duplicate, un-clock-controlled time.
+The helper is the **sole** source of `createdAt`/`updatedAt` (and `deletedAt` when a feature soft-deletes) — pass the write's values *through* it and never also stamp those columns by hand. No `createdAt: now` in the values, no second `ctx.system.clock.now()` for the same row: a manual stamp sitting next to the helper is duplicate, un-clock-controlled time.
 
-Domain timestamp columns are defined `NOT NULL` with **no DB default**, so the app clock is the only source and a forgotten stamp fails loud — see [system/database.md](./system/database.md).
+Domain timestamp columns are defined `NOT NULL` with **no DB default**, so the app clock is the only source and a forgotten stamp fails loud — the one exception is a soft-delete `deletedAt`, which is nullable because its `null` carries meaning (the row is live) — see [system/database.md](./system/database.md).
 
 ### Minting IDs — `ctx.system.helpers.newId`
 

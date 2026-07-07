@@ -21,11 +21,25 @@ If feature A needs something owned by feature B, it never reaches B's tables dir
 
 The one thing that never happens either way: A reading or writing B's tables directly. The only legal cross-feature import for domain code is another feature's `shared/validation.ts`.
 
+## Deletes
+
+**Hard-delete is the default.** A service deletes the row outright via `ctx.system.db` — the row is gone. Do not give an entity a "deleted" flag in anticipation of one day needing it: that is a rung climbed without a signal, and it turns every read into a query that must remember to exclude dead rows — the first one that forgets leaks the whole table.
+
+Soft-delete is a deliberate exception, adopted only on a **real signal** — the entity must be recoverable, held for a legal or retention window, or support undo. When that signal is real:
+
+- The entity gets a nullable **`deletedAt`** tombstone column — `null` means live, a timestamp means deleted. See [system/database.md](./system/database.md) → Table Definitions.
+- The delete is a write like any other: stamp `deletedAt` through `ctx.system.helpers` (`softDelete(values)`), so it comes from the injected clock and is controllable in tests — never a hand-written `new Date()`, never a DB default. See [app-context.md](./app-context.md) → Persistence timestamps.
+- Because the service is the **sole seam** for its entity, the live-row filter (`deletedAt IS NULL`) lives once, in that service's reads — where the data is owned, not repeated at every call site.
+
+A cross-feature read layer, when it arrives ([concerns.md](../../concerns.md) #14), is the highest-risk place to leak soft-deleted rows — the one layer that reads tables without going through the owning service — so its filter obligation is structural, not per-query discipline.
+
 ## Anti-Patterns
 
 - **Repository wrapping the database client** — a class that proxies database calls without adding domain logic. The service already provides this abstraction.
 - **Cross-feature table access** — a service querying or writing to a table owned by a different feature, bypassing that feature's service and its business rules.
 - **Business logic in query construction** — complex conditionals embedded in a database call that should live in the service method or a named decision helper instead.
+- **Soft-delete by default** — a `deletedAt` / `isDeleted` column on an entity with no recoverability signal. It buys nothing and turns every read into a filter that leaks the whole table the first time one is forgotten. Hard-delete unless a real signal earns the tombstone.
+- **Filtering deleted rows outside the owning service** — repeating `deletedAt IS NULL` at call sites instead of once in the service that owns the table. The filter belongs at the single seam, or it will be missing at one.
 
 ---
 

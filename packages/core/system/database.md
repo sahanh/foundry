@@ -21,6 +21,10 @@ They will overlap heavily but are not derived from each other. The service maps 
 
 **Timestamps:** domain timestamp columns (`createdAt`, `updatedAt`, and similar) are `NOT NULL` with **no column default** — no `defaultNow()`, no `$defaultFn`. Like IDs, they are stamped in the domain at write time, via `ctx.system.helpers` (which reads the injected clock), never by the database. This makes the injected clock the single source of time — so timestamps are controllable in tests — and makes a forgotten stamp fail loud as a NOT-NULL violation rather than silently taking server time. See [app-context.md](../app-context.md) → Persistence Timestamps.
 
+**Soft-delete tombstone:** a feature that soft-deletes (see [working-with-databases.md](../working-with-databases.md) → Deletes) marks the row with a nullable `deletedAt` column — `null` means live, a timestamp means deleted. This is the **one** domain timestamp that is nullable: unlike `createdAt`/`updatedAt`, `deletedAt`'s `null` carries meaning, so it takes no `NOT NULL`. It is still stamped in the domain via `ctx.system.helpers` (`softDelete`) with **no column default** — never `defaultNow()`. Hard-delete is the default; a `deletedAt` column with no recoverability signal is a rung climbed too early.
+
+**Enum columns:** a column whose domain type is an enum is stored as a plain `varchar` (sized to its longest member), guarded by the field's `z.enum([...])` — the same schema-is-the-enforcer rule as the size constraints below. Do **not** use Postgres `pgEnum`: it makes the database the first rejecter and turns every value added, removed, or reordered into an `ALTER TYPE` migration. See [implementation-schemas.md](../implementation-schemas.md) → Explicit Over Implicit.
+
 **Column constraints must be reflected in Zod schemas:** every column with a size or format constraint (e.g. `varchar(255)`) must have a corresponding constraint in its Zod schema field (e.g. `.max(255)`). The schema is the enforcer — the database must never be the first thing that rejects input. See implementation-schemas.md → Mirror Storage Constraints.
 
 ## Migrations
@@ -52,6 +56,8 @@ Migrations run as an explicit step in the deployment pipeline before the applica
 - **Schema change without a migration** — the table definition and migration history go out of sync.
 - **Migration on app startup** — ties deployment concerns to application boot; a failed migration takes the application down with it.
 - **`defaultNow()` / a column default on a domain timestamp column** — bypasses the injected clock (breaking deterministic tests), and `defaultNow()` also stores microsecond precision that a JS `Date` truncates to milliseconds, breaking later timestamp comparisons. Stamp in the domain via `ctx.system.helpers` instead.
+- **`pgEnum` for a domain enum** — puts the value set in the database as the first rejecter and forces an `ALTER TYPE` migration to add, remove, or reorder a value. Store a `varchar` guarded by the schema's `z.enum([...])` instead.
+- **Soft-delete by default** — a `deletedAt` column on an entity with no recoverability signal. Hard-delete is the default; adopt a tombstone only on a real signal, and filter it in the owning service. See [working-with-databases.md](../working-with-databases.md) → Deletes.
 
 ---
 
