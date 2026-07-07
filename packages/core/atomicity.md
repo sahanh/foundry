@@ -68,9 +68,9 @@ So a use case that must wait on the outside world, sleep, retry, or survive a cr
 
 ## Validation Inside the Boundary
 
-Existence and uniqueness guards that read run *inside* the transaction, so they see a consistent snapshot (see [Validation](./implementation-validation.md)).
+Existence and uniqueness guards that read run *inside* the transaction, so they see a consistent snapshot (see [Validation](./implementation-validation.md)). A [cross-entity invariant](./orchestration.md#cross-entity-invariants) an orchestration enforces runs inside the same boundary, for the same reason — it must judge a consistent snapshot before the guarded write commits.
 
-A read-then-write uniqueness check is still subject to a race under concurrency — two transactions can both read "no duplicate" before either writes. Back it with a database unique constraint or a row lock; the guard read is not sufficient on its own.
+Any **read-then-write** check is still subject to a race under concurrency — a uniqueness check ("no duplicate"), a quota ("under the limit"), or an aggregate ("sum within cap") can all have two transactions both read "OK" before either writes. Back it with a database constraint or a row lock; the read is not sufficient on its own.
 
 ---
 

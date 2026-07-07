@@ -4,7 +4,7 @@ How to compose multiple services into one use case without leaking coordination 
 
 ## Core Principle
 
-**Services own business logic; orchestrations own sequencing.** An orchestration is a service-shaped class that composes services to accomplish a use case spanning more than one of them. It holds no business rules of its own — only the order in which services are called and the passing of results between them.
+**Services own business logic; orchestrations own sequencing.** An orchestration is a service-shaped class that composes services to accomplish a use case spanning more than one of them. It holds no **single-entity** business rules of its own — those live in the services it calls; it owns the order in which services are called and the passing of results between them. The **one** exception is a *cross-entity invariant* — a rule that no single owner can evaluate because it spans two or more owners' data; that, and only that, an orchestration may own (see [Cross-Entity Invariants](#cross-entity-invariants)).
 
 An orchestration is a **service type**, not separate machinery. It is built like any service — a constructor-injected class taking `AppContext`, bound by the same lifecycle rules (no self-instantiation, no globals; see [Service-First Architecture](./service-first-architecture.md)). It differs in exactly two ways: it is the one domain unit *allowed* to inject and coordinate other services, and it owns no table of its own.
 
@@ -22,9 +22,9 @@ An orchestration earns its place when a single use case spans **more than one se
 
 ## Guidelines
 
-### 1. No Business Logic in the Orchestration
+### 1. No Single-Entity Business Logic in the Orchestration
 
-The orchestration reads as an ordered list of service calls. If a step does more than call a service and pass its result onward, that logic belongs in a service. The moment an orchestration makes a domain decision or transforms an entity, it has stopped being an orchestration.
+The orchestration reads as an ordered list of service calls. If a step does more than call a service and pass its result onward, that logic belongs in a service. The moment an orchestration makes a domain decision about *one entity* or transforms an entity, it has stopped being an orchestration. The sole exception is a **cross-entity invariant** — a predicate no single owner can evaluate — which the orchestration alone may own; see [Cross-Entity Invariants](#cross-entity-invariants).
 
 ### 2. Services Never Call Each Other
 
@@ -34,7 +34,7 @@ A shared-validation **guard** is not a service — including one exported by ano
 
 ### 3. Validation Is Thin
 
-An orchestration validates only the inputs handed to it — schema parse, plus shared `validation.ts` guards to confirm referenced entities exist — then delegates. It defines no business rules of its own; every domain rule, state check, and invariant lives in the services it calls. See [Validation](./implementation-validation.md).
+An orchestration validates only the inputs handed to it — schema parse, plus shared `validation.ts` guards to confirm referenced entities exist — then delegates. It defines no *single-entity* business rules of its own; every single-entity rule and state check lives in the services it calls. The one thing it may enforce directly is a **cross-entity invariant** (a predicate spanning ≥2 owners' data) — see [Cross-Entity Invariants](#cross-entity-invariants). See [Validation](./implementation-validation.md).
 
 ### 4. One Entry Point
 
@@ -47,6 +47,53 @@ For a synchronous multi-service use case, the orchestration is the outermost cal
 ### 6. Owns No Table
 
 An orchestration is **not** the database seam. Services remain the only code that reads from or writes to their tables (see [Working with Databases](./working-with-databases.md)); an orchestration reaches data only *through* the services it coordinates. It owns no table, so the single-seam, one-owner-per-table rule is untouched — an orchestration coordinates owners, it does not become one.
+
+---
+
+## Cross-Entity Invariants
+
+*The one business rule an orchestration may own.*
+
+Every rule so far belongs to a service (its own entity) or a guard (a verdict about one other feature). One kind fits neither: a **cross-entity invariant** — a rule that is a *predicate over two or more owners' data, evaluated together*. Examples:
+
+- a **quota** — "a tenant on plan X can't exceed N active runs across all workspaces" (the limit lives in `plan`, the count in `run`);
+- a **cross-owner uniqueness** — "an email is unique across both `user` and `pendingInvite`";
+- an **aggregate** — "allocations can't exceed the budget cap";
+- an **overlap** — "a booking can't overlap another for the same resource".
+
+No single owner can evaluate it, because it inherently reads more than one feature's tables — and the orchestration is the **only** domain unit permitted to see multiple owners' data (through their services). So it is the only legal home.
+
+**This is a narrow carve-out, not a loosening of Guideline 1.** An orchestration may own a rule only when **all three** hold:
+
+1. it is a **predicate over data from ≥2 distinct owners**, evaluated together — not a rule about any one entity;
+2. **no single service** can own it (it is not a single-entity rule) **and no guard** can (it is not a yes/no verdict about one other feature — that stays a [cross-feature guard](./implementation-validation.md#cross-feature-guards));
+3. it **gates the use case this orchestration coordinates**.
+
+If a rule fails any of these it is not a cross-entity invariant — it belongs in a service (single-entity) or a guard (single-feature verdict), and putting it in the orchestration is the [fat-orchestration](#anti-patterns) smell.
+
+### How it runs — gather, check, then proceed
+
+The orchestration reads each side's data **through that feature's own service** (never its tables), evaluates the predicate over the gathered values, and throws its owning feature's domain exception on violation — all **inside** the transaction boundary it owns (Guideline 5), so the check sees a consistent snapshot and the guarded write cannot commit past a failed invariant.
+
+```ts
+// StartRunOrchestration — owned by the `run` feature (it writes the run)
+await ctx.transaction(async (txCtx) => {
+  const plan = await new PlanService(txCtx).forTenant(tenantId);              // read via plan's service
+  const activeRuns = await new RunCollectionService(txCtx).countActive(tenantId); // read via run's service
+  if (activeRuns >= plan.maxActiveRuns) {                                     // the cross-entity invariant
+    throw new RunException('active-run-limit-exceeded', { tenantId, limit: plan.maxActiveRuns });
+  }
+  await new RunService(run, txCtx).start();                                   // the gated write
+});
+```
+
+The orchestration still holds no single-entity rule: `plan.maxActiveRuns` and how a run starts are owned by their services; the orchestration owns only the *relationship between them*.
+
+**Races.** A read-then-write invariant (quota, uniqueness, aggregate) is subject to the same race as any check-then-write: two transactions can both read "under the limit" before either writes. Back it with a database constraint or a row lock — the invariant read is not sufficient alone. See [atomicity.md → Validation Inside the Boundary](./atomicity.md#validation-inside-the-boundary).
+
+### Which feature owns the orchestration
+
+Decided by the ownership ladder in [logic-placement.md → Where the Promoted Thing Lives](./logic-placement.md#where-the-promoted-thing-lives): the **outcome owner** first (the feature whose entity the use case writes — the invariant is a gate on that write), then the **rule owner** (the feature owning the limit/policy) when there is no single write outcome, then its **own feature** when it fits neither. The owning feature's domain exception is the one thrown for the violation.
 
 ---
 
@@ -97,7 +144,7 @@ A coordination that must wait on the outside world, sleep, retry, or survive a c
 | Layer | Owns | Knows about |
 |---|---|---|
 | Controller | HTTP / transport concerns | one orchestration or service |
-| **Orchestration** | sequencing and coordination across services | multiple services |
+| **Orchestration** | sequencing and coordination across services, plus any **cross-entity invariant** | multiple services |
 | Service | business logic for one entity | its own domain only |
 | `shared/validation.ts` | shared business-rule guards | the feature's domain |
 
@@ -107,9 +154,9 @@ The orchestration sits *between* controllers and services. It is Service-First's
 
 ## Anti-Patterns
 
-- **Fat orchestration** — business rules creeping into the orchestration instead of staying in services.
+- **Fat orchestration** — *single-entity* business rules creeping into the orchestration instead of staying in services. (A genuine cross-entity invariant is the sanctioned exception, not this smell — see [Cross-Entity Invariants](#cross-entity-invariants).)
 - **Sideways calls** — services calling each other instead of coordination going up into an orchestration.
-- **Validation beyond inputs** — an orchestration enforcing business rules that belong in a service.
+- **Validation beyond inputs** — an orchestration enforcing a *single-entity* business rule that belongs in a service (as opposed to a cross-entity invariant, which it may own).
 - **Orchestration-by-duration** — creating an orchestration because a use case "runs long" rather than because it coordinates multiple services. Duration is an integration concern.
 - **Stranded callers** — promoting a service operation to an orchestration without re-evaluating the existing direct callers of the superseded service method.
 

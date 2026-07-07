@@ -42,8 +42,8 @@ Inside a single feature folder:
   services/       - one service, several, or nested sub-feature folders (e.g. activity/)
                     for complex clusters — each holding its own services
                     (see service-first-architecture.md)
-  orchestrations/ - compose multiple services: sequencing and coordination, no business rules
-                    (see orchestration.md)
+  orchestrations/ - compose multiple services: sequencing and coordination, no single-entity business
+                    rules (may own a cross-entity invariant) (see orchestration.md)
   schemas/        - Zod schemas + inferred type exports (see implementation-schemas.md)
   shared/
     validation.ts - shared business-rule guards reused by services/orchestrations; throw a domain
@@ -54,7 +54,7 @@ Inside a single feature folder:
                     (see testing.md)
 ```
 
-Where feature folders sit relative to `system/`, `apps/`, and other `packages/` — the macro tree, and the rule that any folder fitting *neither* a feature nor an adapter needs explicit confirmation — lives in [code-placement.md](../../code-placement.md).
+Where feature folders sit relative to `system/`, `apps/`, and other `packages/` — the macro tree, and the rule that any folder fitting *neither* a feature nor an adapter needs explicit confirmation — lives in [code-placement.md](../../code-placement.md). Besides the driven adapters, `system/` also holds the core's non-domain **foundational primitives** — the id helpers + prefix registry, pagination, and the `AppContext` type — reached either as `ctx.system.helpers.*` or a direct import; see [system/start-here.md](./system/start-here.md).
 
 ## Anti-Patterns (cross-cutting)
 

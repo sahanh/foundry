@@ -22,7 +22,7 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 - [ ] Are input and variant schemas derived (pick / omit / partial) instead of duplicated?
 - [ ] Any `any`, optionals that aren't genuinely optional, or stringly-typed fields that should be enums?
 - [ ] Do string fields backed by DB columns have matching `.max()` constraints? Are content rules expressed as `.refine()`?
-- [ ] Does every entity `id` use a prefixed `entityId('…')`, domain-minted — not a bare UUID or a DB-generated key? ([identifiers.md](./identifiers.md))
+- [ ] Does every entity `id` use a prefixed `entityId('…')` in its schema and `ctx.system.helpers.newId('…')` for minting — domain-minted via the injected id-source, not a bare UUID or a DB-generated key — with the prefix read from the single `system/` id registry, not re-declared? ([identifiers.md](./identifiers.md))
 
 ## Services → [service-first-architecture.md](./service-first-architecture.md)
 - [ ] Was the domain boundary decision confirmed with the user before implementation started?
@@ -39,15 +39,17 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 - [ ] Does every **cross-feature** guard return `void`, read only its owner's tables, and throw its owner's exception — never returning the entity to the caller?
 
 ## Orchestrations → [orchestration.md](./orchestration.md)
-- [ ] For each multi-service use case, does an orchestration own the sequencing — with no business rules of its own?
+- [ ] For each multi-service use case, does an orchestration own the sequencing — with no *single-entity* business rules of its own?
 - [ ] Do services avoid injecting or calling each other, with coordination going up into an orchestration?
-- [ ] Is the orchestration's validation thin — inputs and existence checks only?
+- [ ] Is the orchestration's validation thin — inputs and existence checks, plus any cross-entity invariant it owns?
 - [ ] Is the orchestration triggered by altitude (it coordinates 2+ services), not by duration?
+- [ ] If it enforces a **cross-entity invariant**, is it genuinely a predicate over ≥2 owners' data (not a single-entity rule and not a single-feature verdict, which stay a service/guard) — gathered via each side's service, evaluated inside the transaction, throwing the owning feature's exception?
 - [ ] When a use case was promoted from a service method to an orchestration, were the direct callers of the superseded service method re-evaluated?
 
 ## Placement & promotion → [logic-placement.md](./logic-placement.md)
 - [ ] Is each piece of logic at the lowest rung that fits — not split into its own service, guard, or orchestration before a real (second) signal?
-- [ ] Is any orchestration triggered by service count (2+ services), not merely by crossing a feature boundary?
+- [ ] Is any orchestration triggered by a real signal — 2+ services, a cross-feature data need, or a cross-entity invariant — not merely by crossing a feature boundary?
+- [ ] For a cross-entity-invariant orchestration, was its owning feature chosen by the ownership ladder (outcome owner → rule owner → its own feature)?
 - [ ] On any promotion, does the old home delegate to the new construct (no orphaned copy) and were existing callers re-evaluated so none are stranded?
 
 ## Database → [working-with-databases.md](./working-with-databases.md)

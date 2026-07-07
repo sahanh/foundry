@@ -13,6 +13,11 @@ You usually arrive here routed by the root review protocol when it maps a touch 
 - [ ] Reached by the domain **only through `ctx.system.*`** — never a direct import? ([app-context.md](../app-context.md))
 - [ ] Still correctly in `system/` — or has it **graduated** on a real signal (reused beyond the core, owns its own lifecycle, a genuine engine)? Graduation is a refactor triggered by a signal, not an upfront guess.
 
+## Foundational primitive → [start-here.md](./start-here.md#foundational-primitives) · [app-context.md](../app-context.md)
+- [ ] Is it genuinely non-domain — **no business rules, no domain vocabulary** (a status machine, normalization policy, or capability matrix belongs to a feature, not here)?
+- [ ] Right **access mode** — a runtime seam worth controlling in tests is a helper on `ctx.system.helpers.*` (`newId`, `timestamps`); a schema-time / type / pure primitive (`entityId`, `Page<T>`, `resolveLimit`) is a direct import (per [Injectable helper vs direct import](../app-context.md))?
+- [ ] Is the id system defined **once** — `newId` / `entityId` and every prefix read the single `system/` id module/registry, not a literal re-declared in a feature?
+
 ## Database adapter → [database.md](./database.md)
 - [ ] Drizzle table names are **plural** (`todos`, `orders`)?
 - [ ] The primary-key column holds the **whole prefixed entity ID** (not split, not a bare UUID)?

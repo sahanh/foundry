@@ -5,6 +5,51 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-07 — Orchestrations may own a cross-entity invariant
+
+Previously an orchestration held **no** business rules of its own — every rule lived in a service or a
+guard. That left a business invariant spanning **two or more owners' data** (a quota — "plan limit vs.
+count of active runs across workspaces" — a cross-owner uniqueness, an aggregate, an overlap) with no
+legal home, since no single owner can evaluate it. The rule is now: an orchestration holds no
+*single-entity* rules, but it **may own a cross-entity invariant** — a predicate over ≥2 owners' data,
+gathered via each side's service and enforced inside its transaction boundary. A new **ownership ladder**
+(outcome owner → rule owner → its own feature) decides which feature owns such an orchestration. This
+resolves concern #12; the "shared domain service" the docs used to gesture at is not a separate construct.
+
+Affects anyone who avoided an orchestration for a cross-entity rule, parked such a rule ad hoc (a fattened
+orchestration or an improvised policy layer), or read "orchestrations hold no rules" as absolute. Re-check
+against [packages/core/orchestration.md](./packages/core/orchestration.md) → *Cross-Entity Invariants*,
+[packages/core/logic-placement.md](./packages/core/logic-placement.md) → *Where the Promoted Thing Lives*
+(the ownership ladder), [packages/core/implementation-validation.md](./packages/core/implementation-validation.md)
+→ *Cross-Feature Guards* and the Who-Validates-What table, and the new boxes in
+[packages/core/end-here.md](./packages/core/end-here.md) → *Orchestrations* / *Placement & promotion*.
+
+---
+
+## 2026-07-07 — `system/` broadened to home the core's foundational primitives
+
+`packages/core/src/system/` is no longer "driven adapters only." It is now the core's **non-domain
+infrastructure**: driven adapters **and** the cross-cutting **foundational primitives** the domain is
+built on — the `AppContext` type + `ctx.transaction` factory, the id helpers + prefix registry, and
+pagination. These were mandated by the playbook but had no sanctioned home (former concern #6). A
+dedicated substrate folder (a `kernel/`) is deferred until a real crowding signal, not created now.
+Two rules keep `system/` honest: the **non-domain invariant** (no business rules, no domain vocabulary
+anywhere under `system/`) and **two access modes** — adapters are injected via `ctx.system.*`; a
+foundational primitive is either a runtime helper on `ctx.system.helpers.*` (e.g. `newId`, now an
+injectable id-source alongside `timestamps`) or a direct import (e.g. `entityId`, `Page<T>`, the
+`AppContext` type).
+
+Affects any code that placed the `AppContext` type, id helpers, prefix registry, or pagination ad hoc
+(a src root, a feature folder, a `utils`/`shared` file), or that minted ids via a direct `newId(...)`
+import rather than `ctx.system.helpers.newId(...)`. Re-check against [code-placement.md](./code-placement.md)
+→ *Layering* + *Folder rules*; [packages/core/system/start-here.md](./packages/core/system/start-here.md)
+→ *Foundational Primitives*; [packages/core/app-context.md](./packages/core/app-context.md) → *Helpers* /
+*Injectable helper vs direct import*; [packages/core/identifiers.md](./packages/core/identifiers.md).
+Verify via [packages/core/system/end-here.md](./packages/core/system/end-here.md) → *Foundational
+primitive* and [packages/core/end-here.md](./packages/core/end-here.md) → *Schemas*.
+
+---
+
 ## 2026-07-06 — Constructor-injection test reframed: cohesion decides the constructor, not an entity count
 
 The service-decomposition rule "the entity injected via constructor should be used by every method"

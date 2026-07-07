@@ -12,7 +12,8 @@ AppContext
     db          — Drizzle client (see working-with-databases.md)
     logger      — logging adapter, required (see system/logging.md)
     clock       — injectable now-source (see The Clock below)
-    helpers     — pure utilities that compose adapters (see Persistence Timestamps below)
+    helpers     — runtime utilities sourced from an injected seam: timestamps (clock) + newId
+                  (id-source) (see Helpers below)
 ```
 
 `traceId` is operation-level metadata, not an infrastructure adapter — it sits at the top level. `transaction` is a method, covered below. Additional system-layer adapters are added under `AppContext.system` as the application introduces them. The domain layer never imports an adapter directly — it always goes through the context.
@@ -41,6 +42,8 @@ Injecting through AppContext means:
 
 AppContext is assembled externally — in the application bootstrap, a factory, or a test setup — and injected into services. A service never constructs its own context or reaches for a global instance. This is the same rule as lifecycle management in [service-first-architecture.md](./service-first-architecture.md).
 
+The `AppContext` **type** and the generic `ctx.transaction` implementation are defined once as `system/` foundational primitives (see [system/start-here.md](./system/start-here.md)) and imported wherever needed; only the *concrete instance* — choosing real vs test adapters — is assembled externally as above. Defining the type and the transaction-wrapping once, rather than per app, keeps every consumer's boundary identical.
+
 ## Transaction Boundary
 
 `ctx.transaction` opens an atomic, all-or-nothing boundary for a use case:
@@ -66,7 +69,11 @@ Why an injected clock rather than the common `vi.setSystemTime` approach: system
 
 **No timezone in the domain.** The clock deals only in absolute instants. Timezone conversion is a presentation concern owned by the layer that communicates between the app and the domain (the API / edge), never by services. The domain stores and compares absolute time; the edge localizes for the viewer.
 
-## Persistence Timestamps — `ctx.system.helpers`
+## Helpers — `ctx.system.helpers`
+
+`ctx.system.helpers` holds **runtime utilities sourced from an injected seam** — stamping timestamps from the clock, and minting ids from an injected id-source. The domain reaches them through `ctx`, so a test controls their output (deterministic time and ids). What belongs here versus a direct import is decided by the framework in *Injectable helper vs direct import* below.
+
+### Persistence timestamps
 
 Timestamps that land in the database come from the clock too — so they are controllable in tests — but a database can't reach the injected clock (a column default runs in the DB or at module load, never per-request). So the **service stamps explicitly**, using a small helper built on the clock. This is not a repository: the service still owns the write and calls `ctx.system.db` directly; the helper only reads the injected clock and stamps the write.
 
@@ -91,7 +98,22 @@ The helper is the **sole** source of `createdAt`/`updatedAt` — pass the write'
 
 Domain timestamp columns are defined `NOT NULL` with **no DB default**, so the app clock is the only source and a forgotten stamp fails loud — see [system/database.md](./system/database.md).
 
-`helpers` lives under `ctx.system` as a home for **pure utilities that compose adapters** (like stamping timestamps from the clock). Keep it scoped: no domain logic lives here — that stays in services. It is not a general junk drawer.
+### Minting IDs — `ctx.system.helpers.newId`
+
+Entity IDs are minted at creation the same way timestamps are stamped — through an **injected id-source**, not a direct import. `ctx.system.helpers.newId('task')` returns a prefixed id (see [identifiers.md](./identifiers.md)); in production the source defaults to a ULID generator, and a test injects a deterministic one so ids are stable and assertable — the clock's rationale applied to ids. The prefix registry it reads is the single `system/` id module shared with the import-time `entityId` schema helper, so a prefix is defined once and cannot drift between minting and validation.
+
+`ctx.system.helpers` is scoped to runtime utilities sourced from an injected seam (clock, id-source). **No domain logic lives here** — that stays in services; it is not a general junk drawer.
+
+## Injectable helper vs direct import
+
+A non-adapter foundational primitive — an id helper, the pagination utilities, the `AppContext` type — is placed by two questions:
+
+1. **Is `ctx` available where it's used?** A primitive used at a **schema-definition or type position** — `entityId('task')` inside a Zod schema, `Page<T>` in a signature, the `AppContext` type itself — runs at module-load time, where there is **no `ctx`**. It **must** be a **direct import** from `system/`. Stop here.
+2. **(`ctx` is available — runtime use) Does it read a source worth controlling in tests or varying by environment?**
+   - **Yes** → expose it as a **helper on `ctx.system.helpers.*`**, sourced from an injectable seam (clock → `timestamps` / `updatedAt`; id-generator → `newId`), so a test pins it deterministically and production uses the real source.
+   - **No** — it is pure and deterministic with nothing to control (e.g. pagination's `resolveLimit`, `toPage`, cursor encode/decode) → a **direct import** is correct; putting it on `ctx` is ceremony for no gain.
+
+The litmus: **inject through `helpers.*` to gain a controllable seam; import when there is no `ctx` to reach or nothing worth controlling.**
 
 ## In Tests
 
@@ -99,6 +121,7 @@ Integration tests construct a test AppContext with controlled adapters:
 
 - `system.db` — a test database client (real test DB or in-memory)
 - `system.clock` — a clock pinned to a fixed instant, so timestamps are deterministic and assertable
+- an injected **id-source** — a deterministic generator so `ctx.system.helpers.newId(...)` yields stable, assertable ids (the id analogue of the pinned clock)
 - `system.email`, `system.queue` — spy or capture adapters so side effects can be asserted
 
 The service under test receives the test context through its constructor. No service code changes between production and test — only the context differs. See [testing.md](./testing.md) for how this applies to integration test setup.

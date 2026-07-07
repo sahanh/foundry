@@ -41,6 +41,8 @@ Every piece of code plays one of three roles:
 | **Driven adapter** | infrastructure the domain calls *out* to (db, logger, clock, email, queue) | `packages/core/src/system/` — or its own `packages/<name>/` once graduated |
 | **Driving adapter** | an inbound entry point that calls *into* the domain (HTTP, CLI, worker, MCP) | `apps/<name>/` |
 
+Alongside the driven adapters, `packages/core/src/system/` also holds the core's **foundational primitives** — the `AppContext` type and `ctx.transaction` factory, the id helpers and prefix registry, and pagination. These are *not* a fourth role: they are the non-domain substrate the three roles rest on (the contract adapters plug into, the id system every entity uses). They differ from an adapter only in how the domain reaches them — imported directly rather than injected — and, like adapters, they hold no business rules. See [system/start-here.md](./packages/core/system/start-here.md).
+
 Business logic lives in the **service layer** — never in controllers or integration code. The service layer is **integration-agnostic**: the same logic works behind REST, GraphQL, a worker, a scheduled job, or an MCP tool. Build it first, then wire a delivery mechanism to it from an app.
 
 Dependencies point in **one direction only**:
@@ -135,6 +137,6 @@ Wherever a driven adapter lives — inside `core/src/system/` or as a graduated 
 ## Folder rules
 
 - **Organize by feature/domain, not by technical layer.** Everything for one capability lives in one feature folder under the core's `src/`; adding a feature means adding a folder, not editing scattered `services/`, `schemas/`, `exceptions/` directories.
-- **`packages/core/src/system/` is reserved for driven infrastructure.** Every other child of the core's `src/` is a feature folder.
+- **`packages/core/src/system/` is the core's non-domain infrastructure** — driven adapters (db, logger, clock, …) *and* the cross-cutting **foundational primitives** the domain is built on (the `AppContext` type + `ctx.transaction` factory, the id helpers + prefix registry, pagination). The invariant across everything here: it carries **no business rules and no domain vocabulary** — adapters are injected via `ctx.system.*`, foundational primitives are imported directly or exposed as `ctx.system.helpers.*` (see [system/start-here.md](./packages/core/system/start-here.md)). Every *other* child of the core's `src/` is a feature folder.
 - **`apps/` is reserved for driving adapters.** Nothing inbound belongs inside the core.
 - **Any folder that fits *none* of these categories requires explicit confirmation from the user before it is created.** A shared-utilities folder, a cross-cutting helpers folder — anything that is not a domain feature, not a driven adapter, and not a driving-adapter app — is not the developer's call to make unilaterally. Stop and confirm. This applies at every level of the tree, not just the top.

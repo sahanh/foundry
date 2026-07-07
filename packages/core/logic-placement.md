@@ -56,7 +56,9 @@ service** (one direction only); that is not an orchestration.
 
 ### A third distinction — what *kind* of thing the logic is
 
-- An **assertion** — a yes/no that throws → a **guard** when reused.
+- An **assertion** — a yes/no that throws → a **guard** when reused. A yes/no that spans **≥2 owners' data**
+  (a quota, a cross-owner uniqueness) is a **cross-entity invariant** — no single owner can assert it, so it
+  belongs to an **orchestration**, not a guard (see [orchestration.md → Cross-Entity Invariants](./orchestration.md#cross-entity-invariants)).
 - **Behavior / computation** — produces a result or mutates state → a **service**.
 - **Sequencing** across services → an **orchestration**.
 
@@ -72,7 +74,7 @@ Logic has a current home and climbs to a heavier one when a signal appears. The 
 | **R1** | extracted **private method** (same service) | the method grows long, or the same step repeats **within that one service** | [service-first](./service-first-architecture.md) |
 | **R2** | its **own service** (same feature) | the *cohesion smell* — the logic doesn't operate on this service's injected scope | [service-first](./service-first-architecture.md) |
 | **R3** | **`shared/`** (feature-level) — `utils.ts` (pure helper) or `validation.ts` (guard) | a **2nd service in the feature** needs the same helper/assertion | [implementation-validation](./implementation-validation.md) |
-| **R4** | **orchestration** | the use case coordinates **2+ services**, or another feature's **data** flows into it | [orchestration](./orchestration.md) |
+| **R4** | **orchestration** | the use case coordinates **2+ services**, another feature's **data** flows into it, or it enforces a **cross-entity invariant** (a predicate spanning ≥2 owners' data) | [orchestration](./orchestration.md) |
 
 Things to hold onto:
 
@@ -87,9 +89,12 @@ Things to hold onto:
 - **R3's reuse threshold depends on the boundary.** *Within* a feature, extract on the **second**
   caller. *Across* features, a guard is a boundary contract — it lives in the owner's
   `shared/validation.ts` from the **first** cross-feature caller.
-- **R4 is triggered by service count *or* a cross-feature data need.** Needing only another feature's
-  *verdict* does **not** promote — call its guard and stay a service method (see
+- **R4 is triggered by service count, a cross-feature data need, *or* a cross-entity invariant.** Needing
+  only another feature's *verdict* does **not** promote — call its guard and stay a service method (see
   [orchestration.md → Promotion](./orchestration.md#promotion-when-a-service-operation-becomes-an-orchestration)).
+  But a rule that is a *predicate over ≥2 owners' data* (a quota, a cross-owner uniqueness, an aggregate)
+  can be evaluated by no single owner — it is a **cross-entity invariant**, owned by the orchestration (see
+  [orchestration.md → Cross-Entity Invariants](./orchestration.md#cross-entity-invariants)).
 
 ---
 
@@ -104,6 +109,9 @@ signal, not ahead of it.**
 - "create task" grows "…**and** notify" → **R4** (promote to an orchestration).
 - Todo assignment starts needing the user's `clearanceLevel` field → **R4** (an orchestration fetches
   the user; the todo service judges the data it is handed).
+- Run creation grows "…and stay within the tenant's plan limit" → **R4** (an orchestration reads the plan
+  limit and the active-run count via their services and enforces the **cross-entity invariant** — see
+  [orchestration.md → Cross-Entity Invariants](./orchestration.md#cross-entity-invariants)).
 
 ---
 
@@ -138,6 +146,26 @@ Climbing a rung raises "in which feature?" — answer by **ownership**, not by w
 - **Belonging to neither** feature is a signal the use case may deserve its **own** feature/module —
   raise it (README → *When in doubt*) rather than forcing it into an unrelated one.
 
+### Who owns a cross-entity-invariant orchestration
+
+When the orchestration exists to enforce a [cross-entity invariant](./orchestration.md#cross-entity-invariants),
+"which feature owns the outcome?" can be ambiguous — the rule spans several. Resolve it with this ordered
+self-check; take the **first** that fits:
+
+1. **Outcome owner** — is there a single entity whose state the use case exists to change (the write
+   target)? → **that feature** owns the orchestration; the invariant is a *gate* on that write, and the
+   other features are read-only dependencies reached via their services. *(Most quotas gate a creation: "start
+   a run under a plan limit" writes a `run` → the `run` feature owns it; `plan` is a read dependency.)*
+2. **Rule owner** — no single write outcome (a pure consistency/limit check, or it mutates two features
+   equally)? → the feature that owns the **limit or policy** being enforced (the plan, the budget, the
+   tenant) owns it.
+3. **Own feature/module** — fits neither cleanly (the policy belongs to no existing feature)? → that is the
+   signal to open its **own** feature/module (e.g. an entitlements/quota module). Raise it (README → *When in
+   doubt*).
+
+Whichever feature the ladder lands on, **its** domain exception is the one the orchestration throws when the
+invariant is violated.
+
 ---
 
 ## Which Feature Does It Belong To?
@@ -171,8 +199,10 @@ Run this on any service-layer touch — new logic, or a change that might have i
    services in the feature** → `shared/` (R3): `shared/validation.ts` if it asserts-and-throws (a
    guard; a cross-feature caller → returns `void`, and it lives in the owner's feature),
    `shared/utils.ts` if it's a pure helper.
-2. Does the use case coordinate **2+ services**, or does another feature's **data** flow into it? →
-   **orchestration (R4)**, in the outcome-owning feature.
+2. Does the use case coordinate **2+ services**, does another feature's **data** flow into it, or does it
+   enforce a **cross-entity invariant** (a predicate over ≥2 owners' data)? → **orchestration (R4)**, in the
+   feature the [ownership ladder](#who-owns-a-cross-entity-invariant-orchestration) lands on (outcome owner
+   first).
 3. Does the behavior **not operate on this service's injected scope** (the cohesion smell — see service-first → *The Constructor Declares the Scope*)? →
    **its own service (R2)**, same feature.
 4. Otherwise → it **stays where it is** (R0/R1). Don't climb without a signal.

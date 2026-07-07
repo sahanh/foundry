@@ -27,6 +27,7 @@ L1 — where in the repo?
 
 L2a — inside packages/core/
   src/system/<adapter>      → driven adapter (db, logger, clock, queue, email, …)
+  src/system/<primitive>    → foundational primitive (id helpers, pagination, AppContext type)
   src/<feature>/            → domain feature module          → L3
 
 L2b — inside an app
@@ -54,9 +55,10 @@ For each mapped node, look up its guideline(s) and the `end-here` that owns its 
 |---|---|---|
 | app handler / controller | [code-placement.md](./code-placement.md) (thin controller, schema reuse), [logging.md](./packages/core/system/logging.md) | [apps/end-here.md](./apps/end-here.md) |
 | app transport / bootstrap | [code-placement.md](./code-placement.md), [app-context.md](./packages/core/app-context.md) (assembly) | [apps/end-here.md](./apps/end-here.md) |
-| driven adapter (`system/`) | [system/start-here.md](./packages/core/system/start-here.md), [database.md](./packages/core/system/database.md) / [logging.md](./packages/core/system/logging.md) | [system/end-here.md](./packages/core/system/end-here.md) |
+| driven adapter (`system/`) | [system/start-here.md](./packages/core/system/start-here.md), [database.md](./packages/core/system/database.md) / [logging.md](./packages/core/system/logging.md) | [system/end-here.md](./packages/core/system/end-here.md) → Any driven adapter (+ Database / Logger adapter) |
+| foundational primitive (`system/`) | [system/start-here.md](./packages/core/system/start-here.md) (Foundational Primitives), [app-context.md](./packages/core/app-context.md) (Injectable helper vs direct import), [identifiers.md](./packages/core/identifiers.md) | [system/end-here.md](./packages/core/system/end-here.md) → Foundational primitive |
 | feature service | [service-first-architecture.md](./packages/core/service-first-architecture.md), [implementation-validation.md](./packages/core/implementation-validation.md) | [core/end-here.md](./packages/core/end-here.md) → Services |
-| orchestration | [orchestration.md](./packages/core/orchestration.md), [atomicity.md](./packages/core/atomicity.md) | [core/end-here.md](./packages/core/end-here.md) → Orchestrations |
+| orchestration | [orchestration.md](./packages/core/orchestration.md), [atomicity.md](./packages/core/atomicity.md), [implementation-validation.md](./packages/core/implementation-validation.md) (cross-entity invariant) | [core/end-here.md](./packages/core/end-here.md) → Orchestrations |
 | schema | [implementation-schemas.md](./packages/core/implementation-schemas.md), [identifiers.md](./packages/core/identifiers.md) | [core/end-here.md](./packages/core/end-here.md) → Schemas |
 | shared validation / exceptions | [implementation-validation.md](./packages/core/implementation-validation.md) | [core/end-here.md](./packages/core/end-here.md) → Validation & exceptions |
 | db access in a service | [working-with-databases.md](./packages/core/working-with-databases.md), [atomicity.md](./packages/core/atomicity.md) | [core/end-here.md](./packages/core/end-here.md) → Database / Atomicity |
@@ -79,9 +81,9 @@ These apply to *any* change regardless of what was touched — run them once acr
 
 **The review lens.** Beyond the specific guidelines, hold the playbook's cross-cutting invariants against every node — they don't care what you touched:
 
-- **One home for every piece of code** — a feature, a driven adapter, or a driving-adapter app; anything else needs explicit confirmation.
+- **One home for every piece of code** — a feature, a driven adapter (or a `system/` foundational primitive), or a driving-adapter app; anything else needs explicit confirmation.
 - **Dependencies point one way** — driving → domain → driven; the core never imports an app, a driven adapter never imports the domain.
-- **Cross-feature crossings have exactly two shapes** — an owner-exported guard (a verdict; returns `void`) or an orchestration (data). Any other cross-feature import in domain code — a foreign service injected, a foreign table read, a guard returning an entity — fails review.
+- **Cross-feature crossings have exactly two shapes** — an owner-exported guard (a verdict; returns `void`) or an orchestration (data). Any other cross-feature import in domain code — a foreign service injected, a foreign table read, a guard returning an entity — fails review. (An orchestration that reaches ≥2 owners' data may also **own a cross-entity invariant** over it — a predicate no single owner can evaluate; that is the one business rule an orchestration may hold. A *single-entity* rule in an orchestration still fails review.)
 - **Business logic lives in the domain, integration-agnostic** — not in controllers or adapters.
 - **Single source of truth; define once, derive the rest** — schemas infer types; boundaries reuse core schemas.
 - **Climb on a real signal, not in anticipation** — services, sub-features, adapter graduation, shared-validation extraction all wait for the second signal. The placement/promotion decision and this signal are owned by [logic-placement.md](./packages/core/logic-placement.md).

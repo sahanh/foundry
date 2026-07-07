@@ -37,15 +37,6 @@ actor/principal field**, and services are constructed as `new TodoService(todo, 
 
 **Anchor:** `app-context.md`, `implementation-validation.md`.
 
-### 6. Cross-cutting helpers have no legal home under the folder rules — `open`
-
-`newId()`/`entityId()` and the mandated "single prefix registry" (`identifiers.md:19`), the `AppContext`
-type itself, and the `ctx.transaction` implementation are neither a feature nor a driven adapter nor an app.
-The folder rule (`code-placement.md:140`, `start-here.md:56`) says any such folder "requires explicit
-confirmation from the user before it is created" — so the standard mandates code it gives no sanctioned home.
-
-**Anchor:** `identifiers.md:19`, `code-placement.md`, `app-context.md`.
-
 ### 7. AppContext assembly and per-request construction are still hand-waved — `partial`
 
 Progress since 2026-07-02: `traceId` and `transaction` are now top-level on `AppContext`
@@ -98,17 +89,6 @@ never states which. Without a rule these get decided ad hoc per feature.
 
 ## Scaling / five-year pressure points
 
-### 12. Cross-entity business rules have no home — `open`
-
-Rules are scoped to the owning entity's service, orchestrations hold no rules of their own
-(`orchestration.md:7,27`), sideways service calls are banned, and `shared/validation.ts` is for a single
-check reused by ≥2 callers (`implementation-validation.md:140`). So an invariant spanning entities ("a
-tenant on plan X can't exceed N active runs across all workspaces") fits nowhere. Teams will resolve it by
-fattening orchestrations or inventing a policy layer ad hoc. Needs a sanctioned answer before the first
-such rule appears.
-
-**Anchor:** `orchestration.md:7,27`, `implementation-validation.md:140`.
-
 ### 13. Multi-tenancy is not in the playbook — `open`
 
 No tenant isolation convention exists. `AppContext` (`app-context.md:7-16`) carries no tenant field; there
@@ -147,6 +127,21 @@ layer still needs its spec:
 ## Resolved (no longer valid)
 
 Dropped from the backlog because the restructures closed them. Listed so an old concern can be traced.
+
+- **Cross-entity business rules have no home** *(was #12)* — resolved 2026-07-07. An orchestration may now
+  own the one rule no single owner can evaluate: a **cross-entity invariant** — a predicate over ≥2 owners'
+  data, gathered via each side's service and enforced inside its transaction boundary. Which feature owns
+  such an orchestration is decided by an ownership ladder (outcome owner → rule owner → its own feature).
+  See `orchestration.md` → *Cross-Entity Invariants*, `logic-placement.md` → *Where the Promoted Thing
+  Lives*, and the 2026-07-07 changelog entry.
+
+- **Cross-cutting helpers have no legal home under the folder rules** *(was #6)* — resolved 2026-07-07 by
+  broadening `system/` from "driven adapters only" to the core's **non-domain infrastructure**: adapters
+  **plus** foundational primitives (the `AppContext` type + `ctx.transaction` factory, id helpers + prefix
+  registry, pagination). A dedicated `kernel/` folder is deferred until a real crowding signal. Governed by
+  the non-domain invariant + two access modes (`ctx.system.helpers.*` vs direct import). See
+  `code-placement.md` → *Layering* / *Folder rules*, `system/start-here.md` → *Foundational Primitives*,
+  `app-context.md` → *Injectable helper vs direct import*, and the 2026-07-07 changelog entry.
 
 - **Collection services break the constructor-injection test** *(was #5)* — resolved 2026-07-06 by
   reframing the one-entity test as a high-cohesion guideline

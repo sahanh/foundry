@@ -7,7 +7,7 @@ Validation strategy for the domain layer — services and orchestrations. Servic
 **The domain layer validates everything.** Treat services and orchestrations as a standalone library — they cannot assume anything about how they will be consumed. Every input is validated against business rules and system constraints before use, and failures throw the feature's domain exception.
 
 - **Services are primary** — they own the business logic, so the bulk of validation lives there.
-- **Orchestrations are thin** — a orchestration validates only the inputs handed to it (via shared guards); everything beyond input validity belongs to the services it calls.
+- **Orchestrations are thin** — a orchestration validates only the inputs handed to it (via shared guards); everything beyond input validity belongs to the services it calls. The **one** business rule an orchestration may enforce itself is a *cross-entity invariant* — a predicate spanning ≥2 owners' data that no single service or guard can evaluate (see [orchestration.md → Cross-Entity Invariants](./orchestration.md#cross-entity-invariants)).
 
 ---
 
@@ -66,7 +66,7 @@ It covers all business-rule violations within the feature: not found, constraint
 
 - **Services** — on any business-rule violation in their own logic.
 - **`shared/validation.ts` guards** — when a shared check fails (see Shared Validation Helpers).
-- **Orchestrations** — only *via* those shared guards, as part of their thin input validation. A orchestration does not raise business-rule failures of its own.
+- **Orchestrations** — *via* those shared guards as part of their thin input validation, and **directly** when a *cross-entity invariant* it owns is violated (it throws the owning feature's exception — see [orchestration.md → Cross-Entity Invariants](./orchestration.md#cross-entity-invariants)). A orchestration raises no *single-entity* business-rule failures of its own — those stay in the services it calls.
 
 Because it's one exception per feature, a guard, a service, and a orchestration all throw (and an integrator catches) the same type.
 
@@ -103,9 +103,9 @@ The integrator catches the exception and decides presentation: JSON error respon
 |-------|-----------|--------|
 | **Service** | its own inputs (schema parse) **and** all business rules for its entity (uniqueness, relationships, state); calls shared guards for recurring checks | feature domain exception (+ schema library on bad input) |
 | **`shared/validation.ts`** | a single shared business-rule check, reused by ≥2 callers | feature domain exception |
-| **Orchestration** | **only the inputs handed to it** — schema parse + shared guards to confirm referenced entities exist; then delegates | feature domain exception, only via the shared guards |
+| **Orchestration** | the inputs handed to it — schema parse + shared guards to confirm referenced entities exist — **plus any cross-entity invariant it owns** (a predicate spanning ≥2 owners' data); then delegates | feature domain exception — via the shared guards, or directly for a cross-entity invariant |
 
-The rule: a orchestration's validation is **thin and input-bounded**. Anything past "are my inputs well-formed and do the referenced entities exist?" is the job of the services it calls.
+The rule: a orchestration's validation is **thin and input-bounded**, with one addition — it may enforce a **cross-entity invariant** no single owner can see. Anything else past "are my inputs well-formed and do the referenced entities exist?" is the job of the services it calls.
 
 ## Validation Flow
 
@@ -130,7 +130,9 @@ Validate against schema (type, format, required)
         ↓  (failure → schema library error)
 Shared guards: referenced entities exist
         ↓  (failure → domain exception)
-Call services in sequence  ← each service validates its own business rules
+Cross-entity invariant (if owned): gather each side via its service, evaluate the predicate
+        ↓  (failure → owning feature's domain exception, thrown directly)
+Call services in sequence  ← each service validates its own single-entity business rules
 ```
 
 ---
@@ -163,6 +165,7 @@ The routing rule follows directly:
 
 - **A needs B's _verdict_** — a yes/no about B's state → B exports a cross-feature guard; A calls it and stays a service.
 - **A needs B's _data_** — a field of B's entity flows into A's own logic → that is genuinely multi-service; promote to an [orchestration](./orchestration.md), the one unit allowed to inject both services. A guard is the wrong tool here — the moment you want it to *return* B's entity, it is no longer a guard.
+- **The rule spans _both_ owners at once** — a predicate that reads A's *and* B's data together (a quota, a cross-owner uniqueness, an aggregate: "plan limit vs. count of runs") → no single owner can evaluate it, so it is neither a guard nor a single service. It is a **cross-entity invariant**, owned by an [orchestration](./orchestration.md#cross-entity-invariants) that gathers each side via its service and enforces the predicate directly.
 
 The `void` return is what keeps the two apart: you cannot smuggle data through a guard that hands nothing back, so a check can never quietly decay into a read. A cross-feature guard whose signature returns an entity is the **guard-as-read-API** drift — and it is visible in one line.
 
@@ -188,7 +191,7 @@ These guards are also what a **orchestration** uses for its thin input validatio
 - **Partial validation** — Validating some fields but not others
 - **Implicit constraints** — Database errors surfacing instead of explicit validation
 - **Over-engineered exceptions** — Creating granular exception types before they're needed
-- **Business rules in a orchestration** — Validation beyond input/existence checks that belongs in a service
+- **Single-entity rules in a orchestration** — validation beyond input/existence checks that belongs in a service (a *cross-entity invariant* spanning ≥2 owners is the sanctioned exception, not this smell)
 - **Guard as read API** — A cross-feature guard that returns an entity instead of `void`, letting the caller read another feature's data through what is nominally a check
 - **Foreign guard, local exception** — A caller catching another feature's guard exception only to re-wrap it in its own; the owner's exception should propagate unchanged
 
