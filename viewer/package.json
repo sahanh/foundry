@@ -1,0 +1,15 @@
+{
+  "name": "engineering-playbook-viewer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Thin local viewer for the engineering-playbook Markdown docs.",
+  "scripts": {
+    "dev": "node server.mjs"
+  },
+  "dependencies": {
+    "gpt-tokenizer": "^2.9.0",
+    "highlight.js": "^11.10.0",
+    "markdown-it": "^14.1.0"
+  }
+}

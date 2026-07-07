@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Engineering Playbook</title>
+    <link rel="stylesheet" href="/vendor/highlight.css" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <h1 class="brand">Engineering Playbook</h1>
+        <div id="total" class="total"></div>
+        <input
+          id="search"
+          class="search"
+          type="search"
+          placeholder="Filter files…"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+      <nav id="tree" class="tree" aria-label="File tree"></nav>
+    </aside>
+    <main class="content">
+      <div id="docmeta" class="docmeta"></div>
+      <article id="doc" class="doc markdown-body">
+        <p class="placeholder">Loading…</p>
+      </article>
+    </main>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
