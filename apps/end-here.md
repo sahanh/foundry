@@ -22,6 +22,11 @@ You usually arrive here routed by the root review protocol when it maps a touch 
 - [ ] Is a `traceId` ingested from the incoming request (or generated) and propagated into the `AppContext`?
 - [ ] Is the incoming operation logged on entry, and the outcome logged with timing?
 
+## Authentication & actor → [identity-and-access.md](../packages/core/identity-and-access.md)
+- [ ] Is the caller's credential (session / token / API key) verified at the edge, with the auth-provider SDK kept **out of** `@app/core`?
+- [ ] Is a vendor-neutral `actor` resolved and set on `AppContext` before any service or orchestration runs — the actor analogue of `traceId` ingestion above?
+- [ ] Does the handler leave the real per-resource authorization decision to a domain guard, doing at most a coarse authN / route gate itself?
+
 ---
 
 Cross-cutting TypeScript standards apply here too; the review protocol runs that sweep regardless of what you touched.

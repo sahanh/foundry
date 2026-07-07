@@ -7,6 +7,8 @@ AppContext is the single injected dependency that carries all cross-cutting infr
 ```
 AppContext
   traceId       — UUID identifying the current operation (see system/logging.md)
+  actor         — who/what is performing this operation; a tagged union over principal types,
+                  resolved at the edge (see The Actor below · identity-and-access.md)
   transaction   — opens an atomic boundary (see atomicity.md)
   system
     db          — Drizzle client (see working-with-databases.md)
@@ -16,7 +18,7 @@ AppContext
                   (id-source) (see Helpers below)
 ```
 
-`traceId` is operation-level metadata, not an infrastructure adapter — it sits at the top level. `transaction` is a method, covered below. Additional system-layer adapters are added under `AppContext.system` as the application introduces them. The domain layer never imports an adapter directly — it always goes through the context.
+`traceId` and `actor` are operation-level metadata, not infrastructure adapters — they sit at the top level, not under `system`. `traceId` says *which* operation this is; `actor` says *on whose behalf* it runs. Neither is something the domain calls *out* to (which is what `system.*` is for), so both ride at the top beside `transaction` (a method, covered below). Additional system-layer adapters are added under `AppContext.system` as the application introduces them. The domain layer never imports an adapter directly — it always goes through the context.
 
 ## Constructor Injection
 
@@ -28,6 +30,8 @@ new TodoCommentService(comment, ctx)
 ```
 
 What else a constructor takes is not fixed — the scope may be one entity, several, or nothing beyond `ctx`; it is derived from cohesion, per [service-first-architecture.md → Validation: The Constructor Declares the Scope](./service-first-architecture.md). The service stores the context and uses it across all its methods. This keeps dependencies explicit — a service's constructor signature is a complete declaration of what it needs.
+
+The actor is **not** a constructor argument — `new TodoService(todo, ctx)` is unchanged. It is ambient operation metadata reached as `ctx.actor`, exactly like `ctx.traceId` and `ctx.system.logger`. Threading it into every constructor (or method) is the parameter-repetition smell: an object passed the same way into call after call belongs on `ctx`, not the signature.
 
 ## Why AppContext, Not Direct Imports
 
@@ -56,6 +60,15 @@ await ctx.transaction(async (txCtx) => {
 ```
 
 It wraps `ctx.system.db.transaction`, derives a context whose `system.db` is the transaction handle, and passes that `txCtx` to every service so all their writes run on the same transaction. A service is unaware it is inside a boundary — it always calls `ctx.system.db`, which is the transaction when one is open. A nested `ctx.transaction` joins the open one rather than opening a second top-level transaction. Full rules — who owns the boundary, why side effects wait until after commit, and what a transaction cannot span — are in [atomicity.md](./atomicity.md).
+
+## The Actor — `ctx.actor`
+
+The actor is *who or what* is performing the current operation — the caller's identity, carried as top-level operation metadata beside `traceId`, not under `system.*` (the domain does not call *out* to it). Two mechanics belong to the context; the actor's shape and meaning live elsewhere (below):
+
+- **Resolved at the edge, always present.** A driving adapter verifies the credential and sets `ctx.actor` during `AppContext` assembly — before any service runs, the same point and manner as `traceId` ingestion. The field is a **total tagged union** and is never `undefined`: an unauthenticated caller is an explicit member, not an absent field. The domain then reads `ctx.actor` (authorization guards decide against it — the guarantee that survives every consumer, not just the HTTP path).
+- **A direct-import primitive.** Like the `AppContext` type itself, the `Actor` **type** is a `system/` foundational primitive reached by **direct import** (a type position, no `ctx` — per *Injectable helper vs direct import* below). It carries **no business rules**.
+
+The union's members, the `type` discriminant, the project-specific set of actor types, and the whole authentication/authorization model are the **single source** in [identity-and-access.md](./identity-and-access.md) → *The Actor* — this section covers only how the field rides on the context.
 
 ## The Clock — `ctx.system.clock`
 
@@ -123,6 +136,7 @@ Integration tests construct a test AppContext with controlled adapters:
 - `system.db` — a test database client (real test DB or in-memory)
 - `system.clock` — a clock pinned to a fixed instant, so timestamps are deterministic and assertable
 - an injected **id-source** — a deterministic generator so `ctx.system.helpers.newId(...)` yields stable, assertable ids (the id analogue of the pinned clock)
+- `actor` — a fixed principal (a test `user`, or an explicit `anonymous`) so authorization is deterministic and assertable (the identity analogue of the pinned clock)
 - `system.email`, `system.queue` — spy or capture adapters so side effects can be asserted
 
 The service under test receives the test context through its constructor. No service code changes between production and test — only the context differs. See [testing.md](./testing.md) for how this applies to integration test setup.

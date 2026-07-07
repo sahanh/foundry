@@ -5,6 +5,33 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-08 — Identity & access: the actor on AppContext, authN at the edge, authZ in the domain
+
+`AppContext` gains a top-level **`actor`** field — a tagged union discriminated on **`type`**, modeled
+minimally now (`user | anonymous`) and designed to grow additively (`service` / `system` on a real
+signal). The set of actor `type`s is **project-specific**: each system decides its own consumers.
+**Authentication** is an edge concern: the app verifies the credential and resolves a vendor-neutral
+actor onto `ctx.actor` before the domain runs; the auth-provider SDK stays out of the core.
+**Authorization** is a domain concern, enforced as `shared/validation.ts` guards reading `ctx.actor`
+and throwing the feature exception — not an edge-only check, because the domain is multi-consumer. New
+concern doc **[packages/core/identity-and-access.md](./packages/core/identity-and-access.md)**, which
+also frames how to use it when **building** (confirm the actor types with the user) versus **reviewing**
+(ground in the project's real model before judging a diff); extended permissions follow the existing
+promotion ladder (inline check → named decision → capability-named policy adapter). This closes
+[concerns.md](./concerns.md) #4.
+
+Affects any code that put authorization in a controller or middleware, threaded a `userId` through
+service method parameters, or assumed `AppContext` carried no caller identity. Re-check against
+[identity-and-access.md](./packages/core/identity-and-access.md) (esp. *Two ways you reach this guide* /
+*Reviewing an auth change*);
+[app-context.md](./packages/core/app-context.md) → *The Actor* / *Constructor Injection*;
+[implementation-validation.md](./packages/core/implementation-validation.md) → *What Belongs There* /
+*Cross-Feature Guards*; [apps/end-here.md](./apps/end-here.md) → *Authentication & actor*;
+[packages/core/end-here.md](./packages/core/end-here.md) → *Identity & Access* / *AppContext*; and the
+[review protocol](./review.md) routing table.
+
+---
+
 ## 2026-07-07 — Persistence conventions decided: hard-delete default, enum columns as varchar + z.enum()
 
 Two open persistence questions (concerns #11) are now decided rules. **Deletes:** hard-delete is the

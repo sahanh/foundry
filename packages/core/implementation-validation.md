@@ -152,6 +152,7 @@ A guard **may perform IO** — it commonly checks existence or uniqueness agains
 - **Referential checks** — "the referenced parent/owner exists" (e.g. a guard confirming a parent record exists before a child is attached).
 - **Uniqueness** — a name or identifier is unique within its scope.
 - **Relationship / ownership invariants** — this entity belongs to that parent; this operation is allowed for this owner.
+- **Authorization** — this *actor* may perform this operation. A guard reads `ctx.actor` (the caller resolved at the edge) and asserts the actor is permitted — e.g. `requireAuthor(ctx, todoId)` comparing `ctx.actor` to the resource's owner. Authorization is enforced here in the domain, not only at the edge, for the same multi-consumer reason the domain owns all validation. The full model is in [identity-and-access.md](./identity-and-access.md).
 
 Only the checks **reused by two or more** services/orchestrations belong here. A check used by exactly one service stays inline in that service — extract it on the *second* caller, not in anticipation. This mirrors the playbook's "extract as a refactor, not upfront" stance.
 
@@ -171,7 +172,7 @@ The `void` return is what keeps the two apart: you cannot smuggle data through a
 
 This is the Domain Service from Domain-Driven Design — a named, stateless domain operation owned by one model — constrained to a published, verdict-only shape, the same boundary a modular monolith draws with a module's public API.
 
-**Reuse threshold.** The "extract on the second caller" rule above is about de-duplicating a check *within* a feature. A cross-feature guard is different: it is a boundary contract, so it lives in the owner's `shared/validation.ts` from the **first** cross-feature caller — there is no other legal place for the crossing to happen. The canonical author-existence check (`requireAuthor` / `requireActiveUser`) is therefore a guard the **user** feature exports from `user/shared/validation.ts`, called by the todo and comment services — not a todo-feature guard reaching into the users table.
+**Reuse threshold.** The "extract on the second caller" rule above is about de-duplicating a check *within* a feature. A cross-feature guard is different: it is a boundary contract, so it lives in the owner's `shared/validation.ts` from the **first** cross-feature caller — there is no other legal place for the crossing to happen. The canonical author-existence check (`requireAuthor` / `requireActiveUser`) is therefore a guard the **user** feature exports from `user/shared/validation.ts`, called by the todo and comment services — not a todo-feature guard reaching into the users table. These same guards generalize to read `ctx.actor` when the verdict is an authorization one ("is this actor the author?") — the `void`/verdict contract is unchanged; see [identity-and-access.md](./identity-and-access.md).
 
 **Keep the feature dependency graph acyclic.** Exporting guards makes one feature depend on another's contract; let those dependencies point one direction (a `todo` feature depending on `user`, not the reverse). A cycle of cross-feature guards is a sign two features are really one.
 

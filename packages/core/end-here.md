@@ -38,6 +38,14 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 - [ ] One domain exception per feature, carrying structured context — thrown by services, guards, and orchestrations alike?
 - [ ] Does every **cross-feature** guard return `void`, read only its owner's tables, and throw its owner's exception — never returning the entity to the caller?
 
+## Identity & Access → [identity-and-access.md](./identity-and-access.md)
+> Auth is **project-specific**. Before ticking these, establish the project's actual actor `type`s and permission model and verify the change against *that* — a gap (e.g. a permission for `user` but not `api`) may be intentional, so raise it as a question rather than auto-failing. See [identity-and-access.md](./identity-and-access.md) → *Reviewing an auth change*.
+- [ ] For a **first-time** identity & access setup, were the actor `type`s and the permission model proposed and confirmed with the user (as with domain boundaries)?
+- [ ] Is every authorization decision enforced in the **domain** (a service or a guard reading `ctx.actor`), not only at the edge — so it holds for every consumer (HTTP, worker, CLI, job)?
+- [ ] Does the current actor reach the domain via `ctx.actor` — never a `userId` hand-threaded through method params?
+- [ ] Do ownership / authorization guards throw the feature's domain exception, returning `void` when cross-feature?
+- [ ] Is a cross-resource limit (quota / plan) enforced as a **cross-entity invariant in an orchestration**, not smuggled into a guard?
+
 ## Orchestrations → [orchestration.md](./orchestration.md)
 - [ ] For each multi-service use case, does an orchestration own the sequencing — with no *single-entity* business rules of its own?
 - [ ] Do services avoid injecting or calling each other, with coordination going up into an orchestration?
@@ -68,6 +76,7 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 - [ ] Does every service receive AppContext through its constructor?
 - [ ] Is all infrastructure access (db, logger) going through `ctx.system` — no direct imports of adapters?
 - [ ] Do domain time reads come from `ctx.system.clock.now()` rather than `new Date()`?
+- [ ] Is `ctx.actor` populated for every operation (a real principal, or an explicit `anonymous` member) — never left `undefined`, and never threaded through method parameters instead?
 
 ## Testing → [testing.md](./testing.md)
 - [ ] Do `shared/validation.ts` guards have unit tests?

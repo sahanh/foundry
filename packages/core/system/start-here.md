@@ -20,6 +20,8 @@ system/
 
 Additional adapters are added as the application needs them — one subfolder per capability. The subfolder name should describe the capability, not the vendor (`email/` not `sendgrid/`, `queue/` not `bullmq/`).
 
+**Auth is not an adapter by default.** Authentication (verifying a credential) lives at the edge, in the app; authorization lives in the domain as guards reading `ctx.actor` (see [identity-and-access.md](../identity-and-access.md)). A capability-named credential-verification or policy adapter (`policy/`, never `clerk/`) belongs here **only on a real signal** — the domain itself must verify a credential, or authorization graduates into an external engine. Like any adapter it holds no rules; it plumbs the question outward.
+
 ## Foundational Primitives
 
 Beyond adapters, `system/` is the home for the core's **foundational primitives** — the cross-cutting, non-domain building blocks the whole domain rests on but that belong to no single feature:

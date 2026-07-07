@@ -31,14 +31,14 @@ L2a — inside packages/core/
   src/<feature>/            → domain feature module          → L3
 
 L2b — inside an app
-  transport / bootstrap     → server / session / AppContext assembly
+  transport / bootstrap     → server / session / actor resolution / AppContext assembly
   handlers / controllers    → per route / tool / command handler
 
 L3 — inside a feature module
   services/*.service.ts             → service (or sub-feature service)
   orchestrations/*.orchestration.ts → orchestration
   schemas/*.ts                      → schema
-  shared/validation.ts              → shared validation guard
+  shared/validation.ts              → shared validation guard (incl. authorization)
   exceptions.ts                     → domain exception
   __tests__/*                       → tests
 ```
@@ -53,19 +53,21 @@ For each mapped node, look up its guideline(s) and the `end-here` that owns its 
 
 | Mapped node | Validate against (guideline) | end-here |
 |---|---|---|
-| app handler / controller | [code-placement.md](./code-placement.md) (thin controller, schema reuse), [logging.md](./packages/core/system/logging.md) | [apps/end-here.md](./apps/end-here.md) |
-| app transport / bootstrap | [code-placement.md](./code-placement.md), [app-context.md](./packages/core/app-context.md) (assembly) | [apps/end-here.md](./apps/end-here.md) |
+| app handler / controller | [code-placement.md](./code-placement.md) (thin controller, schema reuse), [logging.md](./packages/core/system/logging.md); edge authN gate → [identity-and-access.md](./packages/core/identity-and-access.md) | [apps/end-here.md](./apps/end-here.md) |
+| app transport / bootstrap | [code-placement.md](./code-placement.md), [app-context.md](./packages/core/app-context.md) (assembly), [identity-and-access.md](./packages/core/identity-and-access.md) (actor resolution) | [apps/end-here.md](./apps/end-here.md) |
 | driven adapter (`system/`) | [system/start-here.md](./packages/core/system/start-here.md), [database.md](./packages/core/system/database.md) / [logging.md](./packages/core/system/logging.md) | [system/end-here.md](./packages/core/system/end-here.md) → Any driven adapter (+ Database / Logger adapter) |
 | foundational primitive (`system/`) | [system/start-here.md](./packages/core/system/start-here.md) (Foundational Primitives), [app-context.md](./packages/core/app-context.md) (Injectable helper vs direct import), [identifiers.md](./packages/core/identifiers.md) | [system/end-here.md](./packages/core/system/end-here.md) → Foundational primitive |
 | feature service | [service-first-architecture.md](./packages/core/service-first-architecture.md), [implementation-validation.md](./packages/core/implementation-validation.md) | [core/end-here.md](./packages/core/end-here.md) → Services |
 | orchestration | [orchestration.md](./packages/core/orchestration.md), [atomicity.md](./packages/core/atomicity.md), [implementation-validation.md](./packages/core/implementation-validation.md) (cross-entity invariant) | [core/end-here.md](./packages/core/end-here.md) → Orchestrations |
 | schema | [implementation-schemas.md](./packages/core/implementation-schemas.md), [identifiers.md](./packages/core/identifiers.md) | [core/end-here.md](./packages/core/end-here.md) → Schemas |
-| shared validation / exceptions | [implementation-validation.md](./packages/core/implementation-validation.md) | [core/end-here.md](./packages/core/end-here.md) → Validation & exceptions |
+| shared validation / exceptions | [implementation-validation.md](./packages/core/implementation-validation.md); for an authorization guard also [identity-and-access.md](./packages/core/identity-and-access.md) | [core/end-here.md](./packages/core/end-here.md) → Validation & exceptions (+ Identity & Access) |
 | db access in a service | [working-with-databases.md](./packages/core/working-with-databases.md), [atomicity.md](./packages/core/atomicity.md) | [core/end-here.md](./packages/core/end-here.md) → Database / Atomicity |
 | tests | [testing.md](./packages/core/testing.md) | [core/end-here.md](./packages/core/end-here.md) → Testing |
 | graduated package | [code-placement.md](./code-placement.md) (building a driven adapter) | [packages/end-here.md](./packages/end-here.md) |
 
 Service, orchestration, and shared-validation nodes also consult [logic-placement.md](./packages/core/logic-placement.md) for *which construct the logic belongs in and when to promote it* — the construct docs above own each construct's internal rules; the placement/promotion decision is owned there.
+
+**Auth is the one node you ground before you grade.** When a change touches authorization (or actor resolution at the edge), the identity model — which actor `type`s exist, what a permission means — is **project-specific**, not fixed by the guide. So before validating, first establish the project's *actual* model from the code, then judge the diff against it: see [identity-and-access.md](./packages/core/identity-and-access.md) → *Reviewing an auth change*. A gap (e.g. a feature covering `user` but not `api`) is a **question to raise, not an automatic fail** — it may be intentional. Do not evaluate an auth change against this guide as a flat checklist.
 
 ## Step 3 — Validate
 
@@ -85,6 +87,7 @@ These apply to *any* change regardless of what was touched — run them once acr
 - **Dependencies point one way** — driving → domain → driven; the core never imports an app, a driven adapter never imports the domain.
 - **Cross-feature crossings have exactly two shapes** — an owner-exported guard (a verdict; returns `void`) or an orchestration (data). Any other cross-feature import in domain code — a foreign service injected, a foreign table read, a guard returning an entity — fails review. (An orchestration that reaches ≥2 owners' data may also **own a cross-entity invariant** over it — a predicate no single owner can evaluate; that is the one business rule an orchestration may hold. A *single-entity* rule in an orchestration still fails review.)
 - **Business logic lives in the domain, integration-agnostic** — not in controllers or adapters.
+- **Authorization is enforced in the domain against `ctx.actor`, not only at the edge** — the domain is multi-consumer, so an edge-only check is silently absent on the worker / CLI / job path. Resolving the actor (authentication) is the edge's job; deciding what the actor may do (authorization) is a domain guard.
 - **Single source of truth; define once, derive the rest** — schemas infer types; boundaries reuse core schemas.
 - **Climb on a real signal, not in anticipation** — services, sub-features, adapter graduation, shared-validation extraction all wait for the second signal. The placement/promotion decision and this signal are owned by [logic-placement.md](./packages/core/logic-placement.md).
 - **Promotions are backfilled** — when logic moved up a rung (method → own service, → shared guard, → orchestration), the old home now delegates and existing callers were re-evaluated; nothing was left stranded.

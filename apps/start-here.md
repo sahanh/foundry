@@ -6,6 +6,6 @@
 
 An app is thin: parse/receive the transport request, call a service or orchestration, format the response. It holds no business rules.
 
-**Content to follow.** This doc will eventually collect the driving-adapter guidance that currently lives scattered elsewhere — thin-controller rules, entry-point logging and trace-ID ingestion, "validation in integrators only," and reusing the core's schemas at the boundary rather than redefining input shapes.
+**Content to follow.** This doc will eventually collect the driving-adapter guidance that currently lives scattered elsewhere — thin-controller rules, entry-point logging and trace-ID ingestion, "validation in integrators only," reusing the core's schemas at the boundary rather than redefining input shapes, and **authentication**: verifying the caller's credential and resolving a vendor-neutral **actor** onto `AppContext`. Authentication is an edge concern — the auth-provider SDK (Clerk, Cognito, BetterAuth, …) stays in the app; the app resolves the credential to an actor and sets `ctx.actor` before calling the domain, which then enforces authorization against it. See [identity-and-access.md](../packages/core/identity-and-access.md).
 
 When a change here is complete, verify against [end-here.md](./end-here.md) — the verify companion to this file. You are usually routed there by the [review protocol](../review.md).

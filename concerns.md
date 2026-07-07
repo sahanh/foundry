@@ -26,17 +26,6 @@ response, with no business rules." The one piece of logic controllers legitimate
 
 **Anchor:** `apps/start-here.md` (stub), `apps/end-here.md`, `implementation-validation.md`.
 
-### 4. Authentication and authorization have no home — `partial`
-
-Ownership *checks* now have a home: they live as `shared/validation.ts` guards ("this operation is allowed
-for this owner", `implementation-validation.md:152`) and the feature exception covers "authorization
-failures" (`implementation-validation.md:63`). Still unaddressed: where **authentication** happens, whether
-authz lives in controller vs service vs a guard layer, and **how the current user (actor) reaches a
-service** — `AppContext` (`app-context.md:7-16`) carries `traceId`, `transaction`, and `system.*` but **no
-actor/principal field**, and services are constructed as `new TodoService(todo, ctx)` with no actor argument.
-
-**Anchor:** `app-context.md`, `implementation-validation.md`.
-
 ### 7. AppContext assembly and per-request construction are still hand-waved — `partial`
 
 Progress since 2026-07-02: `traceId` and `transaction` are now top-level on `AppContext`
@@ -89,8 +78,9 @@ the schema's `z.enum()`, never `pgEnum` (`system/database.md` → Table Definiti
 
 Still undecided — deliberately out of scope at the persistence-convention level: **audit trails** for domain
 data (a row-level history of who changed what, when). Not decided here; raise it as its own concern if a
-feature needs one. A real "who changed it" trail also depends on #4 — `AppContext` carries no actor/principal
-to attribute a change to.
+feature needs one. A real "who changed it" trail can now attribute the change to `ctx.actor` (the caller
+identity resolved on `AppContext` — see `identity-and-access.md`, resolved #4); the audit-trail convention
+itself is what remains unwritten.
 
 **Anchor:** `working-with-databases.md`, `system/database.md`, `app-context.md`.
 
@@ -98,12 +88,18 @@ to attribute a change to.
 
 ### 13. Multi-tenancy is not in the playbook — `open`
 
-No tenant isolation convention exists. `AppContext` (`app-context.md:7-16`) carries no tenant field; there
+No tenant isolation convention exists. `AppContext` carries no tenant field; there
 is no scoped `ctx.system.db`, no RLS, no tenant-column guidance. Tenant isolation re-implemented by hand in
 every service means one missed `where tenantId` across five years of query sites — a breach, not a bug.
 Tenancy must be a structural convention, not per-query discipline.
 
-**Anchor:** `app-context.md:7`, `working-with-databases.md`.
+Tenant (*which* isolation boundary an operation runs within) is orthogonal to the **actor** (*who* is calling,
+resolved #4) but shares its **edge-resolution seam** — both are set during `AppContext` assembly at the edge.
+The actor design is finalized, so tenancy can build on it: `ctx.tenant` slots in as a sibling of `ctx.actor`
+without reshaping `AppContext`, and the same "resolve at the edge, enforce in the domain" pattern applies.
+See `identity-and-access.md` → *Growth path*.
+
+**Anchor:** `app-context.md`, `working-with-databases.md`, `identity-and-access.md`.
 
 ### 14. Cross-feature reads — direction decided, spec still missing — `open`
 
@@ -134,6 +130,16 @@ layer still needs its spec:
 ## Resolved (no longer valid)
 
 Dropped from the backlog because the restructures closed them. Listed so an old concern can be traced.
+
+- **Authentication and authorization have no home** *(was #4)* — resolved 2026-07-08. `AppContext` now
+  carries a top-level **`actor`** (a tagged union discriminated on `type` — `user | anonymous` now, the
+  type set project-specific and designed to grow). **Authentication** is an edge concern (the app verifies the credential and resolves a vendor-neutral
+  actor onto `ctx.actor`; the provider SDK stays out of the core); **authorization** is a domain concern,
+  enforced as `shared/validation.ts` guards reading `ctx.actor`, because the domain is multi-consumer.
+  Two deferrals are deliberate ("documented, not silently decided"): a `system/` credential-verification /
+  policy adapter, and an RBAC / policy engine — both reached on a real signal via the extended-permissions
+  ladder. See `identity-and-access.md`, `app-context.md` → *The Actor*, `apps/end-here.md` →
+  *Authentication & actor*, and the 2026-07-08 changelog entry.
 
 - **Cross-entity business rules have no home** *(was #12)* — resolved 2026-07-07. An orchestration may now
   own the one rule no single owner can evaluate: a **cross-entity invariant** — a predicate over ≥2 owners'
