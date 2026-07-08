@@ -5,6 +5,29 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-08 — Multi-tenancy: tenant isolation moves from Postgres RLS to an application-level scoped seam
+
+Tenant isolation is now enforced **purely at the application level**, with no database dependency. The
+earlier two-layer model — an app-level scoped `ctx.system.db` **plus** a Postgres **Row-Level Security**
+policy keyed on a `SET LOCAL app.current_tenant` session variable — drops its second layer: **RLS,
+`SET LOCAL`, and `app.current_tenant` are removed**. The scoped `ctx.system.db` is now the sole
+isolation guarantee — and it is a guarantee, not a convention, because the raw db client is never
+reachable from feature code: the only handle a service can touch is the already-scoped one, and the only
+unscoped path is the explicit, grep-able elevated context.
+
+Affects any **multi-tenant** application built against the earlier model — specifically any table with a
+Postgres RLS policy, or any code relying on the `app.current_tenant` session variable, for tenant
+isolation. Single-tenant apps are unaffected. Re-check against:
+[multi-tenancy.md](./packages/core/multi-tenancy.md) → *Isolation is enforced at the database seam* /
+*Anti-Patterns*; [system/database.md](./packages/core/system/database.md) → *Tenant column*;
+[app-context.md](./packages/core/app-context.md) → *Transaction Boundary*;
+[working-with-databases.md](./packages/core/working-with-databases.md) → *Tenant scope*;
+[code-placement.md](./code-placement.md) → *Tenancy splits by which face you are placing*; the
+[review protocol](./review.md) routing table + lens; and
+[system/end-here.md](./packages/core/system/end-here.md) → *Multi-tenancy*.
+
+---
+
 ## 2026-07-08 — Error-handling strategy + the controller's transport-mapping job (resolves #3)
 
 The playbook gains a cross-cutting **error-handling spine** — new root doc

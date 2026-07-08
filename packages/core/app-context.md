@@ -63,7 +63,7 @@ await ctx.transaction(async (txCtx) => {
 
 It wraps `ctx.system.db.transaction`, derives a context whose `system.db` is the transaction handle, and passes that `txCtx` to every service so all their writes run on the same transaction. A service is unaware it is inside a boundary — it always calls `ctx.system.db`, which is the transaction when one is open. A nested `ctx.transaction` joins the open one rather than opening a second top-level transaction. Full rules — who owns the boundary, why side effects wait until after commit, and what a transaction cannot span — are in [atomicity.md](./atomicity.md).
 
-In a **multi-tenant** app, this same factory also issues the RLS session variable (`SET LOCAL app.current_tenant = …`) on the derived `txCtx` — **inside** the transaction, before any query — so the database's row-level policies apply. Because `SET LOCAL` is transaction-scoped, RLS covers in-transaction work; a single autocommit read is covered by the app-level scoped client. See [multi-tenancy.md](./multi-tenancy.md) → *Isolation is enforced at the database seam*.
+In a **multi-tenant** app, this same factory also derives the tenant-scoped `system.db` when `ctx.tenant` is present — one derivation model, the same rail as the transaction handle, with no database session variable involved. See [multi-tenancy.md](./multi-tenancy.md) → *Isolation is enforced at the database seam*.
 
 ## The Actor — `ctx.actor`
 
@@ -81,7 +81,7 @@ The tenant scope is *which isolation boundary* the current operation runs within
 - **Resolved at the edge, read-only.** A driving adapter derives the tenant from the request and sets `ctx.tenant` during `AppContext` assembly — before any service runs, the same point and manner as `traceId` and `actor`. A service **reads** it but never sets, overrides, or threads it through a constructor or method parameter (the parameter-repetition smell, exactly as for the actor).
 - **It scopes the db seam, automatically.** When `ctx.tenant` is present, `ctx.system.db` is assembled **already tenant-scoped** — derived the same way `ctx.transaction` derives a `ctx` whose `system.db` is the transaction handle (below). A service keeps calling `ctx.system.db`, unaware, so there is **no `where tenantId` to write, forget, or forge**. Like the `AppContext` type, the tenant-scope **type** is a `system/` foundational primitive reached by **direct import**, carrying **no business rules**.
 
-The scope's shape (it carries at minimum the tenant id; anything more is project-specific and stays opaque), how the edge derives it, the RLS backstop, and the sanctioned unscoped path are the **single source** in [multi-tenancy.md](./multi-tenancy.md) — this section covers only how the field rides on the context.
+The scope's shape (it carries at minimum the tenant id; anything more is project-specific and stays opaque), how the edge derives it, and the sanctioned unscoped path are the **single source** in [multi-tenancy.md](./multi-tenancy.md) — this section covers only how the field rides on the context.
 
 ## The Clock — `ctx.system.clock`
 

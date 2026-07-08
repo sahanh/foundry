@@ -90,7 +90,7 @@ layer still needs its spec:
 - **Domain definitions will drift into SQL copies** — when a service defines "active," the query layer
   re-encodes it; needs shared predicates, DB views, or imports of the named-decision helpers.
 - **It is the highest-risk site for tenant leaks** — the one layer that legitimately bypasses services must
-  inherit the scoped `ctx.system.db` + RLS (`multi-tenancy.md`, resolved #13), never a raw client; its tenant
+  inherit the scoped `ctx.system.db` (`multi-tenancy.md`, resolved #13), never a raw client; its tenant
   scoping is structural, not per-query.
 
 **Anchor:** `working-with-databases.md`, `code-placement.md`, `packages/core/start-here.md`.
@@ -145,11 +145,12 @@ Dropped from the backlog because the restructures closed them. Listed so an old 
 - **Multi-tenancy is not in the playbook** *(was #13)* — resolved 2026-07-08. Tenant isolation is now a
   structural convention, not per-query discipline. Tenant-as-**scope** is infrastructure (the domain is
   identical per tenant): `ctx.tenant` rides top-level on `AppContext` beside `ctx.actor`, resolved at the
-  edge and enforced at the single db seam — a **default-scoped** `ctx.system.db` **plus** Postgres RLS keyed
-  on a per-transaction session variable, so a service never writes `where tenantId` and cannot forge it
-  (scoping is the default; the only unscoped path is an explicit, auditable opt-out). Tenant-owned tables
-  carry a `NOT NULL` tenant-id FK — one **uniform**, project-named column (`tenantId` by default) — plus an
-  RLS policy; the tenant table and global reference tables are exempt. Tenant-as-**entity** (org / plan /
+  edge and enforced at the single db seam — a **default-scoped** `ctx.system.db`, so a service never writes
+  `where tenantId` and cannot forge it (scoping is the default; the only unscoped path is an explicit,
+  auditable opt-out). Tenant-owned tables carry a `NOT NULL` tenant-id FK — one **uniform**, project-named
+  column (`tenantId` by default); the tenant table and global reference tables are exempt. (The isolation
+  model is now application-level only — the Postgres RLS layer this originally shipped with was removed
+  2026-07-08; see the changelog.) Tenant-as-**entity** (org / plan /
   members) stays an ordinary domain feature. Single-tenant is the zero-ceremony default; multi-tenancy is a
   whole-app opt-in, **framework-not-shape** (the `ctx.tenant` shape, which tables are tenant-owned, and the
   column name are project decisions confirmed with the user). Two deferrals are deliberate ("documented, not
@@ -157,8 +158,8 @@ Dropped from the backlog because the restructures closed them. Listed so an old 
   project-specific, and the **cross-tenant / platform-admin** unscoped path is specified in shape but depends
   on the deferred `system` actor type (#4's ladder). The cross-feature **read layer** — the highest-risk
   tenant-leak site — remains its own open concern (#14). See `multi-tenancy.md`, `app-context.md` → *The
-  Tenant scope*, `system/database.md` → *Tenant column & RLS*, `working-with-databases.md` → *Tenant scope*,
-  and the 2026-07-08 changelog entry.
+  Tenant scope*, `system/database.md` → *Tenant column*, `working-with-databases.md` → *Tenant scope*,
+  and the 2026-07-08 changelog entries.
 - **Authentication and authorization have no home** *(was #4)* — resolved 2026-07-08. `AppContext` now
   carries a top-level **`actor`** (a tagged union discriminated on `type` — `user | anonymous` now, the
   type set project-specific and designed to grow). **Authentication** is an edge concern (the app verifies the credential and resolves a vendor-neutral

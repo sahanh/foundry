@@ -114,7 +114,7 @@ Q3 is the same "climb on a real signal, not in anticipation" ladder used for ser
 
 Multi-tenancy has two faces, and they land in two different homes — the same way a job queue splits into enqueue (driven) and worker (driving):
 
-- **Tenant-as-scope** — the *isolation boundary* an operation runs within (`ctx.tenant`, the scoped `ctx.system.db`, the `tenantId` column + RLS). This is outbound infrastructure the domain is scoped *by*, not business logic — the domain is identical for every tenant. It lives at the **system** seam (mechanism in `system/db`, threaded on `AppContext`), governed by the `system/` non-domain invariant.
+- **Tenant-as-scope** — the *isolation boundary* an operation runs within (`ctx.tenant`, the scoped `ctx.system.db`, the `tenantId` column and the scoped seam). This is outbound infrastructure the domain is scoped *by*, not business logic — the domain is identical for every tenant. It lives at the **system** seam (mechanism in `system/db`, threaded on `AppContext`), governed by the `system/` non-domain invariant.
 - **Tenant-as-entity** — the *org / workspace / plan / members* themselves, with their own rules (what a plan permits, who belongs). This is **domain**: an ordinary feature in `packages/core/src/<feature>/`.
 
 So "where does multi-tenancy go?" is not one question. The isolation mechanism is system-level; the tenant entity is a feature. The full convention is in [multi-tenancy.md](./packages/core/multi-tenancy.md).

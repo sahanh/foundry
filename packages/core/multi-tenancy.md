@@ -40,14 +40,14 @@ assembly.** `ctx.tenant` sits beside `ctx.actor` as a sibling.
 
 ## Single-tenant is the default
 
-A single-tenant application carries **no `ctx.tenant`, no scoped `ctx.system.db`, no RLS, no `tenantId`
+A single-tenant application carries **no `ctx.tenant`, no scoped `ctx.system.db`, no `tenantId`
 columns** — zero ceremony, zero overhead. Most projects using this playbook are single-tenant and
 should stay that way; nothing here applies to them.
 
 Multi-tenancy is a **whole-application, up-front decision**, not an incremental per-feature climb.
 Unlike soft-delete (adopted one entity at a time on a real signal), tenant isolation cannot be
-retrofitted cheaply — bolting `tenantId` + RLS onto five years of tables *is* the migration pain this
-convention exists to prevent. So: decide it at the start. And **once the application is multi-tenant,
+retrofitted cheaply — bolting `tenantId` + a scoped seam onto five years of tables *is* the migration
+pain this convention exists to prevent. So: decide it at the start. And **once the application is multi-tenant,
 the conventions below are mandatory and structural** — there is no per-query middle ground, because
 per-query is exactly the failure mode.
 
@@ -67,7 +67,7 @@ why you are here.
   "decide first, confirm explicitly" rule services and actors follow
   ([service-first-architecture.md](./service-first-architecture.md)). One constraint on the column name:
   it must be **the same on every tenant-owned table** (`tenantId` is the recommended default) — the
-  generic scoped seam and RLS key on one predictable column. The patterns below — tenant on `ctx`,
+  generic scoped seam keys on one predictable column. The patterns below — tenant on `ctx`,
   isolation at the db seam, resolve-at-the-edge — are the *shape*; the specifics are yours.
 - **Reviewing** — a diff in a system where tenancy is already set up. Do **not** grade it against this
   doc as a flat checklist. First establish the project's *actual* tenancy model (which tables carry the
@@ -124,29 +124,27 @@ the domain with an absent scope — the same shape as an authentication failure.
 ## Isolation is enforced at the database seam
 
 The guarantee — *a service cannot read or write another tenant's rows* — is enforced structurally at
-the **one db seam every service already uses (`ctx.system.db`)**, in **two layers of defense**, neither
-of which a service participates in:
+the **one db seam every service already uses (`ctx.system.db`)**, and a service participates in none of
+it.
 
-- **App layer — the scoped client.** When `ctx.tenant` is present, `ctx.system.db` is assembled
-  **already scoped**: it injects the tenant predicate into every read and stamps `tenantId` on every
-  insert. This is the **same derivation model as the transaction handle** — `ctx.transaction` already
-  derives a `ctx` whose `system.db` *is* the open transaction, and services stay unaware
-  ([app-context.md](./app-context.md) → *Transaction Boundary*). Tenant scoping rides the identical
-  rail. It is **not a repository** between service and db ([working-with-databases.md](./working-with-databases.md))
-  — the service still calls `ctx.system.db` directly and owns its writes; the scope is a property of how
-  the client was assembled.
-- **Database layer — Row-Level Security.** Postgres RLS policies on each tenant-owned table, keyed on a
-  per-transaction session variable (`SET LOCAL app.current_tenant = …`) set by the **same AppContext /
-  `ctx.transaction` factory** that derives the scoped db. The database itself refuses cross-tenant rows
-  even if a query slips past the app layer (a hand-written join, raw SQL). This is **defense-in-depth
-  for a security boundary** — categorically different from making the database the *first rejecter of
-  ordinary business input* (the `pgEnum` anti-pattern in [system/database.md](./system/database.md)):
-  the schema still validates input first; RLS is the backstop that makes isolation a guarantee rather
-  than a convention.
+**The scoped client.** When `ctx.tenant` is present, `ctx.system.db` is assembled **already scoped**:
+it injects the tenant predicate into every read and stamps `tenantId` on every insert. This is the
+**same derivation model as the transaction handle** — `ctx.transaction` already derives a `ctx` whose
+`system.db` *is* the open transaction, and services stay unaware ([app-context.md](./app-context.md) →
+*Transaction Boundary*). Tenant scoping rides the identical rail. It is **not a repository** between
+service and db ([working-with-databases.md](./working-with-databases.md)) — the service still calls
+`ctx.system.db` directly and owns its writes; the scope is a property of how the client was assembled.
 
-The two layers have **different activation scopes**, and both are needed: `SET LOCAL` is
-transaction-scoped, so **RLS only covers work inside a `ctx.transaction`**; the app-level scoped client
-is what covers a single autocommit read. Together they leave no unscoped path through the seam.
+This one seam is a **guarantee, not a convention** — and it needs no database-level backstop to be one,
+because it is the **only database handle feature code can reach**. The raw driver is never injected
+through `ctx.system.*` and never importable inside a feature, so there is no hand-written join or raw
+query that can slip past the scope: the escape hatch simply does not exist in domain code. Scoping is
+**ambient** — assembled once at the seam, with nothing to call to turn it on and so nothing to forget.
+`tenantId` is **stamped by the seam** from `ctx.tenant`, never by a service or a column default, so a
+service cannot forge or override it. And the **only** unscoped path is the loud, grep-able elevated
+context below — one auditable escape, not an ad-hoc raw client. Isolation is therefore
+**database-agnostic**: it rests on how the seam is assembled, not on Postgres RLS, a session variable,
+or anything the storage engine must enforce.
 
 The result is the whole point: **a service never writes `where tenantId`, never sets `tenantId` on an
 insert, and cannot forge or override the scope.** The tenant id cannot be tarnished at the service
@@ -156,8 +154,8 @@ level because the service never touches it.
 
 The scope is **ambient — never a method a service opts into.** The `ctx.system.db` a service receives *is*
 the scoped handle; there is nothing to call to "turn scoping on," so there is nothing to forget. The
-safety-critical binding — the RLS session variable — is set by the **ctx / `ctx.transaction` factory** for
-the whole scoped context, **never inside a query helper**. If a method were what activated it, forgetting
+safety-critical binding — the tenant scope itself — is bound when the **ctx / `ctx.transaction` factory**
+assembles the handle, for the whole scoped context, **never inside a query helper**. If a method were what activated it, forgetting
 that method would leak — which is the very per-call discipline this convention exists to kill. The only way
 out is the **explicit opt-*out*** — the elevated context above (or a loud, grep-able `db.unscoped()` /
 `db.crossTenant()`), rare and reviewed — never the base handle.
@@ -169,15 +167,15 @@ must never be the thing that *makes* a query safe. The moment scoping is opt-*in
 what such a helper is named are project decisions; *that scoping is the default* is not.
 
 The table-level mechanics — the tenant column (**one uniform name across every tenant-owned table**,
-`tenantId` by default), which tables are exempt, the RLS policy and its migration — live in
-[system/database.md](./system/database.md) → *Tenant column & RLS*.
+`tenantId` by default) and which tables are exempt — live in
+[system/database.md](./system/database.md) → *Tenant column*.
 
 ## The one unscoped path
 
 Some operations legitimately cross tenants: a platform-admin console listing all tenants, a billing job
 aggregating across the fleet, a support tool. These run under an **explicit elevated context** —
 assembled the same controlled way as any other `AppContext`, but deliberately *without* a tenant scope
-(and reaching a db role that bypasses RLS). It is a **named, sanctioned exception**, not an ad-hoc
+— an unscoped `ctx.system.db` that may read across tenants. It is a **named, sanctioned exception**, not an ad-hoc
 unscoped client a service constructs for itself. Constructing an unscoped db to "just this once" read
 across tenants is the breach this whole convention exists to prevent.
 
@@ -193,15 +191,15 @@ When the [review protocol](../../review.md) routes a tenancy-touching diff here,
 model is **project-specific** — you cannot grade it in the abstract. Ground the review in what the
 system *actually* has, then judge the diff:
 
-1. **Establish the existing model first.** From the code: which tables carry `tenantId` and an RLS
-   policy, which are global/exempt, what `ctx.tenant` holds, and how the edge derives it. If tenancy is
+1. **Establish the existing model first.** From the code: which tables carry `tenantId`, which are
+   global/exempt, what `ctx.tenant` holds, and how the edge derives it. If tenancy is
    not set up at all, this is a first-time setup, not a review — see *Two ways you reach this guide*.
-2. **Read the diff against that model.** A new tenant-owned table — does it have `tenantId` + RLS? A new
-   query — does it rely on the scoped seam rather than a hand-written filter? A cross-tenant read — does
+2. **Read the diff against that model.** A new tenant-owned table — does it have `tenantId` and rely on
+   the scoped seam? A new query — does it rely on the scoped seam rather than a hand-written filter? A cross-tenant read — does
    it go through the explicit elevated context, or did someone build an unscoped client?
 3. **A gap is usually a blocker, not a question.** Unlike an auth gap (which may be an intentional
-   omission), a tenant-owned table missing `tenantId`+RLS, or a hand-written tenant filter, is a
-   structural hole in the isolation guarantee — treat it as a blocker. The one genuine judgment call is
+   omission), a tenant-owned table missing `tenantId` / not on the scoped seam, or a hand-written
+   tenant filter, is a structural hole in the isolation guarantee — treat it as a blocker. The one genuine judgment call is
    *whether a new table is tenant-owned or global* — that, ground in the model and raise if unclear.
 
 ## Anti-Patterns
@@ -220,12 +218,10 @@ system *actually* has, then judge the diff:
   non-domain invariant on `ctx.tenant`.
 - **Threading the tenant through parameters** — passing a `tenantId` argument into service methods
   instead of the scope living on `ctx`. Same parameter-repetition smell as threading the actor.
-- **A tenant-owned table with no RLS** — relying on the app-level scoped client alone. RLS is the
-  backstop that makes isolation a guarantee; without it, one raw query is a cross-tenant read.
 - **Retrofitting tenancy per-feature** — treating multi-tenancy as an incremental climb. It is a
   whole-app, up-front decision; a half-tenant-scoped schema is a half-open door.
 
 ---
 
 **Verify:** when done, check [end-here.md](./end-here.md) → *Database* / *AppContext*, and
-[system/end-here.md](./system/end-here.md) → *Multi-tenancy* for the table & RLS mechanics.
+[system/end-here.md](./system/end-here.md) → *Multi-tenancy* for the table & scoped-column mechanics.
