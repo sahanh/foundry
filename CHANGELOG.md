@@ -5,6 +5,39 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-08 — Error-handling strategy + the controller's transport-mapping job (resolves #3)
+
+The playbook gains a cross-cutting **error-handling spine** — new root doc
+**[error-handling.md](./error-handling.md)** — and its edge application, new
+**[apps/transport-mapping.md](./apps/transport-mapping.md)** — closing [concerns.md](./concerns.md) #3
+(the controller's exception→response job was unspecified). The strategy: "error" is **two anticipated
+classes** — an input-validation failure (the Zod schema at the boundary, field-keyed) and a domain-rule
+failure (the per-feature domain exception, one message) — that **both normalize to one response shape at
+the edge** and are **both a handled `4xx`, never a `500`**; a `500` is reserved for the *unanticipated*
+fault the framework owns. `transport-mapping.md` makes this concrete for HTTP: one shared error handler,
+the response envelope (an array of optionally field-scoped messages, a stable `code`, the `traceId`, only
+a safe subset of context), the uniform **`422`** for domain exceptions today, and the
+pagination/filtering/sorting contract for collection endpoints (the controller binds params and serializes
+`Page<T>`; the service owns the legal filter/sort set). No shared `DomainException` base class and no
+per-status failure `kind` were introduced — finer statuses (`403`/`404`/`409`) are a **documented growth
+path**.
+
+Affects any server-side transport code that handles errors ad hoc — a per-route `try/catch`, a bespoke or
+divergent error body, or a handler that lets a domain/validation failure bubble into a `500` — and any
+collection endpoint with a hand-rolled pagination/filter response. Also affects code written against
+[identity-and-access.md](./packages/core/identity-and-access.md)'s earlier "authorization failure → `403`"
+wording: an authorization denial is a handled domain failure presented as **`422` today** (the `403` is
+now the growth path). Re-check against [error-handling.md](./error-handling.md);
+[apps/transport-mapping.md](./apps/transport-mapping.md);
+[apps/start-here.md](./apps/start-here.md) and [apps/end-here.md](./apps/end-here.md) → *Response & error
+mapping* / *Collection endpoints*;
+[implementation-validation.md](./packages/core/implementation-validation.md) → *Exception Design*;
+[identity-and-access.md](./packages/core/identity-and-access.md) → *Authorization is a domain concern*;
+[atomicity.md](./packages/core/atomicity.md) → *The Boundary Lives on `ctx`*; and the
+[review protocol](./review.md) lens + the app-handler routing row.
+
+---
+
 ## 2026-07-08 — Frontend guidelines: the client UI as a driving adapter, in its own `apps/web/` subtree
 
 The playbook now covers the **frontend**. A client UI is a **driving adapter** like any inbound

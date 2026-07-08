@@ -93,7 +93,7 @@ Exceptions should include:
 - **Human message** — Default message for logging/debugging
 - **Structured access** — Programmatic access to context for integrators
 
-The integrator catches the exception and decides presentation: JSON error response, CLI alert, queue retry, or logging.
+The integrator catches the exception and decides presentation: a JSON error response, a CLI alert, a queue retry, or logging. That presentation is not ad hoc. Both failure sources in this section — this domain exception and the [schema library](#input-failures--the-schema-library) above — are *anticipated* failures, and the edge transforms them into **one response shape**: a domain failure is a handled `4xx`, **never** a `500`. The single strategy is [error-handling.md](../../error-handling.md); its HTTP realization — the response envelope and status mapping — is [apps/transport-mapping.md](../../apps/transport-mapping.md). (Finer per-status mapping — `403`, `404`, `409` — is a growth path documented there; it awaits a machine-readable failure category on the exception, deliberately not added yet.)
 
 ---
 

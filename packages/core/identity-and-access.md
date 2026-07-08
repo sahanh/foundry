@@ -89,7 +89,8 @@ ingestion ([system/logging.md](./system/logging.md), [apps/end-here.md](../../ap
 3. The app sets `ctx.actor` during `AppContext` assembly, **before** any service or orchestration runs.
 
 An **authentication failure** — a missing or invalid credential — is rejected at the edge and never
-reaches the domain (a `401`, mapped by the controller). Contrast an **authorization failure** below,
+reaches the domain (a `401`, mapped by the controller — see
+[transport-mapping.md](../../apps/transport-mapping.md)). Contrast an **authorization failure** below,
 which is a domain decision.
 
 The provider is an example, never a rule. Should the domain itself ever need to verify a credential
@@ -112,8 +113,11 @@ Authorization reuses the existing guard machinery — it is **not** a new layer.
 is a [guard](./implementation-validation.md#shared-validation-helpers): it reads `ctx.actor`, asserts
 the actor may act, and **throws the feature's domain exception** on failure. That exception already
 covers authorization failures ([implementation-validation.md](./implementation-validation.md) → *The
-Domain Exception*), so an integrator maps it to a `403` the same way it maps any other domain failure
-— which is the controller's exception-to-transport job ([concerns.md](../../concerns.md) #3).
+Domain Exception*), so the edge presents it like any other domain failure — a handled `4xx` in the shared
+error shape, **never a `500`**. Today that is a uniform `422`; a dedicated **`403`** for an authorization
+denial is a documented growth path, awaiting a machine-readable failure category on the exception. The
+mapping is the controller's exception-to-transport job — see
+[transport-mapping.md](../../apps/transport-mapping.md) (and its *Growth path* section).
 
 Each shape of authorization maps to a construct that already exists:
 

@@ -12,7 +12,7 @@ How a use case stays all-or-nothing. Every write in a single use case commits to
 
 ## The Boundary Lives on `ctx`
 
-`ctx.transaction` wraps `ctx.system.db.transaction`, derives a context whose `system.db` is the transaction handle, and passes that derived context to every service. On return it commits; on any throw it rolls back.
+`ctx.transaction` wraps `ctx.system.db.transaction`, derives a context whose `system.db` is the transaction handle, and passes that derived context to every service. On return it commits; on any throw it rolls back — and that throw is a raised failure (a schema parse, a guard, a service rule), so a **failure is the rollback signal**. This is the *unwinding* half of the [error-handling strategy](../../error-handling.md): on any thrown failure the writes revert and the post-commit effects below never fire.
 
 ```ts
 await ctx.transaction(async (txCtx) => {

@@ -93,7 +93,7 @@ Time enters the domain through one injected adapter — `ctx.system.clock.now()`
 
 Why an injected clock rather than the common `vi.setSystemTime` approach: system-time mocking mutates a **global**, which is process-wide and hostile to parallel integration tests (two tests freezing time clobber each other). An injected clock is parallel-safe by construction — each context carries its own.
 
-**No timezone in the domain.** The clock deals only in absolute instants. Timezone conversion is a presentation concern owned by the layer that communicates between the app and the domain (the API / edge), never by services. The domain stores and compares absolute time; the edge localizes for the viewer.
+**No timezone in the domain.** The clock deals only in absolute instants. Timezone conversion is a presentation concern owned by the layer that communicates between the app and the domain (the API / edge), never by services. The domain stores and compares absolute time; the edge localizes for the viewer — a presentation concern like error mapping, owned by [transport-mapping.md](../../apps/transport-mapping.md).
 
 ## Helpers — `ctx.system.helpers`
 

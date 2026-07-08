@@ -16,16 +16,6 @@ the doc(s) that own, or should own, the decision.
 
 ## Domain layer
 
-### 3. Controllers' actual job is unspecified: mapping domain exceptions to transport responses — `open`
-
-Controllers are "thin glue," but no doc covers exception → HTTP status mapping, error response shape, or
-pagination/filtering/sorting contracts for collection endpoints. The domain side stops at "throw a domain
-exception; the integrator decides presentation" (`implementation-validation.md:96`); the controller side
-that owns the mapping is still a stub (`apps/start-here.md`), and `apps/end-here.md` only says "format the
-response, with no business rules." The one piece of logic controllers legitimately own has no convention.
-
-**Anchor:** `apps/start-here.md` (stub), `apps/end-here.md`, `implementation-validation.md`.
-
 ### 7. AppContext assembly and per-request construction are still hand-waved — `partial`
 
 Progress since 2026-07-02: `traceId` and `transaction` are now top-level on `AppContext`
@@ -133,6 +123,19 @@ silently decide."
 
 Dropped from the backlog because the restructures closed them. Listed so an old concern can be traced.
 
+- **Controllers' transport-mapping job is unspecified** *(was #3)* — resolved 2026-07-08. The controller's
+  one legitimate piece of logic — turning a domain outcome into a transport response — now has a
+  convention, derived from a cross-cutting **error-handling strategy**. "Error" is two anticipated classes
+  (an input-validation failure at the Zod boundary, field-keyed; a domain-rule failure, the per-feature
+  exception, one message) that **both normalize to one response shape** and are **both a handled `4xx`,
+  never a `500`** — a `500` is only the unanticipated fault. The HTTP realization fixes the response
+  envelope, the uniform `422` for domain exceptions, and the pagination/filtering/sorting contract for
+  collection endpoints (the controller binds params and serializes `Page<T>`; the service owns the legal
+  filter/sort set). Two things are deferred — documented, not decided: a shared `DomainException` base
+  class (deliberately **not** introduced — the guideline stays one-exception-per-feature) and a per-status
+  failure `kind` for finer statuses (`403`/`404`/`409`), a **growth path**. See `error-handling.md`,
+  `apps/transport-mapping.md`, `apps/start-here.md` / `apps/end-here.md` → *Response & error mapping* /
+  *Collection endpoints*, and the 2026-07-08 changelog entry.
 - **Frontend had no guidelines** *(was #16)* — resolved 2026-07-08 by the new **`apps/web/`** subtree: the
   client UI is a driving adapter with its own guidance for component placement & promotion, app shell /
   container ownership, the visual system, and UI scope. The frontend's *remaining* discipline (data

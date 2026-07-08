@@ -15,10 +15,24 @@ You usually arrive here routed by the root review protocol when it maps a touch 
 - [ ] Does the app import the core (`@app/core`) and never the reverse — dependency points inward?
 
 ## Handler / controller → [code-placement.md](../code-placement.md)
-- [ ] Is the handler **thin**: parse/receive the transport request → call a service or orchestration → format the response, with **no business rules**?
+- [ ] Is the handler **thin**: parse/receive the transport request → call a service or orchestration → format the response (the one translation it owns — see [transport-mapping.md](./transport-mapping.md)), with **no business rules**?
 - [ ] Does it **reuse the core's Zod schemas** at the boundary rather than redefining input shapes (which silently drift from the domain's real constraints)?
 - [ ] Is validation **delegated to the domain**, not duplicated in the controller?
 - [ ] For an MCP server: is transport/bootstrap (server + session lifecycle + `AppContext` assembly) kept separate from the per-tool handlers?
+
+## Response & error mapping → [transport-mapping.md](./transport-mapping.md)
+> The edge application of the [error-handling strategy](../error-handling.md). See [transport-mapping.md](./transport-mapping.md) → *The error response structure* / *Mapping outcomes to a response*.
+- [ ] Does a **single shared error handler** (not a per-route `try/catch`) turn a thrown outcome into the response — with **one envelope shape** for both a validation failure (field-keyed messages) and a domain exception (one message)?
+- [ ] Is every **anticipated** failure a `4xx` — a schema/validation failure and a domain exception both `422` (or a project-chosen 400/422 split) — and **never** a `500`?
+- [ ] Is a `500` reserved for the **unanticipated** (a bug, an infra fault), logged with full context and returning a **generic** body that leaks no stack trace, attempted value, or other tenant's id?
+- [ ] Is the `traceId` echoed on the error response, so a caller can quote it back to the logs?
+- [ ] Is an **authentication** failure a `401` decided at the edge, not a domain exception mapped downstream?
+
+## Collection endpoints → [transport-mapping.md](./transport-mapping.md)
+- [ ] Does the handler **reuse the core's** filter/sort/pagination input schema (`.strict()`, so an unknown key is a validation failure) rather than redefining it at the edge?
+- [ ] Are the limit and cursor handled via the `system/` pagination primitives (`resolveLimit`, the cursor codec) — the cursor **opaque**, never a client-constructed offset?
+- [ ] Is the returned **`Page<T>`** serialized (items + `nextCursor`), with the service — not the controller — owning the legal filter/sort set and every invisible predicate (`deletedAt IS NULL`, tenant scope, authorization)?
+- [ ] Does the controller **invent no predicate** (an "if param `X`, also filter `Y`" is business logic, and belongs in the service)?
 
 ## Entry-point logging → [system/logging.md](../packages/core/system/logging.md)
 - [ ] Is a `traceId` ingested from the incoming request (or generated) and propagated into the `AppContext`?

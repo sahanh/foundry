@@ -11,6 +11,8 @@ This is the engineering standard for this project. It is not a reference to cons
 
 Each level has two seams: a **`start-here.md`** to read *before* you build, and an **`end-here.md`** to verify *after*. When a change is complete, run the **[review protocol](./review.md)** — it maps what you touched, routes each area to the guideline that owns it, and validates against the matching `end-here`. It is mandatory — not a suggestion.
 
+One concern cuts across every level: **failure**. How an error is raised in the domain and presented at each edge is one strategy, in **[error-handling.md](./error-handling.md)** — a cross-cutting spine like this map itself; the per-layer docs apply it rather than re-decide it.
+
 Renamed or removed concepts are recorded in **[CHANGELOG.md](./CHANGELOG.md)** — if something you expected is gone, look there for what replaced it and how to migrate.
 
 ## Conventions
