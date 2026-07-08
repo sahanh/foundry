@@ -20,7 +20,7 @@ Explore the diff (not the whole repo). Produce a **table of contents of touched 
 
 ```
 L1 — where in the repo?
-  apps/<app>                → driving adapter (app)          → L2b
+  apps/<app>                → driving adapter (app)          → L2b (server transport) or L2c (frontend)
   packages/core/            → the domain core                → L2a
   packages/<other>/         → graduated package (driven adapter)
   repo root / config        → cross-cutting
@@ -30,9 +30,15 @@ L2a — inside packages/core/
   src/system/<primitive>    → foundational primitive (id helpers, pagination, AppContext type)
   src/<feature>/            → domain feature module          → L3
 
-L2b — inside an app
-  transport / bootstrap     → server / session / actor resolution / AppContext assembly
+L2b — inside a server-side app (api / cli / worker / mcp)
+  transport / bootstrap     → server / session / actor + tenant resolution / AppContext assembly
   handlers / controllers    → per route / tool / command handler
+
+L2c — inside the frontend client UI (apps/web) — skip this whole branch unless the diff touches apps/web
+  shell / layout            → app shell, container, navigation
+  feature component         → a feature-owned component (placement, naming, grouping)
+  visual system             → shared visual treatments, design tokens, global styles
+  ui scope                  → feature-surface scope decisions
 
 L3 — inside a feature module
   services/*.service.ts             → service (or sub-feature service)
@@ -54,20 +60,26 @@ For each mapped node, look up its guideline(s) and the `end-here` that owns its 
 | Mapped node | Validate against (guideline) | end-here |
 |---|---|---|
 | app handler / controller | [code-placement.md](./code-placement.md) (thin controller, schema reuse), [logging.md](./packages/core/system/logging.md); edge authN gate → [identity-and-access.md](./packages/core/identity-and-access.md) | [apps/end-here.md](./apps/end-here.md) |
-| app transport / bootstrap | [code-placement.md](./code-placement.md), [app-context.md](./packages/core/app-context.md) (assembly), [identity-and-access.md](./packages/core/identity-and-access.md) (actor resolution) | [apps/end-here.md](./apps/end-here.md) |
-| driven adapter (`system/`) | [system/start-here.md](./packages/core/system/start-here.md), [database.md](./packages/core/system/database.md) / [logging.md](./packages/core/system/logging.md) | [system/end-here.md](./packages/core/system/end-here.md) → Any driven adapter (+ Database / Logger adapter) |
+| app transport / bootstrap | [code-placement.md](./code-placement.md), [app-context.md](./packages/core/app-context.md) (assembly), [identity-and-access.md](./packages/core/identity-and-access.md) (actor resolution), [multi-tenancy.md](./packages/core/multi-tenancy.md) (tenant resolution) | [apps/end-here.md](./apps/end-here.md) |
+| frontend shell / layout | [apps/web/app-shell.md](./apps/web/app-shell.md) | [apps/web/end-here.md](./apps/web/end-here.md) |
+| frontend feature component | [apps/web/component-placement.md](./apps/web/component-placement.md) | [apps/web/end-here.md](./apps/web/end-here.md) |
+| frontend visual system | [apps/web/visual-system.md](./apps/web/visual-system.md) | [apps/web/end-here.md](./apps/web/end-here.md) |
+| frontend ui scope | [apps/web/ui-scope.md](./apps/web/ui-scope.md) | [apps/web/end-here.md](./apps/web/end-here.md) |
+| driven adapter (`system/`) | [system/start-here.md](./packages/core/system/start-here.md), [database.md](./packages/core/system/database.md) / [logging.md](./packages/core/system/logging.md); tenant column & RLS → [multi-tenancy.md](./packages/core/multi-tenancy.md) | [system/end-here.md](./packages/core/system/end-here.md) → Any driven adapter (+ Database / Logger adapter / Multi-tenancy) |
 | foundational primitive (`system/`) | [system/start-here.md](./packages/core/system/start-here.md) (Foundational Primitives), [app-context.md](./packages/core/app-context.md) (Injectable helper vs direct import), [identifiers.md](./packages/core/identifiers.md) | [system/end-here.md](./packages/core/system/end-here.md) → Foundational primitive |
 | feature service | [service-first-architecture.md](./packages/core/service-first-architecture.md), [implementation-validation.md](./packages/core/implementation-validation.md) | [core/end-here.md](./packages/core/end-here.md) → Services |
 | orchestration | [orchestration.md](./packages/core/orchestration.md), [atomicity.md](./packages/core/atomicity.md), [implementation-validation.md](./packages/core/implementation-validation.md) (cross-entity invariant) | [core/end-here.md](./packages/core/end-here.md) → Orchestrations |
 | schema | [implementation-schemas.md](./packages/core/implementation-schemas.md), [identifiers.md](./packages/core/identifiers.md) | [core/end-here.md](./packages/core/end-here.md) → Schemas |
 | shared validation / exceptions | [implementation-validation.md](./packages/core/implementation-validation.md); for an authorization guard also [identity-and-access.md](./packages/core/identity-and-access.md) | [core/end-here.md](./packages/core/end-here.md) → Validation & exceptions (+ Identity & Access) |
-| db access in a service | [working-with-databases.md](./packages/core/working-with-databases.md), [atomicity.md](./packages/core/atomicity.md) | [core/end-here.md](./packages/core/end-here.md) → Database / Atomicity |
+| db access in a service | [working-with-databases.md](./packages/core/working-with-databases.md), [atomicity.md](./packages/core/atomicity.md); multi-tenant app → [multi-tenancy.md](./packages/core/multi-tenancy.md) (no hand-written tenant filter) | [core/end-here.md](./packages/core/end-here.md) → Database / Atomicity |
 | tests | [testing.md](./packages/core/testing.md) | [core/end-here.md](./packages/core/end-here.md) → Testing |
 | graduated package | [code-placement.md](./code-placement.md) (building a driven adapter) | [packages/end-here.md](./packages/end-here.md) |
 
 Service, orchestration, and shared-validation nodes also consult [logic-placement.md](./packages/core/logic-placement.md) for *which construct the logic belongs in and when to promote it* — the construct docs above own each construct's internal rules; the placement/promotion decision is owned there.
 
 **Auth is the one node you ground before you grade.** When a change touches authorization (or actor resolution at the edge), the identity model — which actor `type`s exist, what a permission means — is **project-specific**, not fixed by the guide. So before validating, first establish the project's *actual* model from the code, then judge the diff against it: see [identity-and-access.md](./packages/core/identity-and-access.md) → *Reviewing an auth change*. A gap (e.g. a feature covering `user` but not `api`) is a **question to raise, not an automatic fail** — it may be intentional. Do not evaluate an auth change against this guide as a flat checklist.
+
+**Tenancy you also ground first — but a hole is a blocker.** In a multi-tenant app the tenancy model is likewise project-specific (which tables are tenant-owned, what `ctx.tenant` carries), so establish it from the code before judging: see [multi-tenancy.md](./packages/core/multi-tenancy.md) → *Reviewing a tenancy change*. Unlike an auth gap, though, a tenant-owned table missing `tenantId`+RLS, a hand-written tenant filter, or an ad-hoc unscoped client is a **structural hole in the isolation guarantee — a blocker, not a question.** The one genuine judgment call is whether a new table is tenant-owned or global.
 
 ## Step 3 — Validate
 
@@ -86,8 +98,9 @@ These apply to *any* change regardless of what was touched — run them once acr
 - **One home for every piece of code** — a feature, a driven adapter (or a `system/` foundational primitive), or a driving-adapter app; anything else needs explicit confirmation.
 - **Dependencies point one way** — driving → domain → driven; the core never imports an app, a driven adapter never imports the domain.
 - **Cross-feature crossings have exactly two shapes** — an owner-exported guard (a verdict; returns `void`) or an orchestration (data). Any other cross-feature import in domain code — a foreign service injected, a foreign table read, a guard returning an entity — fails review. (An orchestration that reaches ≥2 owners' data may also **own a cross-entity invariant** over it — a predicate no single owner can evaluate; that is the one business rule an orchestration may hold. A *single-entity* rule in an orchestration still fails review.)
-- **Business logic lives in the domain, integration-agnostic** — not in controllers or adapters.
+- **Business logic lives in the domain, integration-agnostic** — not in controllers, adapters, or the frontend UI. A UI may *mirror* a rule for fast feedback, but the core stays the single source of truth; a rule that exists *only* in the UI fails review.
 - **Authorization is enforced in the domain against `ctx.actor`, not only at the edge** — the domain is multi-consumer, so an edge-only check is silently absent on the worker / CLI / job path. Resolving the actor (authentication) is the edge's job; deciding what the actor may do (authorization) is a domain guard.
+- **Tenant isolation is structural, not per-query** (multi-tenant apps) — `ctx.tenant` is set only at assembly, and the scoped `ctx.system.db` + RLS enforce isolation at the seam. A hand-written `where tenantId`, a service-set `tenantId`, an ad-hoc unscoped client, a db seam where scoping is **opt-in rather than the default**, or a tenant-owned table lacking `tenantId`+RLS fails review. The only unscoped path is an explicit elevated context.
 - **Single source of truth; define once, derive the rest** — schemas infer types; boundaries reuse core schemas.
 - **Climb on a real signal, not in anticipation** — services, sub-features, adapter graduation, shared-validation extraction all wait for the second signal. The placement/promotion decision and this signal are owned by [logic-placement.md](./packages/core/logic-placement.md).
 - **Promotions are backfilled** — when logic moved up a rung (method → own service, → shared guard, → orchestration), the old home now delegates and existing callers were re-evaluated; nothing was left stranded.

@@ -9,6 +9,8 @@ AppContext
   traceId       — UUID identifying the current operation (see system/logging.md)
   actor         — who/what is performing this operation; a tagged union over principal types,
                   resolved at the edge (see The Actor below · identity-and-access.md)
+  tenant        — which isolation boundary this operation runs within; present only in a
+                  multi-tenant app, resolved at the edge (see The Tenant scope below · multi-tenancy.md)
   transaction   — opens an atomic boundary (see atomicity.md)
   system
     db          — Drizzle client (see working-with-databases.md)
@@ -18,7 +20,7 @@ AppContext
                   (id-source) (see Helpers below)
 ```
 
-`traceId` and `actor` are operation-level metadata, not infrastructure adapters — they sit at the top level, not under `system`. `traceId` says *which* operation this is; `actor` says *on whose behalf* it runs. Neither is something the domain calls *out* to (which is what `system.*` is for), so both ride at the top beside `transaction` (a method, covered below). Additional system-layer adapters are added under `AppContext.system` as the application introduces them. The domain layer never imports an adapter directly — it always goes through the context.
+`traceId`, `actor`, and (in a multi-tenant app) `tenant` are operation-level metadata, not infrastructure adapters — they sit at the top level, not under `system`. `traceId` says *which* operation this is; `actor` says *on whose behalf* it runs; `tenant` says *within which isolation boundary*. None is something the domain calls *out* to (which is what `system.*` is for), so all ride at the top beside `transaction` (a method, covered below). Additional system-layer adapters are added under `AppContext.system` as the application introduces them. The domain layer never imports an adapter directly — it always goes through the context.
 
 ## Constructor Injection
 
@@ -61,6 +63,8 @@ await ctx.transaction(async (txCtx) => {
 
 It wraps `ctx.system.db.transaction`, derives a context whose `system.db` is the transaction handle, and passes that `txCtx` to every service so all their writes run on the same transaction. A service is unaware it is inside a boundary — it always calls `ctx.system.db`, which is the transaction when one is open. A nested `ctx.transaction` joins the open one rather than opening a second top-level transaction. Full rules — who owns the boundary, why side effects wait until after commit, and what a transaction cannot span — are in [atomicity.md](./atomicity.md).
 
+In a **multi-tenant** app, this same factory also issues the RLS session variable (`SET LOCAL app.current_tenant = …`) on the derived `txCtx` — **inside** the transaction, before any query — so the database's row-level policies apply. Because `SET LOCAL` is transaction-scoped, RLS covers in-transaction work; a single autocommit read is covered by the app-level scoped client. See [multi-tenancy.md](./multi-tenancy.md) → *Isolation is enforced at the database seam*.
+
 ## The Actor — `ctx.actor`
 
 The actor is *who or what* is performing the current operation — the caller's identity, carried as top-level operation metadata beside `traceId`, not under `system.*` (the domain does not call *out* to it). Two mechanics belong to the context; the actor's shape and meaning live elsewhere (below):
@@ -69,6 +73,15 @@ The actor is *who or what* is performing the current operation — the caller's 
 - **A direct-import primitive.** Like the `AppContext` type itself, the `Actor` **type** is a `system/` foundational primitive reached by **direct import** (a type position, no `ctx` — per *Injectable helper vs direct import* below). It carries **no business rules**.
 
 The union's members, the `type` discriminant, the project-specific set of actor types, and the whole authentication/authorization model are the **single source** in [identity-and-access.md](./identity-and-access.md) → *The Actor* — this section covers only how the field rides on the context.
+
+## The Tenant scope — `ctx.tenant`
+
+The tenant scope is *which isolation boundary* the current operation runs within — carried as top-level operation metadata beside `actor`, not under `system.*` (the domain does not call *out* to it). It is present **only in a multi-tenant application**; a single-tenant app has no `ctx.tenant`, no scoped `ctx.system.db`, and no ceremony. As with the actor, two mechanics belong to the context; the scope's shape and meaning live elsewhere:
+
+- **Resolved at the edge, read-only.** A driving adapter derives the tenant from the request and sets `ctx.tenant` during `AppContext` assembly — before any service runs, the same point and manner as `traceId` and `actor`. A service **reads** it but never sets, overrides, or threads it through a constructor or method parameter (the parameter-repetition smell, exactly as for the actor).
+- **It scopes the db seam, automatically.** When `ctx.tenant` is present, `ctx.system.db` is assembled **already tenant-scoped** — derived the same way `ctx.transaction` derives a `ctx` whose `system.db` is the transaction handle (below). A service keeps calling `ctx.system.db`, unaware, so there is **no `where tenantId` to write, forget, or forge**. Like the `AppContext` type, the tenant-scope **type** is a `system/` foundational primitive reached by **direct import**, carrying **no business rules**.
+
+The scope's shape (it carries at minimum the tenant id; anything more is project-specific and stays opaque), how the edge derives it, the RLS backstop, and the sanctioned unscoped path are the **single source** in [multi-tenancy.md](./multi-tenancy.md) — this section covers only how the field rides on the context.
 
 ## The Clock — `ctx.system.clock`
 
@@ -137,6 +150,7 @@ Integration tests construct a test AppContext with controlled adapters:
 - `system.clock` — a clock pinned to a fixed instant, so timestamps are deterministic and assertable
 - an injected **id-source** — a deterministic generator so `ctx.system.helpers.newId(...)` yields stable, assertable ids (the id analogue of the pinned clock)
 - `actor` — a fixed principal (a test `user`, or an explicit `anonymous`) so authorization is deterministic and assertable (the identity analogue of the pinned clock)
+- `tenant` (multi-tenant apps only) — a fixed tenant scope so the scoped `ctx.system.db` is deterministic and cross-tenant isolation can be asserted
 - `system.email`, `system.queue` — spy or capture adapters so side effects can be asserted
 
 The service under test receives the test context through its constructor. No service code changes between production and test — only the context differs. See [testing.md](./testing.md) for how this applies to integration test setup.

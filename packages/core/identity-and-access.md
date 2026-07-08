@@ -157,9 +157,11 @@ These are deliberately out of scope now, recorded so they are decided-not-omitte
   case to be handled.
 - **An RBAC / policy engine.** Deferred to rung 3 of the ladder above — reached only on a real signal.
 - **Tenancy.** Tenant isolation (which boundary an operation runs *within*) is orthogonal to the actor
-  (*who* is calling) but shares the same edge-resolution seam — both are set during `AppContext`
-  assembly. `ctx.actor` is shaped so a sibling `ctx.tenant` can be added later without reshaping.
-  Tenancy is deferred to [concerns.md](../../concerns.md) #13.
+  (*who* is calling) but shares its edge-resolution seam — both are set during `AppContext` assembly.
+  This is now **specified**, not deferred: `ctx.tenant` rides beside `ctx.actor`, resolved at the edge
+  and enforced structurally at the db seam — see [multi-tenancy.md](./multi-tenancy.md). What still
+  borrows from *this* section: the **cross-tenant / platform-admin** path runs under an elevated context
+  that depends on the deferred `system` principal above.
 
 ## Reviewing an auth change
 

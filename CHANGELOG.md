@@ -5,6 +5,71 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-08 — Frontend guidelines: the client UI as a driving adapter, in its own `apps/web/` subtree
+
+The playbook now covers the **frontend**. A client UI is a **driving adapter** like any inbound
+entry point — it drives the system (through the API, or `@app/core` from server code) and holds **no
+business rules** at the macro scale — so its home is `apps/`. What it adds is a rich *internal*
+structure the thin-transport apps never had, documented in a new **[apps/web/](./apps/web/start-here.md)**
+subtree: **[component-placement.md](./apps/web/component-placement.md)** (start local, promote to
+`shared/` only on a second real signal, with confirmation — the frontend reading of *climb on a real
+signal*), **[app-shell.md](./apps/web/app-shell.md)** (app-level layout lives once, in the shared
+shell/container), **[visual-system.md](./apps/web/visual-system.md)** (shared treatments + semantic
+tokens over per-feature styles), and **[ui-scope.md](./apps/web/ui-scope.md)** (build the requested
+surface; propose adjacent surfaces separately). `apps/` is now framed as **two families** of driving
+app — server-side transport and the client UI — and the web subtree is a **skippable branch**: work
+unrelated to the UI never needs to open it.
+
+In `code-placement.md` the topology's example HTTP-controller app is **renamed `web/` → `api/`** so
+`web/` can name the frontend; if you referenced `apps/web/` as "the HTTP controllers", that example is
+now `apps/api/`. Affects any frontend code written before this change — check it against the new
+subtree: [apps/web/start-here.md](./apps/web/start-here.md) and
+[apps/web/end-here.md](./apps/web/end-here.md);
+[code-placement.md](./code-placement.md) → *The Topology* / *The frontend is a driving adapter too*;
+[apps/start-here.md](./apps/start-here.md) (two families) and [apps/end-here.md](./apps/end-here.md)
+(scoped to server-side transport); and the [review protocol](./review.md) taxonomy node **L2c** +
+routing rows + lens (business logic never lives *only* in the UI). Known gaps in this first pass —
+data fetching, client state, forms, accessibility, and frontend testing — are tracked in
+[concerns.md](./concerns.md) #17 (this milestone itself closes #16).
+
+---
+
+## 2026-07-08 — Multi-tenancy: tenant-as-scope on AppContext, isolation enforced at the db seam
+
+Tenant isolation is now a structural convention (resolves [concerns.md](./concerns.md) #13).
+The split: **tenant-as-scope** (which isolation boundary an operation runs within) is **infrastructure**,
+not domain — the domain is identical for every tenant. It rides top-level on `AppContext` as **`ctx.tenant`**
+beside `ctx.actor`, resolved at the edge, and enforced structurally at the single db seam: an **app-level
+scoped `ctx.system.db`** (derived the same way as the transaction handle, not a repository) **plus Postgres
+RLS** keyed on a per-transaction session variable — so a service never writes `where tenantId` and cannot
+forge it. Scoping is the **default**, not an opt-in method: the scoped `ctx.system.db` *is* the handle a
+service receives, and the only unscoped path is an explicit, auditable opt-*out* (an elevated context) — a
+`tenanted()`-style helper, if any, is sugar over an already-scoped handle, never the safety mechanism.
+**Tenant-as-entity** (org / plan / members) stays an ordinary domain feature. Tenant-owned tables
+carry a `NOT NULL` tenant-id FK — one **uniform** column name across every such table (`tenantId` by
+default; the exact name is a project choice, but it must be the same on all of them so the generic seam
+and RLS key on one predictable column) — plus an RLS policy (the tenant table and global reference
+tables exempt).
+**Single-tenant is the zero-ceremony default**; multi-tenancy is a whole-app, up-front opt-in. Like the actor
+`type` set, this is a **framework, not a fixed shape** — the `ctx.tenant` shape and which tables are
+tenant-owned are project decisions confirmed with the user. New concern doc
+**[packages/core/multi-tenancy.md](./packages/core/multi-tenancy.md)**.
+
+Affects any multi-tenant application, and in particular code that hand-writes a `where tenantId` filter, sets
+`tenantId` in a service, constructs an ad-hoc unscoped db client for cross-tenant reads, or has a tenant-owned
+table without a `tenantId` column + RLS. Single-tenant apps are unaffected. Re-check against
+[multi-tenancy.md](./packages/core/multi-tenancy.md);
+[app-context.md](./packages/core/app-context.md) → *The Tenant scope* / *Transaction Boundary*;
+[working-with-databases.md](./packages/core/working-with-databases.md) → *Tenant scope*;
+[system/database.md](./packages/core/system/database.md) → *Tenant column & RLS*;
+[code-placement.md](./code-placement.md) → *Tenancy splits by which face you are placing*;
+[apps/end-here.md](./apps/end-here.md) → *Tenant scope*,
+[packages/core/end-here.md](./packages/core/end-here.md) → *Database* / *AppContext*,
+[system/end-here.md](./packages/core/system/end-here.md) → *Multi-tenancy*; and the
+[review protocol](./review.md) routing table + lens.
+
+---
+
 ## 2026-07-08 — Identity & access: the actor on AppContext, authN at the edge, authZ in the domain
 
 `AppContext` gains a top-level **`actor`** field — a tagged union discriminated on **`type`**, modeled

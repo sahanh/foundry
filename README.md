@@ -6,7 +6,7 @@ This is the engineering standard for this project. It is not a reference to cons
 
 - **[packages/core/](./packages/core/start-here.md)** — the domain core: how to structure and build features (services, orchestrations, validation, schemas, testing) and the rules that govern the domain layer.
 - **[packages/core/system/](./packages/core/system/start-here.md)** — the driven infrastructure the core sits on: database, logger, clock, and other adapters.
-- **[apps/](./apps/start-here.md)** — the driving adapters: HTTP, CLI, workers, MCP servers (inbound entry points that consume the core).
+- **[apps/](./apps/start-here.md)** — the driving adapters, in two families: **server-side transport** (HTTP, CLI, workers, MCP) and the **[frontend / web UI](./apps/web/start-here.md)** (a client surface). The web subtree is a *skippable branch* — open it only for UI work; backend-only work stops at the server-transport guidance.
 - **[packages/](./packages/start-here.md)** — libraries, including driven adapters that graduated out of the core.
 
 Each level has two seams: a **`start-here.md`** to read *before* you build, and an **`end-here.md`** to verify *after*. When a change is complete, run the **[review protocol](./review.md)** — it maps what you touched, routes each area to the guideline that owns it, and validates against the matching `end-here`. It is mandatory — not a suggestion.

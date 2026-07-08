@@ -28,6 +28,16 @@ You usually arrive here routed by the root review protocol when it maps a touch 
 - [ ] Column constraints are reflected in the Zod schemas (schema ≥ DB, schema rejects first)?
 - [ ] Are enum-valued columns stored as `varchar` guarded by the schema's `z.enum([...])` — **not** `pgEnum`?
 - [ ] Migrations shipped in the same commit as the schema change, and are append-only?
+- [ ] (Multi-tenant app) Does a **tenant-owned** table carry a `NOT NULL` tenant-id FK **and** an RLS policy — see *Multi-tenancy* below?
+
+## Multi-tenancy → [multi-tenancy.md](../multi-tenancy.md)
+> Multi-tenant apps only. `start-here` does not yet carry a tenancy section — the authoritative rules live in [multi-tenancy.md](../multi-tenancy.md) and [database.md](./database.md) → *Tenant column & RLS*.
+- [ ] Does every **tenant-owned** table have a `NOT NULL` tenant-id column (FK to the tenant table) **and** an RLS policy keyed on the `app.current_tenant` session variable — with the **tenant table itself and global reference tables exempt**?
+- [ ] Is the tenant column named **identically on every tenant-owned table** — the app's one chosen name (`tenantId` by default), which the generic scoped seam and RLS key on?
+- [ ] Is the tenant column stamped by the **scoped seam** (never a service value, never a column default or trigger) and reflected in the entity's Zod schema (`entityId('tenant')`)?
+- [ ] Is the scoped `ctx.system.db` derived at **assembly** — the app-level filter plus `SET LOCAL app.current_tenant` issued **inside** the transaction — so isolation is at the seam, not per-query discipline?
+- [ ] Did the tenant column **and** its RLS policy ship in the **same append-only migration**?
+- [ ] Is the only unscoped path an **explicit elevated context**, never an ad-hoc raw client?
 
 ## Logger adapter → [logging.md](./logging.md)
 - [ ] Logging implemented **before feature work** (it is a required subsystem)?

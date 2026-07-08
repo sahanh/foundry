@@ -89,6 +89,8 @@ await ctx.transaction(async (txCtx) => {
 
 The orchestration still holds no single-entity rule: `plan.maxActiveRuns` and how a run starts are owned by their services; the orchestration owns only the *relationship between them*.
 
+> Here `tenantId` is threaded as a value because it names the **tenant entity** the quota is *about* (a domain owner whose plan and runs are read via their services) — not the ambient isolation scope. In a **multi-tenant** app that already carries `ctx.tenant` ([multi-tenancy.md](./multi-tenancy.md)), these reads are scoped by the seam and would not thread a `tenantId` argument at all; the example threads it explicitly to stay self-contained and independent of the tenancy convention.
+
 **Races.** A read-then-write invariant (quota, uniqueness, aggregate) is subject to the same race as any check-then-write: two transactions can both read "under the limit" before either writes. Back it with a database constraint or a row lock — the invariant read is not sufficient alone. See [atomicity.md → Validation Inside the Boundary](./atomicity.md#validation-inside-the-boundary).
 
 ### Which feature owns the orchestration

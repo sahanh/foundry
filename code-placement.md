@@ -17,7 +17,8 @@ The repository is a monorepo with exactly two top-level homes: **`apps/`** and *
 
 ```
 apps/                  ← driving adapters: inbound entry points, each deployable
-  web/                   HTTP/GraphQL controllers      →  import @app/core
+  api/                   HTTP/GraphQL controllers      →  import @app/core
+  web/                   frontend client UI (React)    →  drives the core via api/ (or @app/core from server code)
   cli/                   command-line entry points     →  import @app/core
   worker/                queue consumers                →  import @app/core
   mcp/                   MCP server (tool handlers)     →  import @app/core
@@ -39,7 +40,7 @@ Every piece of code plays one of three roles:
 |---|---|---|
 | **Domain** | business logic — rules, calculations, entity transformations | `packages/core/src/<feature>/` |
 | **Driven adapter** | infrastructure the domain calls *out* to (db, logger, clock, email, queue) | `packages/core/src/system/` — or its own `packages/<name>/` once graduated |
-| **Driving adapter** | an inbound entry point that calls *into* the domain (HTTP, CLI, worker, MCP) | `apps/<name>/` |
+| **Driving adapter** | an inbound entry point that calls *into* the domain (HTTP, CLI, worker, MCP, web UI) | `apps/<name>/` |
 
 Alongside the driven adapters, `packages/core/src/system/` also holds the core's **foundational primitives** — the `AppContext` type and `ctx.transaction` factory, the id helpers and prefix registry, and pagination. These are *not* a fourth role: they are the non-domain substrate the three roles rest on (the contract adapters plug into, the id system every entity uses). They differ from an adapter only in how the domain reaches them — imported directly rather than injected — and, like adapters, they hold no business rules. See [system/start-here.md](./packages/core/system/start-here.md).
 
@@ -98,7 +99,8 @@ Q3 is the same "climb on a real signal, not in anticipation" ladder used for ser
 | Thing you're placing | Q1 logic? | Q2 direction | Q3 weight | **Lands in** |
 |---|---|---|---|---|
 | MCP server (tools call your services) | no | inbound | — | `apps/mcp/` |
-| REST API (Express/Hono routes) | no | inbound | — | `apps/rest-api/` |
+| REST API (Express/Hono routes) | no | inbound | — | `apps/api/` |
+| Frontend web UI (React SPA / client) | no | inbound | — | `apps/web/` |
 | Queue worker (consumes jobs) | no | inbound | — | `apps/worker/` |
 | Notifications (templates, multi-channel, read by a settings page) | no | outbound | own lifecycle + non-domain consumer → **graduates** | `packages/notifications/` |
 | Database (Drizzle/Postgres) | no | outbound | baseline → stays | `packages/core/src/system/db/` |
@@ -108,11 +110,26 @@ Q3 is the same "climb on a real signal, not in anticipation" ladder used for ser
 | Email send | no | outbound | one capability → stays (until it grows) | `packages/core/src/system/email/` |
 | "Can this task be claimed?" rule | **yes** | — | — | `packages/core/src/<feature>/` (a service) |
 
+### Tenancy splits by which face you are placing
+
+Multi-tenancy has two faces, and they land in two different homes — the same way a job queue splits into enqueue (driven) and worker (driving):
+
+- **Tenant-as-scope** — the *isolation boundary* an operation runs within (`ctx.tenant`, the scoped `ctx.system.db`, the `tenantId` column + RLS). This is outbound infrastructure the domain is scoped *by*, not business logic — the domain is identical for every tenant. It lives at the **system** seam (mechanism in `system/db`, threaded on `AppContext`), governed by the `system/` non-domain invariant.
+- **Tenant-as-entity** — the *org / workspace / plan / members* themselves, with their own rules (what a plan permits, who belongs). This is **domain**: an ordinary feature in `packages/core/src/<feature>/`.
+
+So "where does multi-tenancy go?" is not one question. The isolation mechanism is system-level; the tenant entity is a feature. The full convention is in [multi-tenancy.md](./packages/core/multi-tenancy.md).
+
 ### MCP is a driving adapter, not infrastructure
 
 An MCP server *feels* like infrastructure — it's a protocol — so the instinct is to file it under `system/`. That is wrong: `system/` is for adapters the domain calls *out* to, and an MCP server does the opposite — an LLM client invokes its tools, each tool parses input, calls a service or orchestration, and formats the result. It **imports** the domain. That makes it a *driving* adapter, structurally identical to a REST route or a CLI command, and its home is `apps/mcp/`.
 
 A well-built MCP server keeps the transport/bootstrap (server + session lifecycle + `AppContext` assembly) separate from the per-tool handlers, and each handler stays thin: parse → call the domain → format, with **no business logic**. It also **reuses the core's Zod schemas** at the boundary rather than redefining input shapes — a redefined schema silently drifts from the domain's real constraints. None of this changes the placement rule: however cleanly it is built, an inbound transport belongs in `apps/`, never beside the feature folders and never in `system/`.
+
+### The frontend is a driving adapter too
+
+A client UI — the React/web app in `apps/web/` — is a *driving* adapter like any other: humans drive it, and it drives the system, reaching the core through the `api/` app over HTTP (or directly from server-side code). It differs from a server-side transport only in *how* it reaches the core — consuming the API rather than importing `@app/core` in the browser — but the direction still points inward, so its home is `apps/`.
+
+At this macro scale it holds **no business rules**, exactly like a thin controller: a rule may be *mirrored* in the UI for fast feedback, but the core stays the source of truth. What makes the frontend distinct is its rich *internal* structure — component hierarchy, app shell, visual system, scope discipline — which the server-transport guidance never had to cover. That structure has its own subtree, **[apps/web/start-here.md](./apps/web/start-here.md)**, and it is a **skippable branch**: a reader not doing UI work never needs to open it.
 
 ### Graduation: when a driven adapter leaves `system/`
 

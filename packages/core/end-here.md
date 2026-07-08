@@ -66,6 +66,7 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 - [ ] Is cross-feature access going through the owning feature's service (from an orchestration) or its exported guard (from a service), never the DB directly?
 - [ ] Are domain timestamp columns `NOT NULL` with no DB default, stamped by wrapping the write's values in `ctx.system.helpers` (`timestamps(values)` on create, `updatedAt(values)` on update) — and set nowhere else (no hand-written `createdAt`/`updatedAt`)?
 - [ ] Are deletes hard by default — with soft-delete used only on a real signal, via a nullable `deletedAt` stamped through `ctx.system.helpers` (`softDelete(values)`) and filtered (`deletedAt IS NULL`) once in the owning service, not at call sites?
+- [ ] In a **multi-tenant** app, do services rely on the scoped `ctx.system.db` — **no hand-written `where tenantId`**, and **no service-set `tenantId`** on insert (the seam applies both)? ([multi-tenancy.md](./multi-tenancy.md))
 
 ## Atomicity → [atomicity.md](./atomicity.md)
 - [ ] Does each multi-write use case run inside one `ctx.transaction` boundary owned by the outermost caller?
@@ -77,6 +78,7 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 - [ ] Is all infrastructure access (db, logger) going through `ctx.system` — no direct imports of adapters?
 - [ ] Do domain time reads come from `ctx.system.clock.now()` rather than `new Date()`?
 - [ ] Is `ctx.actor` populated for every operation (a real principal, or an explicit `anonymous` member) — never left `undefined`, and never threaded through method parameters instead?
+- [ ] In a **multi-tenant** app, is `ctx.tenant` read-only — set only at assembly, never set, overridden, or threaded by a service? (Absent in single-tenant apps.)
 
 ## Testing → [testing.md](./testing.md)
 - [ ] Do `shared/validation.ts` guards have unit tests?

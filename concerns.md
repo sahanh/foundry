@@ -86,21 +86,6 @@ itself is what remains unwritten.
 
 ## Scaling / five-year pressure points
 
-### 13. Multi-tenancy is not in the playbook — `open`
-
-No tenant isolation convention exists. `AppContext` carries no tenant field; there
-is no scoped `ctx.system.db`, no RLS, no tenant-column guidance. Tenant isolation re-implemented by hand in
-every service means one missed `where tenantId` across five years of query sites — a breach, not a bug.
-Tenancy must be a structural convention, not per-query discipline.
-
-Tenant (*which* isolation boundary an operation runs within) is orthogonal to the **actor** (*who* is calling,
-resolved #4) but shares its **edge-resolution seam** — both are set during `AppContext` assembly at the edge.
-The actor design is finalized, so tenancy can build on it: `ctx.tenant` slots in as a sibling of `ctx.actor`
-without reshaping `AppContext`, and the same "resolve at the edge, enforce in the domain" pattern applies.
-See `identity-and-access.md` → *Growth path*.
-
-**Anchor:** `app-context.md`, `working-with-databases.md`, `identity-and-access.md`.
-
 ### 14. Cross-feature reads — direction decided, spec still missing — `open`
 
 Direction is confirmed: cross-entity queries (dashboards, search, reporting) should live in a dedicated
@@ -115,9 +100,26 @@ layer still needs its spec:
 - **Domain definitions will drift into SQL copies** — when a service defines "active," the query layer
   re-encodes it; needs shared predicates, DB views, or imports of the named-decision helpers.
 - **It is the highest-risk site for tenant leaks** — the one layer that legitimately bypasses services must
-  have structural tenant scoping.
+  inherit the scoped `ctx.system.db` + RLS (`multi-tenancy.md`, resolved #13), never a raw client; its tenant
+  scoping is structural, not per-query.
 
 **Anchor:** `working-with-databases.md`, `code-placement.md`, `packages/core/start-here.md`.
+
+## Frontend
+
+### 17. Frontend discipline beyond structure is unwritten — `open`
+
+The `apps/web/` subtree (added 2026-07-08, resolving #16) covers the frontend's **structure**: component
+placement & promotion, app shell / container ownership, the visual system, and UI scope. It does **not**
+yet cover the rest of the frontend discipline — **data fetching** (the client/server boundary, caching,
+loading/error states), **client state management**, **forms & client-side validation** (in particular how
+a rule *mirrored* in the UI stays derived from the core's Zod schema rather than re-encoded, so the core
+remains the single source of truth), **accessibility**, and **frontend testing** (component / interaction
+/ e2e — with their own `end-here` boxes and a `review.md` node). Until these are written, such work has no
+convention to check against; raise the specific gap when a feature needs one, per "document, don't
+silently decide."
+
+**Anchor:** `apps/web/start-here.md`, `apps/web/end-here.md`.
 
 ## Smaller items
 
@@ -131,6 +133,29 @@ layer still needs its spec:
 
 Dropped from the backlog because the restructures closed them. Listed so an old concern can be traced.
 
+- **Frontend had no guidelines** *(was #16)* — resolved 2026-07-08 by the new **`apps/web/`** subtree: the
+  client UI is a driving adapter with its own guidance for component placement & promotion, app shell /
+  container ownership, the visual system, and UI scope. The frontend's *remaining* discipline (data
+  fetching, client state, forms, accessibility, testing) stays **open — now tracked as #17**, not closed
+  here. See `apps/web/start-here.md`, `apps/web/end-here.md`, and the 2026-07-08 changelog entry.
+
+- **Multi-tenancy is not in the playbook** *(was #13)* — resolved 2026-07-08. Tenant isolation is now a
+  structural convention, not per-query discipline. Tenant-as-**scope** is infrastructure (the domain is
+  identical per tenant): `ctx.tenant` rides top-level on `AppContext` beside `ctx.actor`, resolved at the
+  edge and enforced at the single db seam — a **default-scoped** `ctx.system.db` **plus** Postgres RLS keyed
+  on a per-transaction session variable, so a service never writes `where tenantId` and cannot forge it
+  (scoping is the default; the only unscoped path is an explicit, auditable opt-out). Tenant-owned tables
+  carry a `NOT NULL` tenant-id FK — one **uniform**, project-named column (`tenantId` by default) — plus an
+  RLS policy; the tenant table and global reference tables are exempt. Tenant-as-**entity** (org / plan /
+  members) stays an ordinary domain feature. Single-tenant is the zero-ceremony default; multi-tenancy is a
+  whole-app opt-in, **framework-not-shape** (the `ctx.tenant` shape, which tables are tenant-owned, and the
+  column name are project decisions confirmed with the user). Two deferrals are deliberate ("documented, not
+  silently decided"): **how** the edge derives the tenant (subdomain / header / membership / actor claim) is
+  project-specific, and the **cross-tenant / platform-admin** unscoped path is specified in shape but depends
+  on the deferred `system` actor type (#4's ladder). The cross-feature **read layer** — the highest-risk
+  tenant-leak site — remains its own open concern (#14). See `multi-tenancy.md`, `app-context.md` → *The
+  Tenant scope*, `system/database.md` → *Tenant column & RLS*, `working-with-databases.md` → *Tenant scope*,
+  and the 2026-07-08 changelog entry.
 - **Authentication and authorization have no home** *(was #4)* — resolved 2026-07-08. `AppContext` now
   carries a top-level **`actor`** (a tagged union discriminated on `type` — `user | anonymous` now, the
   type set project-specific and designed to grow). **Authentication** is an edge concern (the app verifies the credential and resolves a vendor-neutral
