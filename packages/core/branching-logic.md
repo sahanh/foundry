@@ -1,4 +1,4 @@
-# Named Decisions
+# Branching Logic — Named Decisions & Strategies
 
 When a handler's branching policy has a simple outcome but internals that fan out into many cases, extract it into a **pure function named in domain terms**: the handler gathers inputs, dispatches on the helper's result, and executes the side effect; the helper holds the branching, exhaustively tested. `if (shouldRetry(err, attempts))` is policy; `if (err.code !== "FATAL" && attempts < 3 && !err.isRateLimited)` is plumbing — the helper's name *is* the abstraction. When the decision grows into a **family of substantial behaviors**, escalate to a [Strategy](#escalation-when-the-decision-grows-into-a-family--extract-a-strategy).
 

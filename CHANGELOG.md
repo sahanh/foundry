@@ -5,6 +5,14 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-09 — named-decisions.md renamed to branching-logic.md
+
+`packages/core/named-decisions.md` is now
+[branching-logic.md](./packages/core/branching-logic.md) — with the Strategy pattern merged in, the
+doc covers the whole branching ladder (inline → named decision → Strategy), not just the first tier.
+No rule changed; section headings are unchanged. Anyone linking to `named-decisions.md` (or the
+older `implementation-strategy-pattern.md`) should repoint to the new file.
+
 ## 2026-07-09 — Handled failures must be logged; reads are authorized too
 
 Two rules added after an A/B build evaluation surfaced silent gaps: a **handled failure (`4xx`) is
@@ -22,12 +30,12 @@ and [packages/core/end-here.md](./packages/core/end-here.md) → *Identity & Acc
 Every guideline was rewritten for token efficiency under a new **state-once** convention: each rule
 now has exactly **one owning doc**, and every other doc carries at most a one-line echo plus a link.
 `packages/core/implementation-strategy-pattern.md` was **removed** — its content lives in
-[named-decisions.md](./packages/core/named-decisions.md) as the *Strategy* escalation tier — and
+[named-decisions.md](./packages/core/branching-logic.md) as the *Strategy* escalation tier — and
 standalone anti-pattern sections were folded into the rules they negate.
 
 No rule changed meaning, so existing code is unaffected. Anyone linking to
 `implementation-strategy-pattern.md` should repoint to
-[named-decisions.md](./packages/core/named-decisions.md).
+[named-decisions.md](./packages/core/branching-logic.md).
 
 ## 2026-07-08 — app-context.md: *The Actor* and *The Tenant scope* merged into *Actor & Tenant*
 
@@ -44,13 +52,13 @@ Affects any doc, link, or note that points at the old headings. Repoint to
 ## 2026-07-08 — implementation-strategy-pattern.md merged into named-decisions.md
 
 `packages/core/implementation-strategy-pattern.md` was **deleted**; the Strategy pattern now lives
-as an escalation tier of [named-decisions.md](./packages/core/named-decisions.md) → *Escalation:
+as an escalation tier of [named-decisions.md](./packages/core/branching-logic.md) → *Escalation:
 When The Decision Grows Into A Family — Extract A Strategy*. The rule itself is unchanged — only
 its home moved; links and review routing now point at named-decisions.md.
 
 Affects any code or doc that references the old file, and anyone applying Strategy guidance from
 memory of the standalone doc. Re-check against
-[named-decisions.md](./packages/core/named-decisions.md) — the *Escalation* section plus the shared
+[named-decisions.md](./packages/core/branching-logic.md) — the *Escalation* section plus the shared
 *Apply As A Refactor*, *When To Apply*, and *When Not To* sections, which now govern both tiers.
 
 ## 2026-07-08 — AppContext carries established facts; provisioning is the identity flow's use case

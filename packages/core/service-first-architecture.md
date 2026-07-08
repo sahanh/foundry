@@ -75,7 +75,7 @@ Two smells read off it — cohesion failures, not entity-count violations:
 
 #### Granularity Scales with Scope
 
-**The ladder: inline in one service → its own service → nested sub-feature folder.** A todo feature: simple — one `TodoService` owns CRUD, comments, attachments; grown — comments earn `TodoCommentsService` on the cohesion smell; complex — a cluster (activity = comments + status changes + attachments) graduates to a nested `activity/` folder. Climb one rung at a time, **on the second signal, not upfront** — a sub-feature folder exists only once a *second* member appears, as a refactor ([named-decisions.md](./named-decisions.md)). Both bounds: don't split early, don't leave it coarse once grown. Folder nesting mirrors the feature-design ownership tree (`todo ⊃ activity ⊃ comment/attachment`).
+**The ladder: inline in one service → its own service → nested sub-feature folder.** A todo feature: simple — one `TodoService` owns CRUD, comments, attachments; grown — comments earn `TodoCommentsService` on the cohesion smell; complex — a cluster (activity = comments + status changes + attachments) graduates to a nested `activity/` folder. Climb one rung at a time, **on the second signal, not upfront** — a sub-feature folder exists only once a *second* member appears, as a refactor ([branching-logic.md](./branching-logic.md)). Both bounds: don't split early, don't leave it coarse once grown. Folder nesting mirrors the feature-design ownership tree (`todo ⊃ activity ⊃ comment/attachment`).
 
 ---
 

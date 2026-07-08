@@ -87,7 +87,7 @@ Run once across the whole diff:
 
 - **TypeScript** → [typescript-coding-standards.md](./common/typescript-coding-standards.md) — arrow functions for module-level defs, `type` over `interface`, no non-null assertions, explicit return types on exports, string-literal unions over enums.
 - **Logging** → [logging.md](./packages/core/system/logging.md) — `ctx.system.logger` at method entry / business events / side effects; errors logged with full context before re-throw; trace ID flowing throughout.
-- **Patterns** → [named-decisions.md](./packages/core/named-decisions.md) (incl. [Strategy escalation](./packages/core/named-decisions.md#escalation-when-the-decision-grows-into-a-family--extract-a-strategy)) — tangled policy that should be a named decision; substantial type-branching that should be a Strategy.
+- **Patterns** → [branching-logic.md](./packages/core/branching-logic.md) (incl. [Strategy escalation](./packages/core/branching-logic.md#escalation-when-the-decision-grows-into-a-family--extract-a-strategy)) — tangled policy that should be a named decision; substantial type-branching that should be a Strategy.
 
 **The review lens.** Hold these cross-cutting invariants against every node, whatever was touched; each links its owning doc:
 

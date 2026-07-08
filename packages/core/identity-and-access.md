@@ -62,7 +62,7 @@ Shapes:
 Land at the lowest rung, climb on a real signal — never a policy engine before a second role exists:
 
 1. **Inline actor check** — a guard reads `ctx.actor.id`/`.roles`; the whole story for ownership and a single role gate.
-2. **Named Decision** — when the policy branches: a pure [named decision](./named-decisions.md) returning `{ allow: true } | { allow: false; reason }`, branches unit-tested, the rule in the domain.
+2. **Named Decision** — when the policy branches: a pure [named decision](./branching-logic.md) returning `{ allow: true } | { allow: false; reason }`, branches unit-tested, the rule in the domain.
 3. **Policy adapter** — a genuine engine (OpenFGA, Cerbos, a central authz API): a capability-named driven adapter under `system/` via `ctx.system.*` ([code-placement.md](../../code-placement.md) → *Graduation*), holding **no rules** — *what to ask* stays domain.
 
 Steer, don't mandate: most features never leave rung 1.
