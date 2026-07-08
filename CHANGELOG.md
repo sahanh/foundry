@@ -5,6 +5,33 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-08 — AppContext carries established facts; provisioning is the identity flow's use case
+
+`AppContext` gains its contract: **every field on the context is an established fact, never a
+pending claim** — new section [app-context.md](./packages/core/app-context.md) → *The Context Is a
+Statement of Fact* — with two corollaries: **no operation establishes its own preconditions** (a
+missing precondition is rejected at the edge or thrown in the domain, never repaired inline), and
+**contexts are assembled at the edge** — the context factory is invoked only in driving adapters
+and test setup, never inside `packages/core` (a consumer-facing facade included), and assembly is
+**read-only**. The invariant's first application is a new
+[identity-and-access.md](./packages/core/identity-and-access.md) → *Identity lifecycle* section:
+the domain assumes a `user` actor exists; sign-up/provisioning is a dedicated, system-actor-gated
+use case with an explicit edge trigger (IdP webhook or onboarding endpoint), never a step another
+flow composes.
+
+Affects code that JIT-provisions users or workspaces during context assembly, any core-resident
+context-factory caller (e.g. facade static factories assembling bootstrap contexts), any binding
+path that writes, and any handler or domain operation that manufactures a missing precondition (a
+user, a tenant, a referenced entity) inline. Re-check against
+[app-context.md](./packages/core/app-context.md) → *The Context Is a Statement of Fact* / *Wiring*;
+[identity-and-access.md](./packages/core/identity-and-access.md) → *Identity lifecycle* /
+*Anti-Patterns*; the new boxes in
+[packages/core/end-here.md](./packages/core/end-here.md) → *AppContext* / *Identity & Access* and
+[apps/end-here.md](./apps/end-here.md) → *Authentication & actor*; and the
+[review protocol](./review.md) lens + the app transport / bootstrap routing row.
+
+---
+
 ## 2026-07-08 — Multi-tenancy: tenant isolation moves from Postgres RLS to an application-level scoped seam
 
 Tenant isolation is now enforced **purely at the application level**, with no database dependency. The

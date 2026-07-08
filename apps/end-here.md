@@ -41,6 +41,8 @@ You usually arrive here routed by the root review protocol when it maps a touch 
 ## Authentication & actor → [identity-and-access.md](../packages/core/identity-and-access.md)
 - [ ] Is the caller's credential (session / token / API key) verified at the edge, with the auth-provider SDK kept **out of** `@app/core`?
 - [ ] Is a vendor-neutral `actor` resolved and set on `AppContext` before any service or orchestration runs — the actor analogue of `traceId` ingestion above?
+- [ ] Is `AppContext` assembly **read-only** — verified claims resolved to an existing actor (and tenant), with no user/workspace writes on the binding path? ([app-context.md](../packages/core/app-context.md) → *The Context Is a Statement of Fact*)
+- [ ] Is a verified-but-unprovisioned identity rejected or routed to onboarding at the edge, with provisioning confined to the **dedicated identity-flow adapter** (webhook / onboarding endpoint) — no other handler creating a user on the way to its real work? ([identity-and-access.md](../packages/core/identity-and-access.md) → *Identity lifecycle*)
 - [ ] Does the handler leave the real per-resource authorization decision to a domain guard, doing at most a coarse authN / route gate itself?
 
 ## Tenant scope → [multi-tenancy.md](../packages/core/multi-tenancy.md)

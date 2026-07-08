@@ -22,6 +22,13 @@ AppContext
 
 `traceId`, `actor`, and (in a multi-tenant app) `tenant` are operation-level metadata, not infrastructure adapters — they sit at the top level, not under `system`. `traceId` says *which* operation this is; `actor` says *on whose behalf* it runs; `tenant` says *within which isolation boundary*. None is something the domain calls *out* to (which is what `system.*` is for), so all ride at the top beside `transaction` (a method, covered below). Additional system-layer adapters are added under `AppContext.system` as the application introduces them. The domain layer never imports an adapter directly — it always goes through the context.
 
+## The Context Is a Statement of Fact
+
+Every field on the context is an **established fact, never a pending claim**. When an `AppContext` exists, the world it describes already holds: the trace is established, the actor is verified (and, for a `user`, **exists**), the tenant is resolved and is that actor's own. Each field's *shape* is owned by its concern doc — the actor by [identity-and-access.md](./identity-and-access.md), the tenant by [multi-tenancy.md](./multi-tenancy.md), the trace by [system/logging.md](./system/logging.md); this section owns their **epistemic status**: the domain reads the context as evidence, never as input to verify — and never as a state of affairs to bring about. Two corollaries carry the whole discipline:
+
+1. **No operation establishes its own preconditions.** Making a fact true — a user existing, a workspace provisioned, a referenced entity present — is always **its own use case with its own trigger**, never a side effect of context assembly or of another operation that needs the fact. The failure mode is always the same shape, however helpful it looks: an operation "notices" a missing precondition and manufactures it — a context binder that writes, a handler that creates the user on the way to its real work, a service that provisions a missing referent. The correct move is to **reject at the edge or throw the feature exception in the domain**, routing the caller to the use case that owns establishing the fact. The first application — where a *user* comes from — is [identity-and-access.md](./identity-and-access.md) → *Identity lifecycle*.
+2. **Contexts are assembled where the facts are known: at the edge.** The invocation sites of the context factory, and assembly's read-only character, are specified under *Wiring* below — the domain *receives* contexts; it never assembles one.
+
 ## Constructor Injection
 
 AppContext is passed to a service alongside the domain scope it operates on — one entity in the common case:
@@ -46,9 +53,11 @@ Injecting through AppContext means:
 
 ## Wiring
 
-AppContext is assembled externally — in the application bootstrap, a factory, or a test setup — and injected into services. A service never constructs its own context or reaches for a global instance. This is the same rule as lifecycle management in [service-first-architecture.md](./service-first-architecture.md).
+AppContext is assembled **at the edge** and injected into the domain. The invocation sites of the context factory are exactly two: **a driving adapter (`apps/`) and test setup**. Nothing inside `packages/core` — a service, an orchestration, or a consumer-facing facade — ever invokes it; core code *receives* a context, never assembles or derives its own (nor reaches for a global instance — the same rule as lifecycle management in [service-first-architecture.md](./service-first-architecture.md)). One grep enforces this: the factory call appearing in core anywhere outside `system/` (its definition) and `__tests__/` fails review.
 
-The `AppContext` **type** and the generic `ctx.transaction` implementation are defined once as `system/` foundational primitives (see [system/start-here.md](./system/start-here.md)) and imported wherever needed; only the *concrete instance* — choosing real vs test adapters — is assembled externally as above. Defining the type and the transaction-wrapping once, rather than per app, keeps every consumer's boundary identical.
+Assembly is also **read-only** — per *The Context Is a Statement of Fact* above, resolving the actor and tenant performs lookups at most, never writes. Establishing a fact the context asserts (provisioning a user or workspace) is a separate use case with its own trigger — see [identity-and-access.md](./identity-and-access.md) → *Identity lifecycle*.
+
+The `AppContext` **type**, the context factory, and the generic `ctx.transaction` implementation are defined once as `system/` foundational primitives (see [system/start-here.md](./system/start-here.md)) and imported where sanctioned; only the *concrete instance* — choosing real vs test adapters — is assembled at the edge as above. Defining the type, the factory, and the transaction-wrapping once, rather than per app, keeps every consumer's boundary identical.
 
 ## Transaction Boundary
 

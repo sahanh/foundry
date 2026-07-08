@@ -1,7 +1,7 @@
 # Identity & Access
 
 How the domain knows **who** is calling and enforces **what they may do**. This is the playbook's
-single story for authentication, the actor, and authorization. Like the database, auth is
+single story for authentication, the actor, identity lifecycle, and authorization. Like the database, auth is
 infrastructure the playbook cannot avoid — but the vendor (Clerk, WorkOS, Cognito, BetterAuth) is
 an implementation detail kept at the edge. This doc steers the placement decisions; it does not
 prescribe a provider.
@@ -97,6 +97,33 @@ The provider is an example, never a rule. Should the domain itself ever need to 
 (an MCP tool re-checking a signed capability) or consult an external policy engine, that becomes a
 **capability-named** driven adapter under `system/` (e.g. `policy/`, never `clerk/`) — a graduation
 on a real signal, not created upfront. See [system/start-here.md](./system/start-here.md).
+
+## Identity lifecycle — where a user comes from
+
+The context-as-facts invariant ([app-context.md](./app-context.md) → *The Context Is a Statement of
+Fact*) applied to identity: **a `user`-typed `ctx.actor` references a user that exists** (in a
+multi-tenant app, within a tenant that is theirs). The domain assumes this fact — no feature's use
+case includes "a non-existent user requests X." A dangling actor id is a **bug surfaced by a thrown
+exception**, never a condition a service or guard repairs.
+
+The use case that **establishes** the fact is sign-up/provisioning — part of the identity & access
+implementation, a **dedicated flow**, never a step other flows compose. It runs through
+system-actor-gated service operations, invoked by a driving adapter with an **explicit trigger**: an
+IdP webhook (e.g. `user.created`) or a first-login onboarding endpoint — which one is a project
+decision, confirmed with the user like the actor `type` set. The trigger adapter assembles its
+system-actor (in a multi-tenant app, elevated) context at the edge, like any adapter. Per the
+invariant, no other flow — a context binder, a handler, or a domain operation — establishes this
+fact inline.
+
+**Binding is therefore read-only.** Resolving verified claims to `ctx.actor` (and `ctx.tenant`)
+performs lookups at most, never writes. A verified-but-unprovisioned identity is **rejected or
+routed to onboarding at the edge** — the same family as an authentication failure; it never reaches
+the domain. (After onboarding, the internal user/tenant ids may ride in the session's claims,
+making binding zero-lookup.)
+
+**Decide the provisioning race deliberately.** A user's first request can beat the webhook. The two
+sanctioned answers: a synchronous onboarding step on first login, or a "not yet onboarded —
+retry/redirect" edge response. The fallback must never quietly become inline provisioning.
 
 ## Authorization is a domain concern
 
@@ -199,6 +226,11 @@ change against the guide as a high-level checklist.
   parameter-repetition smell.
 - **The vendor in the core** — importing the auth-provider SDK inside `packages/core`. The provider
   stays at the edge; the domain sees only a neutral `Actor`.
+- **Establishing identity as a side effect** — a context binder that writes, a non-identity handler
+  that creates the user on the way to its real work, or domain repair logic for a missing actor.
+  Provisioning belongs to the dedicated identity flow (*Identity lifecycle* above); the general rule
+  is the context-as-facts invariant ([app-context.md](./app-context.md) → *The Context Is a
+  Statement of Fact*).
 - **Ownership as a data-only relationship** — checking "todo belongs to user X" without checking that
   `ctx.actor` *is* X. A referential check is not an authorization check.
 - **A policy engine with no signal** — building rung 3 before a second role exists.

@@ -45,6 +45,7 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 - [ ] Does the current actor reach the domain via `ctx.actor` — never a `userId` hand-threaded through method params?
 - [ ] Do ownership / authorization guards throw the feature's domain exception, returning `void` when cross-feature?
 - [ ] Is a cross-resource limit (quota / plan) enforced as a **cross-entity invariant in an orchestration**, not smuggled into a guard?
+- [ ] Is user provisioning owned by the **dedicated identity flow** — an explicit, system-actor-gated use case with an explicit edge trigger (webhook / onboarding) — with every other flow rejecting a non-existent user (a thrown exception), never creating one? ([identity-and-access.md](./identity-and-access.md) → *Identity lifecycle*)
 
 ## Orchestrations → [orchestration.md](./orchestration.md)
 - [ ] For each multi-service use case, does an orchestration own the sequencing — with no *single-entity* business rules of its own?
@@ -75,6 +76,8 @@ A "feature" is one business capability — one folder under the core's `src/` (`
 
 ## AppContext → [app-context.md](./app-context.md)
 - [ ] Does every service receive AppContext through its constructor?
+- [ ] Is the context factory invoked only in driving adapters and test setup — everything in core (services, orchestrations, any facade) *receiving* its context, never assembling one?
+- [ ] Does nothing in the change establish a fact the context asserts — no write performed to make `ctx.actor` / `ctx.tenant` valid, and no operation manufacturing its own precondition (a missing precondition throws; it is never repaired inline)?
 - [ ] Is all infrastructure access (db, logger) going through `ctx.system` — no direct imports of adapters?
 - [ ] Do domain time reads come from `ctx.system.clock.now()` rather than `new Date()`?
 - [ ] Is `ctx.actor` populated for every operation (a real principal, or an explicit `anonymous` member) — never left `undefined`, and never threaded through method parameters instead?

@@ -19,11 +19,14 @@ the doc(s) that own, or should own, the decision.
 ### 7. AppContext assembly and per-request construction are still hand-waved — `partial`
 
 Progress since 2026-07-02: `traceId` and `transaction` are now top-level on `AppContext`
-(`app-context.md:7-16`); assembly is located ("bootstrap, a factory, or a test setup",
-`app-context.md:41`) and routed in `review.md`; trace-ID establishment is specified (use inbound
-`X-Trace-ID` or generate a UUID, `logging.md:11-16`; checkbox at `apps/end-here.md:22`). Still unwritten:
-the **per-request construction mechanics** — no trace-ID middleware pattern, no worked example of building a
-fresh `AppContext` per request. The home doc (`apps/start-here.md`) only promises this content later.
+(`app-context.md:7-16`); assembly is located and routed in `review.md`; trace-ID establishment is
+specified (use inbound `X-Trace-ID` or generate a UUID, `logging.md:11-16`; checkbox at
+`apps/end-here.md:22`). **Progress 2026-07-08:** assembly now has its **contract** — the context
+carries established facts, the factory is invoked only in driving adapters/tests (never inside
+core), and binding is read-only (`app-context.md` → *The Context Is a Statement of Fact* /
+*Wiring*). Still unwritten: the **per-request construction mechanics** — no trace-ID middleware
+pattern, no worked example of building a fresh `AppContext` per request. The home doc
+(`apps/start-here.md`) only promises this content later.
 
 **Anchor:** `app-context.md`, `system/logging.md`, `apps/start-here.md`.
 
