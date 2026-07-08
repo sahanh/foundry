@@ -1,10 +1,10 @@
 # TypeScript Coding Standards
 
-Conventions for writing TypeScript in this codebase. These apply to new code and to changes in existing files.
+Conventions for all TypeScript in this codebase — new code and changes to existing files.
 
 ## Arrow Functions for Top-Level Definitions
 
-Use arrow function expressions for module-level definitions, not function declarations.
+Use arrow function expressions for module-level definitions (helpers, exported functions, React-style callbacks), not function declarations.
 
 ```typescript
 // Good
@@ -14,20 +14,11 @@ const functionName = () => { /* ... */ };
 function functionName() { /* ... */ }
 ```
 
-**Applies to:**
-
-- Module-level helpers
-- Exported functions
-- React-style callbacks
-
-**Exceptions — leave as-is:**
-
-- Class methods
-- Convex `mutation` / `query` / `action` handlers
+**Exceptions — leave as-is:** class methods; Convex `mutation` / `query` / `action` handlers.
 
 ## `type` Over `interface`
 
-Prefer `type` aliases to `interface` declarations for object shapes.
+Prefer `type` aliases to `interface` for object shapes.
 
 ```typescript
 // Good
@@ -43,11 +34,11 @@ export interface Foo {
 }
 ```
 
-Only reach for `interface` when you specifically need declaration merging — which should be rare here.
+Reach for `interface` only for declaration merging — rare here.
 
 ## Enums vs String Literal Unions
 
-Prefer string literal unions over TypeScript enums for enumerated values.
+**This doc is the single owner of this rule** (other docs carry one-line echoes). Prefer string literal unions over TypeScript enums for enumerated values.
 
 ```typescript
 // Good
@@ -62,11 +53,11 @@ enum Status {
 }
 ```
 
-TypeScript enums introduce a runtime construct and have subtle edge cases (reverse mapping, `const enum` across module boundaries). A string literal union is a pure type — it compiles away, is immediately readable, and composes naturally with `z.enum()` in schemas (see implementation-schemas.md).
+Enums are a runtime construct with edge cases (reverse mapping, `const enum` across module boundaries); a string literal union compiles away, reads directly, and composes with `z.enum()` in schemas ([implementation-schemas.md](../packages/core/implementation-schemas.md) → Explicit Over Implicit).
 
 ## Non-Null Assertion (`!`)
 
-Do not use the non-null assertion operator. It silences the compiler without narrowing the type at runtime — if the value is actually null or undefined, the error surfaces later and further from the cause.
+Never use the non-null assertion operator. It silences the compiler without runtime narrowing — an actually-null value then errors later, far from the cause.
 
 ```typescript
 // Avoid
@@ -77,25 +68,23 @@ if (!user) throw new Error('...');
 const name = user.name;
 ```
 
-If you find yourself reaching for `!`, it usually means the type is wrong upstream or a guard is missing. Fix the root cause.
+Reaching for `!` means the type is wrong upstream or a guard is missing — fix the root cause.
 
 ## Return Types on Exported Functions
 
-Annotate return types explicitly on exported functions and service methods. Inference is fine for internal helpers, but public boundaries should state their contract.
+Annotate return types on exported functions and service methods — public boundaries state their contract as a checked assertion, not a side effect of the implementation; inference is fine for internal helpers.
 
 ```typescript
 // Good — contract is visible at the definition
 export const formatDate = (date: Date): string => { /* ... */ };
 
-// Avoid — return type is implicit; callers rely on inference
+// Avoid — callers rely on inference
 export const formatDate = (date: Date) => { /* ... */ };
 ```
 
-This makes the intended output type a checked assertion rather than a side effect of the implementation.
-
 ## Schema and Zod Conventions
 
-Type definitions and Zod-specific conventions (inferring types from schemas, schema composition, avoiding `any`) are covered in [implementation-schemas.md](../packages/core/implementation-schemas.md).
+Inferring types from schemas, schema composition, and avoiding `any` are owned by [implementation-schemas.md](../packages/core/implementation-schemas.md).
 
 ---
 

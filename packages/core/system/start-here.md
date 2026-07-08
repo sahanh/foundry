@@ -18,7 +18,7 @@ system/
 **Required adapters** must be implemented before any feature work begins:
 - `logger/` — logging is mandatory in every application. See logging.md.
 
-Additional adapters are added as the application needs them — one subfolder per capability. The subfolder name should describe the capability, not the vendor (`email/` not `sendgrid/`, `queue/` not `bullmq/`).
+Additional adapters are added as the application needs them — one subfolder per capability, named by capability, not vendor (`email/` not `sendgrid/` — rule owner: [code-placement.md → Building a driven adapter](../../../code-placement.md#building-a-driven-adapter)).
 
 **Auth is not an adapter by default.** Authentication (verifying a credential) lives at the edge, in the app; authorization lives in the domain as guards reading `ctx.actor` (see [identity-and-access.md](../identity-and-access.md)). A capability-named credential-verification or policy adapter (`policy/`, never `clerk/`) belongs here **only on a real signal** — the domain itself must verify a credential, or authorization graduates into an external engine. Like any adapter it holds no rules; it plumbs the question outward.
 
@@ -40,14 +40,7 @@ These are *not* adapters and *not* a fourth role — they are the substrate the 
 
 ## The Relationship Rule
 
-The domain layer calls into adapters. Adapters never import from the domain layer.
-
-An adapter's job is to translate between the domain's needs and the external system's API. The domain stays unaware of which technology is underneath — it calls the adapter's interface, and the adapter handles the rest. This keeps the domain portable and the infrastructure replaceable. (This is the *driven* half of the dependency law in [code-placement.md](../../../code-placement.md); inbound *driving* adapters — controllers, CLI, MCP servers — live in `apps/`, never here.)
-
-## What Each Adapter Should Expose
-
-- A focused interface that expresses what the domain needs, not a thin wrapper around the external library's full API.
-- No business logic. An adapter that makes decisions about domain rules has crossed into the wrong layer.
+The domain calls into adapters; an adapter never imports the domain — the *driven* half of the dependency law. Each adapter exposes a **focused interface** for what the domain needs, holds **no business logic**, and keeps the domain unaware of the technology underneath. Rule owner: [code-placement.md → Building a driven adapter](../../../code-placement.md#building-a-driven-adapter); inbound *driving* adapters (controllers, CLI, MCP servers) live in `apps/`, never here.
 
 ## Docs in This Folder
 

@@ -5,6 +5,54 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-09 — Handled failures must be logged; reads are authorized too
+
+Two rules added after an A/B build evaluation surfaced silent gaps: a **handled failure (`4xx`) is
+logged at `warn` with its failure code** — never silent — and **authorization covers reads**
+(`get`/`list` scoped to `ctx.actor`; world-readability only as an explicit recorded decision).
+
+Affects apps whose shared error handler logs only `500`s, and features whose queries skip the guard
+discipline. Re-check against [logging.md](./packages/core/system/logging.md) → *At the entry point*
+and [identity-and-access.md](./packages/core/identity-and-access.md) → *Authorization is a domain
+concern*, plus the new boxes in [apps/end-here.md](./apps/end-here.md) → *Response & error mapping*
+and [packages/core/end-here.md](./packages/core/end-here.md) → *Identity & Access*.
+
+## 2026-07-08 — Playbook compressed; state-once ownership convention; implementation-strategy-pattern.md merged into named-decisions.md
+
+Every guideline was rewritten for token efficiency under a new **state-once** convention: each rule
+now has exactly **one owning doc**, and every other doc carries at most a one-line echo plus a link.
+`packages/core/implementation-strategy-pattern.md` was **removed** — its content lives in
+[named-decisions.md](./packages/core/named-decisions.md) as the *Strategy* escalation tier — and
+standalone anti-pattern sections were folded into the rules they negate.
+
+No rule changed meaning, so existing code is unaffected. Anyone linking to
+`implementation-strategy-pattern.md` should repoint to
+[named-decisions.md](./packages/core/named-decisions.md).
+
+## 2026-07-08 — app-context.md: *The Actor* and *The Tenant scope* merged into *Actor & Tenant*
+
+The two parallel `app-context.md` sections **The Actor** and **The Tenant scope** were merged into
+one section, **Actor & Tenant — `ctx.actor` / `ctx.tenant`**, which owns the shared ctx-field
+mechanics for both; actor *meaning* and tenant *meaning* stay in their owning docs. No rule changed
+— only the headings.
+
+Affects any doc, link, or note that points at the old headings. Repoint to
+[app-context.md](./packages/core/app-context.md) → *Actor & Tenant*; semantics remain at
+[identity-and-access.md](./packages/core/identity-and-access.md) → *The Actor* and
+[multi-tenancy.md](./packages/core/multi-tenancy.md).
+
+## 2026-07-08 — implementation-strategy-pattern.md merged into named-decisions.md
+
+`packages/core/implementation-strategy-pattern.md` was **deleted**; the Strategy pattern now lives
+as an escalation tier of [named-decisions.md](./packages/core/named-decisions.md) → *Escalation:
+When The Decision Grows Into A Family — Extract A Strategy*. The rule itself is unchanged — only
+its home moved; links and review routing now point at named-decisions.md.
+
+Affects any code or doc that references the old file, and anyone applying Strategy guidance from
+memory of the standalone doc. Re-check against
+[named-decisions.md](./packages/core/named-decisions.md) — the *Escalation* section plus the shared
+*Apply As A Refactor*, *When To Apply*, and *When Not To* sections, which now govern both tiers.
+
 ## 2026-07-08 — AppContext carries established facts; provisioning is the identity flow's use case
 
 `AppContext` gains its contract: **every field on the context is an established fact, never a
@@ -24,8 +72,8 @@ context-factory caller (e.g. facade static factories assembling bootstrap contex
 path that writes, and any handler or domain operation that manufactures a missing precondition (a
 user, a tenant, a referenced entity) inline. Re-check against
 [app-context.md](./packages/core/app-context.md) → *The Context Is a Statement of Fact* / *Wiring*;
-[identity-and-access.md](./packages/core/identity-and-access.md) → *Identity lifecycle* /
-*Anti-Patterns*; the new boxes in
+[identity-and-access.md](./packages/core/identity-and-access.md) → *Identity lifecycle*; the new
+boxes in
 [packages/core/end-here.md](./packages/core/end-here.md) → *AppContext* / *Identity & Access* and
 [apps/end-here.md](./apps/end-here.md) → *Authentication & actor*; and the
 [review protocol](./review.md) lens + the app transport / bootstrap routing row.
@@ -46,10 +94,10 @@ Affects any **multi-tenant** application built against the earlier model — spe
 Postgres RLS policy, or any code relying on the `app.current_tenant` session variable, for tenant
 isolation. Single-tenant apps are unaffected. Re-check against:
 [multi-tenancy.md](./packages/core/multi-tenancy.md) → *Isolation is enforced at the database seam* /
-*Anti-Patterns*; [system/database.md](./packages/core/system/database.md) → *Tenant column*;
+*The one unscoped path*; [system/database.md](./packages/core/system/database.md) → *Tenant column*;
 [app-context.md](./packages/core/app-context.md) → *Transaction Boundary*;
 [working-with-databases.md](./packages/core/working-with-databases.md) → *Tenant scope*;
-[code-placement.md](./code-placement.md) → *Tenancy splits by which face you are placing*; the
+[code-placement.md](./code-placement.md) → *Worked Examples* (the multi-tenancy entry); the
 [review protocol](./review.md) routing table + lens; and
 [system/end-here.md](./packages/core/system/end-here.md) → *Multi-tenancy*.
 
@@ -81,7 +129,7 @@ now the growth path). Re-check against [error-handling.md](./error-handling.md);
 [apps/transport-mapping.md](./apps/transport-mapping.md);
 [apps/start-here.md](./apps/start-here.md) and [apps/end-here.md](./apps/end-here.md) → *Response & error
 mapping* / *Collection endpoints*;
-[implementation-validation.md](./packages/core/implementation-validation.md) → *Exception Design*;
+[implementation-validation.md](./packages/core/implementation-validation.md) → *Exception Strategy — `exceptions.ts`*;
 [identity-and-access.md](./packages/core/identity-and-access.md) → *Authorization is a domain concern*;
 [atomicity.md](./packages/core/atomicity.md) → *The Boundary Lives on `ctx`*; and the
 [review protocol](./review.md) lens + the app-handler routing row.
@@ -108,7 +156,7 @@ In `code-placement.md` the topology's example HTTP-controller app is **renamed `
 now `apps/api/`. Affects any frontend code written before this change — check it against the new
 subtree: [apps/web/start-here.md](./apps/web/start-here.md) and
 [apps/web/end-here.md](./apps/web/end-here.md);
-[code-placement.md](./code-placement.md) → *The Topology* / *The frontend is a driving adapter too*;
+[code-placement.md](./code-placement.md) → *The Topology* / *Worked Examples* (the frontend entry);
 [apps/start-here.md](./apps/start-here.md) (two families) and [apps/end-here.md](./apps/end-here.md)
 (scoped to server-side transport); and the [review protocol](./review.md) taxonomy node **L2c** +
 routing rows + lens (business logic never lives *only* in the UI). Known gaps in this first pass —
@@ -142,10 +190,10 @@ Affects any multi-tenant application, and in particular code that hand-writes a 
 `tenantId` in a service, constructs an ad-hoc unscoped db client for cross-tenant reads, or has a tenant-owned
 table without a `tenantId` column + RLS. Single-tenant apps are unaffected. Re-check against
 [multi-tenancy.md](./packages/core/multi-tenancy.md);
-[app-context.md](./packages/core/app-context.md) → *The Tenant scope* / *Transaction Boundary*;
+[app-context.md](./packages/core/app-context.md) → *Actor & Tenant* / *Transaction Boundary*;
 [working-with-databases.md](./packages/core/working-with-databases.md) → *Tenant scope*;
-[system/database.md](./packages/core/system/database.md) → *Tenant column & RLS*;
-[code-placement.md](./code-placement.md) → *Tenancy splits by which face you are placing*;
+[system/database.md](./packages/core/system/database.md) → *Tenant column*;
+[code-placement.md](./code-placement.md) → *Worked Examples* (the multi-tenancy entry);
 [apps/end-here.md](./apps/end-here.md) → *Tenant scope*,
 [packages/core/end-here.md](./packages/core/end-here.md) → *Database* / *AppContext*,
 [system/end-here.md](./packages/core/system/end-here.md) → *Multi-tenancy*; and the
@@ -172,8 +220,8 @@ Affects any code that put authorization in a controller or middleware, threaded 
 service method parameters, or assumed `AppContext` carried no caller identity. Re-check against
 [identity-and-access.md](./packages/core/identity-and-access.md) (esp. *Two ways you reach this guide* /
 *Reviewing an auth change*);
-[app-context.md](./packages/core/app-context.md) → *The Actor* / *Constructor Injection*;
-[implementation-validation.md](./packages/core/implementation-validation.md) → *What Belongs There* /
+[app-context.md](./packages/core/app-context.md) → *Actor & Tenant* / *Constructor Injection*;
+[implementation-validation.md](./packages/core/implementation-validation.md) → *Shared Validation Helpers* /
 *Cross-Feature Guards*; [apps/end-here.md](./apps/end-here.md) → *Authentication & actor*;
 [packages/core/end-here.md](./packages/core/end-here.md) → *Identity & Access* / *AppContext*; and the
 [review protocol](./review.md) routing table.
@@ -192,8 +240,8 @@ at this level.)
 Affects any feature that deletes rows (a hand-rolled soft-delete flag, or a `deletedAt` filtered at call
 sites) or stores an enum-valued column (especially one backed by `pgEnum`). Re-check against
 [packages/core/working-with-databases.md](./packages/core/working-with-databases.md) → *Deletes*,
-[packages/core/system/database.md](./packages/core/system/database.md) → *Table Definitions* /
-*Anti-Patterns*, [packages/core/app-context.md](./packages/core/app-context.md) → *Persistence timestamps*,
+[packages/core/system/database.md](./packages/core/system/database.md) → *Table Definitions*,
+[packages/core/app-context.md](./packages/core/app-context.md) → *Persistence timestamps*,
 and the new boxes in [packages/core/end-here.md](./packages/core/end-here.md) → *Database* and
 [packages/core/system/end-here.md](./packages/core/system/end-here.md) → *Database adapter*.
 
@@ -319,7 +367,7 @@ doubt*) rather than handed to a non-existent engine.
 
 Affects any code or notes that routed durable work to `packages/workflow/`, referenced the "workflow
 runtime," or used `ctx.task`. Re-check against [packages/core/atomicity.md](./packages/core/atomicity.md)
-→ *What a Transaction Cannot Span* and *When NOT to Open a Boundary*, and
+→ *What a Transaction Cannot Span*, and
 [packages/core/orchestration.md](./packages/core/orchestration.md) → *Reliability: Synchronous
 Coordination Only*.
 
@@ -355,39 +403,17 @@ Anyone who linked to or ran **`checklist.md`**, or who relied on it as the post-
 
 ## 2026-07-01 — `architecture/` → `packages/core/`; new `code-placement.md`, `apps/`, `packages/`
 
-The playbook now mirrors the code topology it prescribes. The `architecture/` folder is gone; a new root **[code-placement.md](./code-placement.md)** is the first thing to read.
+The playbook now mirrors the code topology it prescribes. The **`architecture/`** folder is
+**gone** — its docs live at `packages/core/` (and `system/` at `packages/core/system/`); the macro
+sections of the old `architecture/start-here.md` moved into a new root
+**[code-placement.md](./code-placement.md)**, now the first thing to read. The repo model is
+`apps/` (driving adapters — HTTP, CLI, MCP) + `packages/` (`packages/core` is the domain hexagon;
+driven adapters live in `core/src/system/` and graduate to `packages/<name>/` on a real signal),
+with new `apps/start-here.md` and `packages/start-here.md` stubs.
 
-### Why
-
-1. **There was no home for inbound entry points.** The playbook described the domain (features) and driven infrastructure (`system/`), but never assigned a folder to *driving* adapters — HTTP controllers, CLI, workers, **MCP servers**. With nowhere correct to put them, they ended up filed beside feature folders. `code-placement.md` gives them a home: `apps/`.
-2. **`src/` and folder names were overloaded.** The domain is a reusable **core package** meant to sit beside an integration framework (which ships its own `src/`), so it needs a package identity, not a generic `src/`. And the guidelines described `packages/core` while explaining it in a folder called `architecture/` — the names didn't mirror the code. Now they do.
-
-### What changed conceptually
-
-The repo is `apps/` + `packages/`. `packages/core` is the domain hexagon (domain layer + its driven infrastructure in `core/src/system/`). Adapters are classified by **direction**: *driven* (the domain calls out to them — db, logger, clock) live in `core/src/system/` and graduate to their own `packages/<name>/` on a real signal; *driving* (they call into the domain — HTTP, CLI, MCP) live in `apps/`. A single placement rule (Q1–Q3) decides where any code goes. See [code-placement.md](./code-placement.md).
-
-### Where things moved
-
-| Before | After |
-|---|---|
-| `architecture/` (all docs) | `packages/core/` |
-| `architecture/start-here.md` (macro sections) | `code-placement.md` (Layering, Folder Organization, File Structure) |
-| `system/` | `packages/core/system/` |
-| — | `code-placement.md` (new, root) |
-| — | `apps/start-here.md`, `packages/start-here.md` (new stubs) |
-
-`checklist.md`, `CHANGELOG.md`, and `README.md` stay at the root; their links were repathed.
-
-### Migrating your project
-
-This restructure is about the **playbook's own folders** — but the model it formalizes may not match how your project is laid out. Run this self-audit against your codebase (read [code-placement.md](./code-placement.md) first):
-
-- [ ] For each direct child of `src/`, classify it with the criteria: a **feature** (domain), **driven infrastructure**, or an **inbound entry point** (transport).
-- [ ] Any inbound entry point (HTTP, CLI, queue consumer, tool server) sitting beside your feature folders → relocate it to `apps/`. It is a driving adapter, not domain and not `system/`.
-- [ ] Move your domain features into `packages/core/src/`, and `src/system/` into `packages/core/src/system/`.
-- [ ] Any driven adapter that is heavy, reused beyond the core, or owns its own lifecycle → consider graduating it to its own `packages/<name>/`.
-- [ ] Verify the dependency direction end to end: `apps → core → driven infrastructure`. Nothing inbound should live inside the core; the core should import no app.
-- [ ] At each entry point, reuse the core's schemas at the boundary — don't redefine input shapes that then drift from the domain's real constraints.
+Affects anyone linking to `architecture/` paths, and any project laid out against the old model —
+in particular inbound entry points filed beside feature folders. Check your layout against
+[code-placement.md](./code-placement.md).
 
 ---
 
@@ -414,68 +440,15 @@ truth. Read these sections and check your code against them:
 
 ## 2026-07-01 — "Workflow" renamed to "Orchestration"
 
-The domain-layer concept formerly called a **workflow** is now an **orchestration**.
+The domain-layer concept formerly called a **workflow** is now an **orchestration**. The old
+`architecture/workflow-orchestration.md` is now [orchestration.md](./packages/core/orchestration.md);
+the `workflows/` folder and `.workflow.ts` suffix are now `orchestrations/` and `.orchestration.ts`;
+"workflow" is no longer a playbook term. Conceptually, an orchestration is a **service type** —
+distinguished only by being the sole domain unit that coordinates other services, and by owning no
+table — triggered by **altitude** (a use case coordinates 2+ services), never by duration. This
+change is vocabulary and structure in the domain layer only.
 
-If you came looking for `workflow-orchestration.md`, the `workflows/` folder, or the
-`.workflow.ts` suffix and didn't find them — this is why. See
-[architecture/orchestration.md](./packages/core/orchestration.md) for the full concept.
-
-### Why
-
-1. **The word was overloaded.** "Workflow" implies long-running / durable / infrastructure. That
-   dragged an execution-model meaning into what is purely a *domain coordination* concept.
-2. **The trigger was stated as a symptom.** A workflow was described as "more than one service."
-   The real, principled boundary is **altitude / coordination** — duration is *not* a domain
-   concern, it belongs to the integration/infrastructure layer.
-
-### What changed conceptually
-
-An orchestration is now framed as a **service type** — the same building block as a service (a
-constructor-injected class taking `AppContext`, same lifecycle rules) — distinguished by exactly
-two things:
-
-- It is the **only** domain unit allowed to inject and coordinate other services.
-- It **owns no table** (services remain the database seam; the single-owner-per-table rule is
-  unchanged).
-
-Two clarifications were added:
-
-- **Triggered by altitude, not duration.** It exists because a use case coordinates 2+ services —
-  never because it "runs long." A single service method may legitimately take minutes.
-- **Promotion protocol.** When a single-service operation grows a second-service concern, it
-  *graduates* to an orchestration. At that moment you must re-evaluate the direct callers of the
-  superseded service method so none silently skip the new coordination.
-
-### Migration guide (if you already use "workflows")
-
-| Before | After |
-|---|---|
-| `architecture/workflow-orchestration.md` | `architecture/orchestration.md` |
-| `workflows/` folder | `orchestrations/` folder |
-| `*.workflow.ts` | `*.orchestration.ts` |
-| concept: "workflow" | concept: "orchestration" |
-| name: `ClaimTaskWorkflow` (or a loose `claimTask` function) | `ClaimTaskOrchestration` (a class) |
-| "workflow" = durable/long-running execution | not a term the playbook uses |
-
-Steps:
-
-1. **Rename the folder** `workflows/` → `orchestrations/` and the suffix `.workflow.ts` →
-   `.orchestration.ts` in each feature.
-2. **Rename the unit** to `{Process}Orchestration`, named by the use case it coordinates
-   (e.g. `ClaimTaskOrchestration`). Group related multi-service use cases as methods on one
-   orchestration; split on the second signal — same granularity ladder as services.
-3. **Make it service-shaped** (recommended): if your workflows were loose functions, turn them
-   into constructor-injected classes taking `AppContext`, consistent with services. Behaviour is
-   unchanged; only the shape becomes uniform.
-4. **No rule changes for services.** Services still never inject or call each other — coordination
-   still goes *up* into the orchestration. Validation in an orchestration is still thin
-   (inputs + existence checks), then delegate.
-5. **Reconsider any "workflow" you created because something runs long.** If it coordinates only
-   one service, it is **not** an orchestration — it's a service method. How it executes (inline,
-   job, durable) is an integration decision, made per consumer.
-6. **Update references** in docs/code: cross-links to `orchestration.md`, and the
-   [packages/core/end-here.md](./packages/core/end-here.md) **Orchestrations** section (was `checklist.md`).
-
-### Scope of this change
-
-This change is vocabulary and structure in the domain layer only.
+Affects any code using the old names (`workflows/`, `*.workflow.ts`, `{X}Workflow`) — and any
+"workflow" created because something runs long. Re-check against
+[packages/core/orchestration.md](./packages/core/orchestration.md) and the *Orchestrations* section
+of [packages/core/end-here.md](./packages/core/end-here.md).

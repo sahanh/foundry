@@ -1,95 +1,85 @@
 # End Here — `packages/core`
 
-The verify companion to [start-here.md](./start-here.md). `start-here` is where you **begin** a change in the domain core; this is where you **confirm** you did it right. It is generic on purpose — each check points to the concern doc that owns the detail; read that doc when a box is in question.
-
-You usually arrive here routed by the root review protocol (it maps what you touched and sends you to the matching section). You can also run it directly: work each section that matches what you changed. **A box you cannot tick is a blocker, not a note.** For a whole feature, run every section; for a scoped edit, run only the sections you touched.
-
-A "feature" is one business capability — one folder under the core's `src/` (`packages/core/src/`).
+Verify companion to [start-here.md](./start-here.md). Run the sections matching your change (all, for a whole feature). **A box you cannot tick is a blocker.** A "feature" = one folder under `packages/core/src/`.
 
 ---
 
 ## Layering → [start-here.md](./start-here.md)
-- [ ] Is every business rule in a service or orchestration — never in a controller, route handler, or middleware?
-- [ ] Could this logic run unchanged behind a different delivery mechanism (HTTP, worker, CLI)?
+- [ ] Business rules only in services/orchestrations (never controller, handler, middleware) — logic runs unchanged behind HTTP, worker, CLI — [start-here.md](./start-here.md#the-domain-layer)
 
 ## Structure & naming → [start-here.md](./start-here.md)
-- [ ] Is everything for this capability co-located in one feature folder?
-- [ ] kebab-case files with the right `.<suffix>.ts`, and sub-feature folders only where a cluster earned one?
-- [ ] Are folder and class names singular? Does the service naming follow the role pattern (`{Entity}Service`, `{Entity}CollectionService`)?
+- [ ] Capability co-located in one feature folder — [start-here.md](./start-here.md#feature-structure)
+- [ ] kebab-case files, right `.<suffix>.ts`, singular folder/class names, `{Entity}Service`/`{Entity}CollectionService`; sub-feature folders only where earned — [start-here.md](./start-here.md#file-naming)
 
 ## Schemas → [implementation-schemas.md](./implementation-schemas.md)
-- [ ] One schema per entity as the source of truth, with types inferred rather than hand-written?
-- [ ] Are input and variant schemas derived (pick / omit / partial) instead of duplicated?
-- [ ] Any `any`, optionals that aren't genuinely optional, or stringly-typed fields that should be enums?
-- [ ] Do string fields backed by DB columns have matching `.max()` constraints? Are content rules expressed as `.refine()`?
-- [ ] Does every entity `id` use a prefixed `entityId('…')` in its schema and `ctx.system.helpers.newId('…')` for minting — domain-minted via the injected id-source, not a bare UUID or a DB-generated key — with the prefix read from the single `system/` id registry, not re-declared? ([identifiers.md](./identifiers.md))
+- [ ] One source-of-truth schema per entity; types inferred, never hand-written — [implementation-schemas.md](./implementation-schemas.md#core-principle)
+- [ ] Input/variant schemas derived (pick/omit/partial), not duplicated — [implementation-schemas.md](./implementation-schemas.md#avoiding-duplication)
+- [ ] No `any`, non-genuine optionals, stringly-typed enum candidates — [implementation-schemas.md](./implementation-schemas.md#explicit-over-implicit)
+- [ ] DB-backed strings carry matching `.max()`; content rules as `.refine()` — [implementation-schemas.md](./implementation-schemas.md#mirror-storage-constraints)
+- [ ] Ids: `entityId('…')` in schema, minted via `ctx.system.helpers.newId('…')` (never bare UUID/DB-key), prefix from the single `system/` registry — [identifiers.md](./identifiers.md)
 
 ## Services → [service-first-architecture.md](./service-first-architecture.md)
-- [ ] Was the domain boundary decision confirmed with the user before implementation started?
-- [ ] Is every constructor-injected dependency used across the service's methods, and is no object repeatedly passed as a method parameter that should be injected instead? (Cohesion decides what the constructor takes — not an entity count; an unused injected scope means logic is misplaced.)
-- [ ] Does a consumer touch ≤ 2–3 services to accomplish a use case?
-- [ ] Is the granularity right for the scope — not split prematurely, not left coarse after it grew?
-- [ ] Are services lifecycle-agnostic — no self-instantiation, no reaching for globals?
-- [ ] Does a service reach other features only via their exported guards (verdicts), never by injecting their services or reading their tables?
+- [ ] Domain boundary confirmed with the user before implementing — [service-first-architecture.md](./service-first-architecture.md#4-decide-domain-boundaries-first)
+- [ ] Consumption designed first: usage pseudo-code, names judged consumer-side — [service-first-architecture.md](./service-first-architecture.md#3-consumer-first-design)
+- [ ] One service accomplishes the use case — consumer touches ≤2–3 services, facade/orchestration beyond — [service-first-architecture.md](./service-first-architecture.md#5-service-decomposition)
+- [ ] Every injected dependency used across methods; no repeatedly-passed parameter that should be injected — [service-first-architecture.md](./service-first-architecture.md#validation-the-constructor-declares-the-scope)
+- [ ] Granularity fits scope — no premature split, not left coarse after growth — [service-first-architecture.md](./service-first-architecture.md#granularity-scales-with-scope)
+- [ ] Lifecycle-agnostic: no self-instantiation, globals, framework coupling — [service-first-architecture.md](./service-first-architecture.md#2-lifecycle-management)
+- [ ] Other features reached only via exported guards (verdicts) — never their services or tables — [implementation-validation.md](./implementation-validation.md#cross-feature-guards)
 
 ## Validation & exceptions → [implementation-validation.md](./implementation-validation.md)
-- [ ] Does each service validate its own inputs — schema parse, then its business rules?
-- [ ] Are checks reused by ≥ 2 callers (and only those) extracted to `shared/validation.ts`?
-- [ ] One domain exception per feature, carrying structured context — thrown by services, guards, and orchestrations alike?
-- [ ] Does every **cross-feature** guard return `void`, read only its owner's tables, and throw its owner's exception — never returning the entity to the caller?
+- [ ] Each service validates its own inputs: schema parse, then business rules — [implementation-validation.md](./implementation-validation.md#who-validates-what)
+- [ ] Checks reused by ≥2 callers (only those) live in `shared/validation.ts` — [implementation-validation.md](./implementation-validation.md#shared-validation-helpers)
+- [ ] One domain exception per feature, structured context, thrown by services/guards/orchestrations — [implementation-validation.md](./implementation-validation.md#the-domain-exception)
+- [ ] Cross-feature guards return `void`, read only owner's tables, throw owner's exception — [implementation-validation.md](./implementation-validation.md#cross-feature-guards)
 
 ## Identity & Access → [identity-and-access.md](./identity-and-access.md)
-> Auth is **project-specific**. Before ticking these, establish the project's actual actor `type`s and permission model and verify the change against *that* — a gap (e.g. a permission for `user` but not `api`) may be intentional, so raise it as a question rather than auto-failing. See [identity-and-access.md](./identity-and-access.md) → *Reviewing an auth change*.
-- [ ] For a **first-time** identity & access setup, were the actor `type`s and the permission model proposed and confirmed with the user (as with domain boundaries)?
-- [ ] Is every authorization decision enforced in the **domain** (a service or a guard reading `ctx.actor`), not only at the edge — so it holds for every consumer (HTTP, worker, CLI, job)?
-- [ ] Does the current actor reach the domain via `ctx.actor` — never a `userId` hand-threaded through method params?
-- [ ] Do ownership / authorization guards throw the feature's domain exception, returning `void` when cross-feature?
-- [ ] Is a cross-resource limit (quota / plan) enforced as a **cross-entity invariant in an orchestration**, not smuggled into a guard?
-- [ ] Is user provisioning owned by the **dedicated identity flow** — an explicit, system-actor-gated use case with an explicit edge trigger (webhook / onboarding) — with every other flow rejecting a non-existent user (a thrown exception), never creating one? ([identity-and-access.md](./identity-and-access.md) → *Identity lifecycle*)
+> Auth is **project-specific** — verify against the actual actor `type`s and permission model; raise gaps (e.g. `user` but not `api`) as questions, not auto-fails — [identity-and-access.md](./identity-and-access.md#reviewing-an-auth-change).
+- [ ] First-time setup: actor `type`s and permission model confirmed with the user — [identity-and-access.md](./identity-and-access.md#the-actor--ctxactor)
+- [ ] Authorization enforced in the domain (service/guard reading `ctx.actor`), not only edge-side; guards throw the feature's exception, `void` when cross-feature — [identity-and-access.md](./identity-and-access.md#authorization-is-a-domain-concern)
+- [ ] Reads authorized too — `get`/`list` scoped to `ctx.actor` unless world-readability is an explicit recorded decision — [identity-and-access.md](./identity-and-access.md#authorization-is-a-domain-concern)
+- [ ] Actor reaches the domain as `ctx.actor`, never a hand-threaded `userId` — [identity-and-access.md](./identity-and-access.md#the-actor--ctxactor)
+- [ ] Cross-resource limits (quota/plan) are cross-entity invariants in orchestrations, never guards — [identity-and-access.md](./identity-and-access.md#extended-permissions--a-promotion-ladder)
+- [ ] Provisioning only in the dedicated system-actor-gated identity flow (explicit edge trigger); other flows throw on missing users — [identity-and-access.md](./identity-and-access.md#identity-lifecycle--where-a-user-comes-from)
 
 ## Orchestrations → [orchestration.md](./orchestration.md)
-- [ ] For each multi-service use case, does an orchestration own the sequencing — with no *single-entity* business rules of its own?
-- [ ] Do services avoid injecting or calling each other, with coordination going up into an orchestration?
-- [ ] Is the orchestration's validation thin — inputs and existence checks, plus any cross-entity invariant it owns?
-- [ ] Is the orchestration triggered by altitude (it coordinates 2+ services), not by duration?
-- [ ] If it enforces a **cross-entity invariant**, is it genuinely a predicate over ≥2 owners' data (not a single-entity rule and not a single-feature verdict, which stay a service/guard) — gathered via each side's service, evaluated inside the transaction, throwing the owning feature's exception?
-- [ ] When a use case was promoted from a service method to an orchestration, were the direct callers of the superseded service method re-evaluated?
+- [ ] Multi-service use cases sequenced by an orchestration with no single-entity rules; its validation thin (inputs, existence, owned cross-entity invariants) — [orchestration.md](./orchestration.md#1-no-single-entity-logic-validation-is-thin)
+- [ ] Services never inject or call each other; coordination goes up — [orchestration.md](./orchestration.md#2-services-never-call-each-other)
+- [ ] Triggered by altitude (coordinates 2+ services), not duration — [orchestration.md](./orchestration.md#when-an-orchestration-exists)
+- [ ] Cross-entity invariant = predicate over ≥2 owners' data (else stays a service/guard), gathered via owners' services, checked in-transaction, throwing the owner's exception — [orchestration.md](./orchestration.md#cross-entity-invariants)
+- [ ] On promotion from a service method, superseded method's direct callers re-evaluated — [orchestration.md](./orchestration.md#promotion-when-a-service-operation-becomes-an-orchestration)
 
 ## Placement & promotion → [logic-placement.md](./logic-placement.md)
-- [ ] Is each piece of logic at the lowest rung that fits — not split into its own service, guard, or orchestration before a real (second) signal?
-- [ ] Is any orchestration triggered by a real signal — 2+ services, a cross-feature data need, or a cross-entity invariant — not merely by crossing a feature boundary?
-- [ ] For a cross-entity-invariant orchestration, was its owning feature chosen by the ownership ladder (outcome owner → rule owner → its own feature)?
-- [ ] On any promotion, does the old home delegate to the new construct (no orphaned copy) and were existing callers re-evaluated so none are stranded?
+- [ ] Logic at the lowest rung that fits; no split before a real second signal — [logic-placement.md](./logic-placement.md#the-rungs)
+- [ ] Orchestration needs a real signal (2+ services, cross-feature data, cross-entity invariant), not mere boundary-crossing — [logic-placement.md](./logic-placement.md#the-decision-procedure)
+- [ ] Cross-entity-invariant orchestration's owner chosen by the ownership ladder — [logic-placement.md](./logic-placement.md#who-owns-a-cross-entity-invariant-orchestration)
+- [ ] On promotion, old home delegates (no orphaned copy); existing callers re-evaluated — [logic-placement.md](./logic-placement.md#the-backfill-obligation-the-revisit-list)
 
 ## Database → [working-with-databases.md](./working-with-databases.md)
-- [ ] Do services call Drizzle directly via `ctx.system.db` — no repository layer between them?
-- [ ] Does each service only touch the tables that belong to its feature?
-- [ ] Is cross-feature access going through the owning feature's service (from an orchestration) or its exported guard (from a service), never the DB directly?
-- [ ] Are domain timestamp columns `NOT NULL` with no DB default, stamped by wrapping the write's values in `ctx.system.helpers` (`timestamps(values)` on create, `updatedAt(values)` on update) — and set nowhere else (no hand-written `createdAt`/`updatedAt`)?
-- [ ] Are deletes hard by default — with soft-delete used only on a real signal, via a nullable `deletedAt` stamped through `ctx.system.helpers` (`softDelete(values)`) and filtered (`deletedAt IS NULL`) once in the owning service, not at call sites?
-- [ ] In a **multi-tenant** app, do services rely on the scoped `ctx.system.db` — **no hand-written `where tenantId`**, and **no service-set `tenantId`** on insert (the seam applies both)? ([multi-tenancy.md](./multi-tenancy.md))
+- [ ] Drizzle called directly via `ctx.system.db` (no repository layer); each service touches only its feature's tables — [working-with-databases.md](./working-with-databases.md#feature-ownership)
+- [ ] Cross-feature access via owning service (orchestrations) or exported guard (services), never the DB — [working-with-databases.md](./working-with-databases.md#cross-feature-data-access)
+- [ ] Domain timestamps `NOT NULL`, no DB default, stamped only via `ctx.system.helpers` (`timestamps`/`updatedAt`) — [working-with-databases.md](./working-with-databases.md)
+- [ ] Hard deletes by default; soft-delete only on real signal: nullable `deletedAt` via `softDelete(values)`, filtered once owner-side — [working-with-databases.md](./working-with-databases.md#deletes)
+- [ ] Multi-tenant: scoped `ctx.system.db` only — no hand-written `where tenantId`, no service-set `tenantId` — [multi-tenancy.md](./multi-tenancy.md)
 
 ## Atomicity → [atomicity.md](./atomicity.md)
-- [ ] Does each multi-write use case run inside one `ctx.transaction` boundary owned by the outermost caller?
-- [ ] Are all non-DB side effects dispatched *after* the boundary commits — never inside it?
-- [ ] Is the use case genuinely synchronous — completing in one operation, not one that waits on the outside world, sleeps, retries, or must survive a restart (which a transaction cannot span, and which this playbook does not yet cover)?
+- [ ] Multi-write use case in one `ctx.transaction` owned by the outermost caller; non-DB side effects dispatched after commit, never inside — [atomicity.md](./atomicity.md#db-only-inside-effects-after-commit)
+- [ ] Genuinely synchronous — nothing waiting, sleeping, retrying, or surviving restarts (out of playbook scope) — [atomicity.md](./atomicity.md#what-a-transaction-cannot-span)
 
 ## AppContext → [app-context.md](./app-context.md)
-- [ ] Does every service receive AppContext through its constructor?
-- [ ] Is the context factory invoked only in driving adapters and test setup — everything in core (services, orchestrations, any facade) *receiving* its context, never assembling one?
-- [ ] Does nothing in the change establish a fact the context asserts — no write performed to make `ctx.actor` / `ctx.tenant` valid, and no operation manufacturing its own precondition (a missing precondition throws; it is never repaired inline)?
-- [ ] Is all infrastructure access (db, logger) going through `ctx.system` — no direct imports of adapters?
-- [ ] Do domain time reads come from `ctx.system.clock.now()` rather than `new Date()`?
-- [ ] Is `ctx.actor` populated for every operation (a real principal, or an explicit `anonymous` member) — never left `undefined`, and never threaded through method parameters instead?
-- [ ] In a **multi-tenant** app, is `ctx.tenant` read-only — set only at assembly, never set, overridden, or threaded by a service? (Absent in single-tenant apps.)
+- [ ] Every service receives AppContext via constructor — [app-context.md](./app-context.md#constructor-injection)
+- [ ] Context factory only in driving adapters and test setup; core receives, never assembles — [app-context.md](./app-context.md#wiring)
+- [ ] Nothing establishes a fact the context asserts (no write making `ctx.actor`/`ctx.tenant` valid); missing preconditions throw, never repaired inline — [app-context.md](./app-context.md#the-context-is-a-statement-of-fact)
+- [ ] Infrastructure (db, logger) via `ctx.system`, no direct adapter imports; domain time from `ctx.system.clock.now()`, never `new Date()` — [app-context.md](./app-context.md#the-clock--ctxsystemclock)
+- [ ] `ctx.actor` set for every operation (real principal or explicit `anonymous`) — never `undefined` or parameter-threaded — [app-context.md](./app-context.md#actor--tenant--ctxactor--ctxtenant)
+- [ ] Multi-tenant: `ctx.tenant` read-only — set at assembly, never by a service (absent single-tenant) — [app-context.md](./app-context.md#actor--tenant--ctxactor--ctxtenant)
 
 ## Testing → [testing.md](./testing.md)
-- [ ] Do `shared/validation.ts` guards have unit tests?
-- [ ] Do services and orchestrations have integration tests?
-- [ ] Right location (`__tests__/`) and suffixes (`.unit.ts` / `.integration.ts`)?
-- [ ] Does every integration test use a test AppContext with a real or in-memory DB?
-- [ ] Are infrastructure side effects (emails, jobs) asserted via spy adapters — not ignored?
+- [ ] `shared/validation.ts` guards unit-tested; services and orchestrations integration-tested — [testing.md](./testing.md#what-to-test-where)
+- [ ] Tests in `__tests__/`, suffixed `.unit.ts` / `.integration.ts` — [testing.md](./testing.md#what-to-test-where)
+- [ ] Integration tests use a test AppContext with real/in-memory DB; infra side effects (emails, jobs) asserted via spy adapters — [testing.md](./testing.md#integration-test-setup--appcontext)
+- [ ] Transactional use case tested all-or-nothing: forced mid-flow failure → no rows, no spy calls — [testing.md](./testing.md#integration-test-flavours)
 
 ---
 
-The cross-cutting sweeps that apply to *any* change — TypeScript standards, logging, and Strategy/Named-Decisions patterns — are run by the review protocol regardless of what you touched. See the root review protocol.
+The root review protocol runs the cross-cutting sweeps regardless: TypeScript standards, logging, Patterns (named decisions, incl. Strategy escalation).

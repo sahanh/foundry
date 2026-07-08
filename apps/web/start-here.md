@@ -8,9 +8,7 @@
 
 ## The one macro rule: the UI holds no business rules
 
-At the repository scale the frontend is exactly as thin as a controller: it renders state and turns user intent into calls on the core. **Business decisions — what is valid, what a rule means, who may do what — live in the domain core, not the UI.** A rule may be *mirrored* in the UI for fast feedback, but the core stays the source of truth; the UI never becomes the only place a rule exists. (The same invariant the backend states as "business logic lives in the domain, not in controllers or adapters" — see [review.md](../../review.md).)
-
-Everything below governs the frontend's rich *internal* structure — which the thin-controller guidance never had to.
+The frontend is exactly as thin as a controller: it renders state and turns user intent into calls on the core; a rule may be *mirrored* for fast feedback but never lives only in the UI — rule owner: [code-placement.md → Worked Examples](../../code-placement.md#worked-examples). Everything below governs the frontend's rich *internal* structure, which the thin-controller guidance never had to.
 
 **The concern docs:**
 

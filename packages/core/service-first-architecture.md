@@ -1,12 +1,12 @@
 # Service-First Architecture
 
-How to design and write the `services/` submodule of a feature. Influenced by Domain-Driven Design (DDD).
+How to design and write the `services/` submodule of a feature.
 
-> **Scope:** this doc covers services — one entity, one service, the business logic for it. For overarching architecture (layering, thin controllers), folder layout, and the feature-design process, see start-here.md. For coordinating multiple services, see orchestration.md — an orchestration is a service-shaped type that is the only domain unit allowed to inject and coordinate several services.
+> **Scope:** services — one entity, one service, its business logic. Layering, folder layout, feature-design process: start-here.md. Coordinating multiple services: [orchestration.md](./orchestration.md).
 
 ## Core Principle
 
-**A service owns the business logic for its entity.** All business rules, calculations, and entity transformations for a domain entity live in its service — not in controllers or integration code. Multi-service coordination is a separate concern (orchestrations); a service stays focused on its own entity and never injects or calls another service. (Calling another feature's exported validation *guard* is not a service call — a guard is a plain function that asserts a rule and returns `void`; see [implementation-validation.md → Cross-Feature Guards](./implementation-validation.md#cross-feature-guards).)
+**A service owns the business logic for its entity** — every rule, calculation, and transformation, never in controllers or integration code. A service never injects or calls another service; multi-service coordination goes up into an orchestration. (Another feature's exported guard is not a service call — [Cross-Feature Guards](./implementation-validation.md#cross-feature-guards).)
 
 ---
 
@@ -14,108 +14,46 @@ How to design and write the `services/` submodule of a feature. Influenced by Do
 
 ### 1. Entity-Centric Services
 
-Services are instantiated with domain entities. Methods on a service reflect business operations on that entity.
-
-```
-// Example structure
-const orderService = new OrderService(order);
-orderService.calculateTotal();
-orderService.applyDiscount(discountCode);
-```
-
-This pattern keeps business operations cohesive and discoverable. A single entity is the common shape, not a ceiling — what a constructor takes is derived from cohesion, not fixed by a rule; see *Validation: The Constructor Declares the Scope* under Service Decomposition below.
+Services are instantiated with their domain entity — `new OrderService(order)` — and their methods are the business operations on it. One entity is the common shape, not a ceiling (*The Constructor Declares the Scope*).
 
 ### 2. Lifecycle Management
 
-**Services are lifecycle-agnostic.** A service does not instantiate itself or decide how long it lives. Dependencies are wired *externally* — by a container, a factory, or an injected context. Every service receives an `AppContext` alongside its domain entity, giving it access to all system-layer infrastructure (db, logger, email, queue) through `ctx.system`. See [app-context.md](./app-context.md).
+**Services are lifecycle-agnostic** — a service never decides its own lifetime; dependencies are wired externally. Every service receives an `AppContext` alongside its entity; system infrastructure (db, logger, email, queue) via `ctx.system` ([app-context.md](./app-context.md)).
 
-- **No self-instantiation** — avoid `getInstance()`, lazy singletons, or similar patterns inside a service.
-- **No global state** — don't reach for module-level singletons or globals; take dependencies through the constructor.
-- **Shared state is the exception** — if something genuinely must be shared (config, a cache), make it an explicit injected dependency rather than a hidden global.
+- **No self-instantiation** — no `getInstance()` or lazy singletons.
+- **No global state** — dependencies through the constructor; anything genuinely shared (config, a cache) is an explicit injected dependency.
+- **No framework coupling** — business logic never depends on HTTP-framework specifics.
 
 ### 3. Consumer-First Design
 
-Before implementing services, design how they will be consumed.
+Before implementing, **write pseudo-code showing how a developer uses the services** — what they instantiate, call, and pass; check names communicate purpose, arguments feel natural.
 
-#### Write Usage First
-
-Write pseudo-code showing how a developer will use your services:
-- What services do they instantiate?
-- What methods do they call?
-- What arguments do they pass?
-
-Evaluate the experience:
-- Do service names communicate purpose?
-- Do method names describe the operation?
-- Do arguments feel natural?
-
-#### One Service, One Use Case
-
-Ideally, a single service class accomplishes a user use case from start to finish. The integrator might use different methods in different contexts (controller vs worker), but they interact with one service that has all the methods for the use case.
-
-#### Facade When Needed
-
-Internal complexity is acceptable — many files, deep organization, thorough testing. But the consumer-facing API should be simple.
-
-**Trigger:** If consumers must interact with more than 2-3 services to accomplish a use case, consider a facade — or an orchestration (see orchestration.md) when the use case spans multiple services.
-
-#### When NOT to Extract
-
-Not every entity needs its own service. Extract only when:
-- It improves the consumer experience
-- The logic is substantial enough to warrant isolation
-
-Keep logic consolidated when extraction adds ceremony without improving usability.
-
-#### Architecture Checklist
-
-Use this checklist when designing service architecture:
-
-- [ ] Can a single service accomplish the use case start to finish?
-- [ ] Do service/method names communicate purpose clearly?
-- [ ] Do arguments feel natural to the consumer?
-- [ ] Is the number of services the consumer interacts with ≤ 2-3?
-- [ ] Does extracting a new service improve consumer experience?
-- [ ] Is every constructor-injected dependency used across the service's methods — and is nothing repeatedly passed as a method parameter that should be injected instead?
+- **One service, one use case** — ideally one service accomplishes a use case start to finish; integrators (controller vs worker) may call different methods — on one service.
+- **Facade when needed** — internal complexity is fine; the consumer API stays simple. >2-3 services per use case → a facade; spans services → an [orchestration](./orchestration.md).
+- **When NOT to extract** — extract only for consumer experience or genuine isolation, never for ceremony.
 
 ### 4. Decide Domain Boundaries First
 
-> **Important.** Before any code is written, ask: based on the requirements, what are the feature boundaries and how should the services be structured?
->
-> This is not a question to answer alone. Present the proposed structure to the user and get explicit confirmation before implementation begins. The answer shapes folder names, service names, and what gets tested together — changing it mid-implementation is expensive.
+> Before any code, decide feature boundaries and service structure from the requirements — and **present the proposal to the user for explicit confirmation before implementation begins** (why: changing mid-implementation is expensive).
 
-The confirmation is a concise feature-and-service list. One line per feature, services named by their role. No file paths, no folder diagrams — just enough for the user to confirm the breakdown is right:
+The confirmation: a concise feature-and-service list — one line per feature, services named by role, no file paths or folder diagrams:
 
 ```
 Feature: todo
 Services: TodoService, TodoCollectionService, TodoCommentService, TodoCommentCollectionService
 ```
 
-#### The boundary question
-
-For each related entity or behaviour, ask: does this belong inside the current feature, or does it earn its own feature folder?
-
-The default is to keep related behaviour together until there is a clear reason to extract — a second feature that needs to share it, a team boundary, or scope large enough that it obscures the host feature. Extract as a refactor, not in anticipation.
-
-**Example — todo with comments:**
-
-Comments could live as `TodoCommentService` / `TodoCommentCollectionService` inside the `todo` feature, or as a standalone `comment` feature. The right call depends on whether comments are ever needed outside the context of a todo. If not, keep them inside `todo`. If they are (or grow to be), extract then.
-
-Get user confirmation on this call before the first file is created.
+**The boundary question.** Per related entity/behaviour: current feature or its own folder? Keep together until a clear signal — a second feature sharing it, a team boundary, scope obscuring the host — extract as a refactor, not in anticipation ([logic-placement.md](./logic-placement.md)). Example: comments stay `TodoCommentService` inside `todo` until needed outside a todo's context. Confirm this call with the user before the first file.
 
 ### 5. Service Decomposition
 
-When a feature involves multiple entities, the feature-design process (start-here.md) gives you a set of entities, each scoped to a layer you uncovered working backward from core value. Classify each resulting service and validate the decomposition.
+For each entity (start-here.md), decide the service's **role first, then name it** — premature naming locks in a scope assumption:
 
-#### Service Types and Naming
+- **Operation Executor** — the system's core business operation.
+- **Entity Manager** — operations within one entity's scope (configuration, relationships, structure).
+- **Collection Manager** — lifecycle of entities owned by a parent (create, list, find, delete).
 
-Decide the service's role first, then name it. Premature naming locks in a scope assumption before the responsibility is clear.
-
-- **Operation Executor** — Implements the core business operation. This is the reason the system exists.
-- **Entity Manager** — Manages operations within a single entity's scope (configuration, relationships, internal structure).
-- **Collection Manager** — Manages the lifecycle of entities owned by a parent (create, list, find, delete).
-
-Service names follow directly from the role. The naming pattern is consistent across all levels of the feature hierarchy:
+Names follow the role at every level:
 
 | Role | Pattern | Example |
 |---|---|---|
@@ -124,54 +62,20 @@ Service names follow directly from the role. The naming pattern is consistent ac
 | Single sub-entity operations | `{Parent}{Child}Service` | `TodoCommentService` |
 | Sub-entity collection / bulk | `{Parent}{Child}CollectionService` | `TodoCommentCollectionService` |
 
-A collection service may depend on its single-entity counterpart for per-entity logic — that dependency goes in one direction only (collection → single, never the reverse).
+A collection service may depend on its single-entity counterpart — one direction only, never the reverse.
 
 #### Validation: The Constructor Declares the Scope
 
-Once you have candidate services, validate the decomposition by examining constructor dependencies. The playbook does not prescribe what any service's constructor takes — service design cannot be enforced by a rule. What it gives is the principle to derive the constructor from: **high cohesion**. A service's constructor declares the domain scope its methods collectively operate on — inject exactly that, and nothing more. (This is the classic cohesion test: a class is cohesive when its methods all use the state it holds; the LCOM metric formalizes it.)
+No constructor shape is prescribed; the principle is **high cohesion**: the constructor declares the domain scope the methods collectively operate on — inject exactly that, nothing more. The scope may be one entity (the **common case, not a law**), several (`new TodoCommentAnalysisService(todo, comment, ctx)` is cohesive if every method uses both), or nothing beyond `ctx` (a collection service's scope is what its methods share).
 
-Constructor arity follows from the scope, not the other way round. One entity is the **common case, not a law** — the scope may be one entity, several, or nothing beyond `ctx`. Choose the shape that makes the service trivial to instantiate and test: an explicit constructor is a complete, fixture-friendly declaration of what the service needs, in line with the lifecycle rules above (dependencies through the constructor, never globals).
+Two smells read off it — cohesion failures, not entity-count violations:
 
-Two smells read directly off the constructor — both are cohesion failures, not violations of an entity count:
-
-- **Unused dependency smell** — an injected dependency that some methods never touch is not part of this service's scope. Either those methods belong in a different service, or the dependency should not be injected.
-- **Parameter repetition smell** — the same object passed as a parameter to method after method is a dependency wanting to be injected: those methods share a scope the constructor should declare.
-
-The principle applied — illustrations, not prescriptions:
-
-- `new TodoService(todo, ctx)` — the common single-entity case; every method operates on the injected todo.
-- A `TodoCollectionService` owns no single instance — its constructor declares whatever scope its methods actually share, which may be a parent entity, some other bounding object, or nothing beyond `ctx`. Derive it from cohesion, not from the role's name.
-- If todos and comments grow behaviour that genuinely operates on both — say a `TodoCommentAnalysisService` — injecting *two* entities (`new TodoCommentAnalysisService(todo, comment, ctx)`) is perfectly cohesive, provided its methods use both.
+- **Unused dependency** — some methods never touch it: they belong elsewhere, or it shouldn't be injected.
+- **Parameter repetition** — an object passed to method after method wants injection: those methods share a scope the constructor should declare.
 
 #### Granularity Scales with Scope
 
-The same feature spans a range of granularity, sized to its scope. A todo feature, for example:
-
-- **Simple** — one `TodoService` owns todo CRUD, comments, and attachments.
-- **Grown** — comments earn `TodoCommentsService` once the cohesion smell appears (comment methods aren't really operating on the injected todo).
-- **Complex** — a cluster (activity = comments + status changes + attachments) graduates into a nested sub-feature folder `activity/` with its own services (`ActivityCommentsService`, `ActivityAttachmentService`).
-
-**The ladder:** inline in one service → its own service → nested sub-feature folder. Climb one rung at a time. Folder nesting mirrors the ownership tree the feature-design process produces (`todo ⊃ activity ⊃ comment/attachment`).
-
-**Timing — on the second signal, not upfront.** A sub-feature folder shouldn't exist until a *second* member appears (e.g. status changes joining comments under "activity"); before that it's speculative — extract as a refactor, not in anticipation (see [Named Decisions](./named-decisions.md)). The two bounds hold together: don't split too early (When NOT to Extract), and don't leave it coarse once it has grown.
-
----
-
-## Benefits
-
-| Benefit | Description |
-|---------|-------------|
-| **Testability** | Services without lifecycle logic are trivial to instantiate with mock dependencies |
-| **Flexibility** | Change how a service is wired (singleton → per-request) without modifying service code |
-| **Reusability** | The same business logic works across multiple integration points |
-
----
-
-## Anti-Patterns to Avoid
-
-- **Singleton services** — Services managing their own instance lifecycle
-- **Framework coupling** — Business logic dependent on HTTP framework specifics
-- **Self-instantiation** — A service reaching for globals or `getInstance()` instead of taking dependencies through its constructor
+**The ladder: inline in one service → its own service → nested sub-feature folder.** A todo feature: simple — one `TodoService` owns CRUD, comments, attachments; grown — comments earn `TodoCommentsService` on the cohesion smell; complex — a cluster (activity = comments + status changes + attachments) graduates to a nested `activity/` folder. Climb one rung at a time, **on the second signal, not upfront** — a sub-feature folder exists only once a *second* member appears, as a refactor ([named-decisions.md](./named-decisions.md)). Both bounds: don't split early, don't leave it coarse once grown. Folder nesting mirrors the feature-design ownership tree (`todo ⊃ activity ⊃ comment/attachment`).
 
 ---
 

@@ -13,7 +13,7 @@ Each level has two seams: a **`start-here.md`** to read *before* you build, and 
 
 One concern cuts across every level: **failure**. How an error is raised in the domain and presented at each edge is one strategy, in **[error-handling.md](./error-handling.md)** — a cross-cutting spine like this map itself; the per-layer docs apply it rather than re-decide it.
 
-Renamed or removed concepts are recorded in **[CHANGELOG.md](./CHANGELOG.md)** — if something you expected is gone, look there for what replaced it and how to migrate.
+Renamed or removed concepts are recorded in **[CHANGELOG.md](./CHANGELOG.md)** — a lookup-on-demand index, not reading material: when a concept you expected is missing or renamed, consult the single entry that names it (it points to the owning guideline); never read the file whole.
 
 ## Conventions
 

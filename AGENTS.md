@@ -16,6 +16,13 @@ unrouted node in `review.md` will silently let non-conforming code pass review. 
 guideline, ask: does an `end-here` check need adding/updating/removing? Does `review.md`'s taxonomy
 or routing table need a new row or a repointed link? Fix them alongside the guideline, not later.
 
+## State once, link elsewhere
+
+Each rule has exactly **one owning doc**. Any other doc may carry at most a **one-line echo plus a
+link** to the owner — never a restatement. Anti-patterns live inside the rule they negate, not in
+separate anti-pattern lists. `CHANGELOG.md` and `concerns.md` are lookup-on-demand references —
+consult a specific entry when needed, never bulk-load them into a reading path.
+
 ## Maintaining the Changelog
 
 **Every change that adds, changes, or removes a guideline** — any convention, rule, or structure

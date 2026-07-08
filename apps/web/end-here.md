@@ -1,35 +1,32 @@
 # End Here — `apps/web` (Frontend)
 
-The verify companion to [start-here.md](./start-here.md), for a change in the **frontend client UI**. `start-here` is where you begin; this is where you confirm the UI kept business rules out, placed its components right, and reused the shared shell and visual system instead of forking them.
-
-You usually arrive here routed by the root [review protocol](../../review.md) when it maps a touch under `apps/web`. A box you cannot tick is a blocker, not a note.
+Verify companion to [start-here.md](./start-here.md), for a **frontend client UI** change. A box you cannot tick is a blocker.
 
 ---
 
 ## Placement — the UI holds no business rules → [start-here.md](./start-here.md)
-- [ ] Do business decisions (validity rules, authorization, what a rule *means*) live in the domain core, with the UI only rendering state and issuing calls — no rule existing *only* in the UI?
-- [ ] Does the frontend call *into* the system (API / server code) and never get imported by the core — dependency points inward?
+- [ ] Business decisions (validity, authorization, rule meaning) live in the core; UI only renders state and issues calls — no UI-only rule — [start-here.md](./start-here.md#the-one-macro-rule-the-ui-holds-no-business-rules)
+- [ ] Frontend calls into the system, never imported by the core — [start-here.md](./start-here.md)
 
 ## Component placement & promotion → [component-placement.md](./component-placement.md)
-- [ ] Does each new component start under its owning feature (`src/components/<feature>/`), named with feature context?
-- [ ] A file until it isn't: a single file while there's one surface, a folder only once cohesive parts/modes appear?
-- [ ] Was anything moved to `shared/` only on a **second** real reuse signal, **confirmed with the user** — not speculatively?
-- [ ] Are shared components feature-neutral (no `Contact`/`Company` leakage), with entity-specific adapters kept thin and local, and were call sites backfilled to leave no divergent copy?
+- [ ] New components start under their owning feature (`src/components/<feature>/`), named with feature context — [component-placement.md](./component-placement.md#start-close-to-the-owning-feature)
+- [ ] A file until it isn't — a folder only once cohesive parts/modes appear — [component-placement.md](./component-placement.md#grouping-a-file-until-it-isnt)
+- [ ] Every climb waited for a second real signal **and explicit user confirmation**, never speculation — the same gate in [app-shell.md](./app-shell.md) and [visual-system.md](./visual-system.md) — [component-placement.md](./component-placement.md#promotion-to-shared--on-the-second-signal-with-confirmation)
+- [ ] Shared components feature-neutral (no `Contact`/`Company` leakage); entity adapters thin and local; call sites backfilled, no divergent copy — [component-placement.md](./component-placement.md#ownership-after-promotion)
 
 ## App shell & container → [app-shell.md](./app-shell.md)
-- [ ] Does app-level layout (navigation, auth controls, sidebar, page width, padding) come from the shared shell/container — not re-declared in a feature?
-- [ ] Do feature components stay layout-agnostic, composing inside the container rather than owning app-level layout?
-- [ ] Was any new layout need met by **extending the shared primitive**, with a second variant confirmed with the user rather than forked locally?
+- [ ] App-level layout (navigation, auth controls, sidebar, width, padding) comes from the shared shell/container, not re-declared in a feature — [app-shell.md](./app-shell.md#what-the-shell-owns)
+- [ ] Feature components layout-agnostic, composing inside the container — [app-shell.md](./app-shell.md#features-stay-layout-agnostic)
+- [ ] New layout needs met by extending the shared primitive, not forking (second variant passes the promotion gate) — [app-shell.md](./app-shell.md#extend-the-shared-layer-before-forking-it)
 
 ## Visual system → [visual-system.md](./visual-system.md)
-- [ ] Are cross-app visual primitives (scrollbars, focus, surface treatment) inherited from the shared styling surface, not re-declared per feature?
-- [ ] Semantic tokens and design-system values used instead of raw colors / magic numbers?
-- [ ] Was a second variant of a shared visual primitive confirmed with the user?
+- [ ] Cross-app primitives (scrollbars, focus, surfaces) inherited from the shared styling surface (second variant passes the promotion gate) — [visual-system.md](./visual-system.md#shared-defaults-own-the-cross-app-primitives)
+- [ ] Semantic tokens / design-system values, not raw colors or magic numbers — [visual-system.md](./visual-system.md#semantic-tokens-over-raw-values)
 
 ## UI scope → [ui-scope.md](./ui-scope.md)
-- [ ] Does the change implement the **requested** surface (and the named pattern's essentials) without smuggling in adjacent surfaces — dashboards, metrics, filters, extra controls — that were never asked for?
-- [ ] Were adjacent surfaces **proposed separately** rather than added silently?
+- [ ] Only the requested surface (plus the named pattern's essentials) — no smuggled dashboards, metrics, filters, extra controls — [ui-scope.md](./ui-scope.md#implement-the-named-patterns-essentials)
+- [ ] Adjacent surfaces proposed separately, never added silently — [ui-scope.md](./ui-scope.md#ask-before-adjacent-surfaces)
 
 ---
 
-Cross-cutting TypeScript standards apply here too; the review protocol runs that sweep regardless of what you touched.
+Cross-cutting TypeScript standards apply here too; the review protocol runs that sweep regardless.

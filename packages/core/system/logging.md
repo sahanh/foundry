@@ -54,6 +54,9 @@ ctx.system.logger.error('failed to dispatch email', { todoId, ownerId, reason })
 
 - Log the incoming operation at `info` with the trace ID as confirmation it was received.
 - Log the outcome at `info` (completed) or `error` (failed), with timing if available.
+- Log every **handled failure** (`4xx`) at `warn` with the failure code — a denial or validation
+  failure is a diagnostic and security signal, never silent. (The unanticipated `500` path logs at
+  `error` with full context.)
 
 ## What Not to Log
 

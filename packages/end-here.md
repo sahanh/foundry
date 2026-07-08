@@ -1,26 +1,20 @@
 # End Here — `packages/`
 
-The verify companion to [start-here.md](./start-here.md), for a **graduated driven adapter** — a `system/` adapter that outgrew the core and earned its own top-level `packages/<name>/`. `start-here` is where you begin; this is where you confirm the package still follows the driven-adapter standard without reaching back into the core.
-
-> `packages/start-here.md` is still a stub, so the authoritative rules live in [code-placement.md](../code-placement.md) → "Building a driven adapter" and "Graduation". These checks distil them.
-
-You usually arrive here routed by the root review protocol when it maps a touch under a graduated `packages/<name>/`. A box you cannot tick is a blocker.
+The verify companion to [start-here.md](./start-here.md), for a **graduated driven adapter** (`packages/<name>/`). Authoritative rules: [code-placement.md](../code-placement.md) → *Building a driven adapter* and *Graduation*. A box you cannot tick is a blocker.
 
 ---
 
-## The package earned its place → [code-placement.md](../code-placement.md)
-- [ ] Did it graduate on a **real signal** — reused beyond the core, heavy enough to own its lifecycle, or a genuine engine — not in anticipation?
-- [ ] Does the graduation move **delivery mechanics only**? A domain rule ("assignment *should* notify the assignee") stays in a core service — it must not have leaked into the package.
+## The package earned its place → [code-placement.md](../code-placement.md#graduation-when-a-driven-adapter-leaves-system)
+- [ ] Graduated on a real signal — reuse beyond the core, own lifecycle, or genuine engine — not anticipation — [code-placement.md](../code-placement.md#graduation-when-a-driven-adapter-leaves-system)
+- [ ] Graduation moved delivery mechanics only — domain rules (e.g. "assignment *should* notify") stay in a core service — [code-placement.md](../code-placement.md#graduation-when-a-driven-adapter-leaves-system)
 
-## It follows the driven-adapter standard → [code-placement.md](../code-placement.md)
-- [ ] Named by **capability, not vendor**?
-- [ ] Exposes a **focused interface**, not a passthrough of the library's full API?
-- [ ] **No business logic** inside?
-- [ ] The vendor SDK moved to *this* package's `package.json` (out of the core)?
+## It follows the driven-adapter standard → [code-placement.md](../code-placement.md#building-a-driven-adapter)
+- [ ] All [system/end-here.md → Any driven adapter](./core/system/end-here.md) boxes still tick here (same standard governs a graduated package)
+- [ ] Vendor SDK lives in *this* package's `package.json`, not the core's — [code-placement.md](../code-placement.md#building-a-driven-adapter)
 
 ## Dependency direction → [code-placement.md](../code-placement.md)
-- [ ] `core` depends on this package as a driven port; this package **never depends on `core`'s domain**?
-- [ ] Any non-domain consumer (e.g. an app) that uses it directly does so without going through a domain service?
+- [ ] `core` depends on this package as a driven port; the package never depends on `core`'s domain — [code-placement.md](../code-placement.md#layering-three-roles-one-direction)
+- [ ] Non-domain consumers (e.g. an app) use it directly, not through a domain service — [code-placement.md](../code-placement.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # AppContext
 
-AppContext is the single injected dependency that carries all cross-cutting infrastructure access into the domain layer. Services and orchestrations receive it through their constructor and use it to reach system-layer adapters — the database, logger, email, queue, and any other infrastructure the domain needs.
+AppContext is the single injected dependency for all cross-cutting infrastructure: services and orchestrations receive it via constructor and reach system adapters (db, logger, email, queue) only through it.
 
 ## Structure
 
@@ -8,9 +8,9 @@ AppContext is the single injected dependency that carries all cross-cutting infr
 AppContext
   traceId       — UUID identifying the current operation (see system/logging.md)
   actor         — who/what is performing this operation; a tagged union over principal types,
-                  resolved at the edge (see The Actor below · identity-and-access.md)
+                  resolved at the edge (see Actor & Tenant below · identity-and-access.md)
   tenant        — which isolation boundary this operation runs within; present only in a
-                  multi-tenant app, resolved at the edge (see The Tenant scope below · multi-tenancy.md)
+                  multi-tenant app, resolved at the edge (see Actor & Tenant below · multi-tenancy.md)
   transaction   — opens an atomic boundary (see atomicity.md)
   system
     db          — Drizzle client (see working-with-databases.md)
@@ -20,48 +20,32 @@ AppContext
                   (id-source) (see Helpers below)
 ```
 
-`traceId`, `actor`, and (in a multi-tenant app) `tenant` are operation-level metadata, not infrastructure adapters — they sit at the top level, not under `system`. `traceId` says *which* operation this is; `actor` says *on whose behalf* it runs; `tenant` says *within which isolation boundary*. None is something the domain calls *out* to (which is what `system.*` is for), so all ride at the top beside `transaction` (a method, covered below). Additional system-layer adapters are added under `AppContext.system` as the application introduces them. The domain layer never imports an adapter directly — it always goes through the context.
+`traceId`, `actor`, and (multi-tenant only) `tenant` are top-level operation metadata; `system.*` holds only what the domain calls *out* to. New adapters go under `system` — the domain never imports one directly.
 
 ## The Context Is a Statement of Fact
 
-Every field on the context is an **established fact, never a pending claim**. When an `AppContext` exists, the world it describes already holds: the trace is established, the actor is verified (and, for a `user`, **exists**), the tenant is resolved and is that actor's own. Each field's *shape* is owned by its concern doc — the actor by [identity-and-access.md](./identity-and-access.md), the tenant by [multi-tenancy.md](./multi-tenancy.md), the trace by [system/logging.md](./system/logging.md); this section owns their **epistemic status**: the domain reads the context as evidence, never as input to verify — and never as a state of affairs to bring about. Two corollaries carry the whole discipline:
+Every field is an **established fact, never a pending claim**: the actor verified (a `user` **exists**), the tenant resolved and the actor's own. The domain reads it as evidence — never input to verify or a state to bring about. Corollaries:
 
-1. **No operation establishes its own preconditions.** Making a fact true — a user existing, a workspace provisioned, a referenced entity present — is always **its own use case with its own trigger**, never a side effect of context assembly or of another operation that needs the fact. The failure mode is always the same shape, however helpful it looks: an operation "notices" a missing precondition and manufactures it — a context binder that writes, a handler that creates the user on the way to its real work, a service that provisions a missing referent. The correct move is to **reject at the edge or throw the feature exception in the domain**, routing the caller to the use case that owns establishing the fact. The first application — where a *user* comes from — is [identity-and-access.md](./identity-and-access.md) → *Identity lifecycle*.
-2. **Contexts are assembled where the facts are known: at the edge.** The invocation sites of the context factory, and assembly's read-only character, are specified under *Wiring* below — the domain *receives* contexts; it never assembles one.
+1. **No operation establishes its own preconditions.** Making a fact true — a user existing, a workspace provisioned, a referent present — is its own use case with its own trigger, never a side effect of context assembly or another operation (no writing context binder, no en-route user creation). Reject at the edge or throw the feature exception; first application: [identity-and-access.md](./identity-and-access.md) → *Identity lifecycle*.
+2. **Contexts are assembled at the edge**, where facts are known — the domain receives contexts, never assembles one (*Wiring* below).
 
 ## Constructor Injection
 
-AppContext is passed to a service alongside the domain scope it operates on — one entity in the common case:
+A service receives `ctx` alongside its domain scope — `new TodoService(todo, ctx)`; scope rules: [service-first-architecture.md → Validation: The Constructor Declares the Scope](./service-first-architecture.md).
 
-```
-new TodoService(todo, ctx)
-new TodoCommentService(comment, ctx)
-```
-
-What else a constructor takes is not fixed — the scope may be one entity, several, or nothing beyond `ctx`; it is derived from cohesion, per [service-first-architecture.md → Validation: The Constructor Declares the Scope](./service-first-architecture.md). The service stores the context and uses it across all its methods. This keeps dependencies explicit — a service's constructor signature is a complete declaration of what it needs.
-
-The actor is **not** a constructor argument — `new TodoService(todo, ctx)` is unchanged. It is ambient operation metadata reached as `ctx.actor`, exactly like `ctx.traceId` and `ctx.system.logger`. Threading it into every constructor (or method) is the parameter-repetition smell: an object passed the same way into call after call belongs on `ctx`, not the signature.
-
-## Why AppContext, Not Direct Imports
-
-The architecture prohibits hidden globals and module-level singletons. Importing a database client or logger directly at the module level is the same problem — it's an implicit dependency that can't be swapped, inspected, or controlled from outside the module.
-
-Injecting through AppContext means:
-- **Testability** — tests supply a test context with in-memory or spy adapters; the service code is unchanged.
-- **Explicitness** — what a service depends on is visible at the constructor, not hidden in imports.
-- **Replaceability** — swapping an adapter (e.g. changing email providers) is a change to the context wiring, not to every service that sends email.
+Module-level db/logger imports are hidden globals, prohibited like all singletons (why: testability, explicitness, replaceability).
 
 ## Wiring
 
-AppContext is assembled **at the edge** and injected into the domain. The invocation sites of the context factory are exactly two: **a driving adapter (`apps/`) and test setup**. Nothing inside `packages/core` — a service, an orchestration, or a consumer-facing facade — ever invokes it; core code *receives* a context, never assembles or derives its own (nor reaches for a global instance — the same rule as lifecycle management in [service-first-architecture.md](./service-first-architecture.md)). One grep enforces this: the factory call appearing in core anywhere outside `system/` (its definition) and `__tests__/` fails review.
+The context factory is invoked at exactly two sites: **a driving adapter (`apps/`) and test setup**. Nothing in `packages/core` invokes it, derives its own, or reaches a global. Grep enforcement: a factory call in core outside `system/` (its definition) and `__tests__/` fails review.
 
-Assembly is also **read-only** — per *The Context Is a Statement of Fact* above, resolving the actor and tenant performs lookups at most, never writes. Establishing a fact the context asserts (provisioning a user or workspace) is a separate use case with its own trigger — see [identity-and-access.md](./identity-and-access.md) → *Identity lifecycle*.
+Assembly is **read-only** — resolving actor and tenant performs lookups at most, never writes ([identity-and-access.md](./identity-and-access.md) → *Identity lifecycle*).
 
-The `AppContext` **type**, the context factory, and the generic `ctx.transaction` implementation are defined once as `system/` foundational primitives (see [system/start-here.md](./system/start-here.md)) and imported where sanctioned; only the *concrete instance* — choosing real vs test adapters — is assembled at the edge as above. Defining the type, the factory, and the transaction-wrapping once, rather than per app, keeps every consumer's boundary identical.
+The `AppContext` **type**, the factory, and the generic `ctx.transaction` are `system/` foundational primitives defined once ([system/start-here.md](./system/start-here.md)); only the concrete instance — real vs test adapters — is assembled at the edge.
 
 ## Transaction Boundary
 
-`ctx.transaction` opens an atomic, all-or-nothing boundary for a use case:
+`ctx.transaction` opens an atomic, all-or-nothing boundary:
 
 ```ts
 await ctx.transaction(async (txCtx) => {
@@ -70,99 +54,56 @@ await ctx.transaction(async (txCtx) => {
 }); // commit on return · rollback on any throw
 ```
 
-It wraps `ctx.system.db.transaction`, derives a context whose `system.db` is the transaction handle, and passes that `txCtx` to every service so all their writes run on the same transaction. A service is unaware it is inside a boundary — it always calls `ctx.system.db`, which is the transaction when one is open. A nested `ctx.transaction` joins the open one rather than opening a second top-level transaction. Full rules — who owns the boundary, why side effects wait until after commit, and what a transaction cannot span — are in [atomicity.md](./atomicity.md).
+It wraps `ctx.system.db.transaction`, deriving a context whose `system.db` *is* the transaction handle; a service given `txCtx` writes on it unaware — it just calls `ctx.system.db`. A nested `ctx.transaction` joins the open one. Boundary ownership, post-commit side effects, span limits: [atomicity.md](./atomicity.md). When `ctx.tenant` is present the same factory derives the tenant-scoped `system.db` — no db session variable ([multi-tenancy.md](./multi-tenancy.md) → *Isolation is enforced at the database seam*).
 
-In a **multi-tenant** app, this same factory also derives the tenant-scoped `system.db` when `ctx.tenant` is present — one derivation model, the same rail as the transaction handle, with no database session variable involved. See [multi-tenancy.md](./multi-tenancy.md) → *Isolation is enforced at the database seam*.
+## Actor & Tenant — `ctx.actor` / `ctx.tenant`
 
-## The Actor — `ctx.actor`
+`ctx.actor` = *who/what* performs the operation; `ctx.tenant` = *which isolation boundary* it runs within. This section owns field mechanics; the owning docs own meaning.
 
-The actor is *who or what* is performing the current operation — the caller's identity, carried as top-level operation metadata beside `traceId`, not under `system.*` (the domain does not call *out* to it). Two mechanics belong to the context; the actor's shape and meaning live elsewhere (below):
-
-- **Resolved at the edge, always present.** A driving adapter verifies the credential and sets `ctx.actor` during `AppContext` assembly — before any service runs, the same point and manner as `traceId` ingestion. The field is a **total tagged union** and is never `undefined`: an unauthenticated caller is an explicit member, not an absent field. The domain then reads `ctx.actor` (authorization guards decide against it — the guarantee that survives every consumer, not just the HTTP path).
-- **A direct-import primitive.** Like the `AppContext` type itself, the `Actor` **type** is a `system/` foundational primitive reached by **direct import** (a type position, no `ctx` — per *Injectable helper vs direct import* below). It carries **no business rules**.
-
-The union's members, the `type` discriminant, the project-specific set of actor types, and the whole authentication/authorization model are the **single source** in [identity-and-access.md](./identity-and-access.md) → *The Actor* — this section covers only how the field rides on the context.
-
-## The Tenant scope — `ctx.tenant`
-
-The tenant scope is *which isolation boundary* the current operation runs within — carried as top-level operation metadata beside `actor`, not under `system.*` (the domain does not call *out* to it). It is present **only in a multi-tenant application**; a single-tenant app has no `ctx.tenant`, no scoped `ctx.system.db`, and no ceremony. As with the actor, two mechanics belong to the context; the scope's shape and meaning live elsewhere:
-
-- **Resolved at the edge, read-only.** A driving adapter derives the tenant from the request and sets `ctx.tenant` during `AppContext` assembly — before any service runs, the same point and manner as `traceId` and `actor`. A service **reads** it but never sets, overrides, or threads it through a constructor or method parameter (the parameter-repetition smell, exactly as for the actor).
-- **It scopes the db seam, automatically.** When `ctx.tenant` is present, `ctx.system.db` is assembled **already tenant-scoped** — derived the same way `ctx.transaction` derives a `ctx` whose `system.db` is the transaction handle (below). A service keeps calling `ctx.system.db`, unaware, so there is **no `where tenantId` to write, forget, or forge**. Like the `AppContext` type, the tenant-scope **type** is a `system/` foundational primitive reached by **direct import**, carrying **no business rules**.
-
-The scope's shape (it carries at minimum the tenant id; anything more is project-specific and stays opaque), how the edge derives it, and the sanctioned unscoped path are the **single source** in [multi-tenancy.md](./multi-tenancy.md) — this section covers only how the field rides on the context.
+- **Top-level metadata** beside `traceId`, never under `system.*`.
+- **Edge-resolved, read-only.** Set by the driving adapter during assembly, before any service runs; a service reads them — never sets, overrides, or threads them through constructor/method parameters (the **parameter-repetition smell**: anything passed the same way every call belongs on `ctx`).
+- **Direct-import primitive types** from `system/` (type position, no `ctx` — *Injectable helper vs direct import* below), carrying no business rules.
+- **Actor: always present** — a total tagged union; unauthenticated is an explicit member, never `undefined`. Authorization guards decide against `ctx.actor`. Members, discriminant, authN/authZ: [identity-and-access.md](./identity-and-access.md) → *The Actor*.
+- **Tenant: multi-tenant apps only** — a single-tenant app has no `ctx.tenant`, no ceremony. When present, `ctx.system.db` is assembled **already tenant-scoped** — no `where tenantId` to write, forget, or forge. Shape, derivation, unscoped path: [multi-tenancy.md](./multi-tenancy.md).
 
 ## The Clock — `ctx.system.clock`
 
-Time enters the domain through one injected adapter — `ctx.system.clock.now()` — never through `new Date()` scattered across services. Scattering `new Date()` makes time an uncontrollable, hidden input: every service silently reaches the wall clock, and ordering and timestamps become impossible to assert. The clock is an adapter for the same reason `db` and `logger` are — the domain reaches infrastructure only through the context.
+Time enters the domain only through `ctx.system.clock.now()` — never scattered `new Date()`. `now(): Date` is an **absolute instant**. Production defaults to `() => new Date()`; tests pin a fixed instant (why: assertable timestamps). Injected clock, not `vi.setSystemTime` (why: parallel-test safety).
 
-- `now(): Date` returns an **absolute instant**. Every domain time read — stamping a row, an expiry check, an "is X before Y" comparison — goes through it.
-- In production the factory is omitted and defaults to `() => new Date()` — real wall-clock time, zero behavior change.
-- In tests you inject a clock pinned to a fixed instant, so a test can assert that a row's `createdAt`, a related row's `startedAt`, and an event's stamp are all exactly that instant.
-
-Why an injected clock rather than the common `vi.setSystemTime` approach: system-time mocking mutates a **global**, which is process-wide and hostile to parallel integration tests (two tests freezing time clobber each other). An injected clock is parallel-safe by construction — each context carries its own.
-
-**No timezone in the domain.** The clock deals only in absolute instants. Timezone conversion is a presentation concern owned by the layer that communicates between the app and the domain (the API / edge), never by services. The domain stores and compares absolute time; the edge localizes for the viewer — a presentation concern like error mapping, owned by [transport-mapping.md](../../apps/transport-mapping.md).
+**No timezone in the domain.** Timezone conversion is presentation, owned by the edge ([transport-mapping.md](../../apps/transport-mapping.md)).
 
 ## Helpers — `ctx.system.helpers`
 
-`ctx.system.helpers` holds **runtime utilities sourced from an injected seam** — stamping timestamps from the clock, and minting ids from an injected id-source. The domain reaches them through `ctx`, so a test controls their output (deterministic time and ids). What belongs here versus a direct import is decided by the framework in *Injectable helper vs direct import* below.
+Runtime utilities over an injected seam (clock, id-source), so tests control their output. **No domain logic** — not a junk drawer. Placement: *Injectable helper vs direct import* below.
 
 ### Persistence timestamps
 
-Timestamps that land in the database come from the clock too — so they are controllable in tests — but a database can't reach the injected clock (a column default runs in the DB or at module load, never per-request). So the **service stamps explicitly**, using a small helper built on the clock. This is not a repository: the service still owns the write and calls `ctx.system.db` directly; the helper only reads the injected clock and stamps the write.
+A column default can't reach the injected clock, so the **service stamps explicitly** via a clock-backed helper (not a repository: the service still owns the write, calling `ctx.system.db` directly). Three **pure**, type-preserving methods:
 
-The helper **takes the write's values and returns them stamped** — one call is the whole write shape, so there is no separate "spread the timestamps in" step to forget. Three methods, one per write shape:
-
-- `timestamps(values)` → a **new** object `{ ...values, createdAt, updatedAt }`, both stamps from a **single** captured `now()` (so a new row's created/updated match exactly — never call `now()` twice for one row).
+- `timestamps(values)` → `{ ...values, createdAt, updatedAt }` — both from a **single** captured `now()`.
 - `updatedAt(values)` → `{ ...values, updatedAt }`.
-- `softDelete(values)` → `{ ...values, deletedAt, updatedAt }`, both from a **single** captured `now()` — the soft-delete write shape, so a tombstoned row's `deletedAt` and `updatedAt` match exactly. Only for features that soft-delete (see [working-with-databases.md](./working-with-databases.md) → Deletes); hard-delete is the default and needs no helper.
-
-All three are **pure**: they return a new object and never mutate `values`, and they preserve the input type — `timestamps<T>(values: T): T & { createdAt: Date; updatedAt: Date }`.
+- `softDelete(values)` → `{ ...values, deletedAt, updatedAt }` — single `now()`; only for features that soft-delete ([working-with-databases.md](./working-with-databases.md) → Deletes).
 
 ```ts
-// create
 ctx.system.db.insert(tasks).values(ctx.system.helpers.timestamps({ ...input }));
-
-// update
-ctx.system.db.update(tasks)
-  .set(ctx.system.helpers.updatedAt({ ...changes }))
-  .where(eq(tasks.id, id));
 ```
 
-The helper is the **sole** source of `createdAt`/`updatedAt` (and `deletedAt` when a feature soft-deletes) — pass the write's values *through* it and never also stamp those columns by hand. No `createdAt: now` in the values, no second `ctx.system.clock.now()` for the same row: a manual stamp sitting next to the helper is duplicate, un-clock-controlled time.
-
-Domain timestamp columns are defined `NOT NULL` with **no DB default**, so the app clock is the only source and a forgotten stamp fails loud — the one exception is a soft-delete `deletedAt`, which is nullable because its `null` carries meaning (the row is live) — see [system/database.md](./system/database.md).
+The helper is the **sole** source of `createdAt`/`updatedAt`/`deletedAt`: never also stamp by hand or call `now()` again for the same row. Timestamp columns are `NOT NULL`, **no DB default** — a forgotten stamp fails loud; sole exception: soft-delete's nullable `deletedAt` (`null` = live). See [system/database.md](./system/database.md).
 
 ### Minting IDs — `ctx.system.helpers.newId`
 
-Entity IDs are minted at creation the same way timestamps are stamped — through an **injected id-source**, not a direct import. `ctx.system.helpers.newId('task')` returns a prefixed id (see [identifiers.md](./identifiers.md)); in production the source defaults to a ULID generator, and a test injects a deterministic one so ids are stable and assertable — the clock's rationale applied to ids. The prefix registry it reads is the single `system/` id module shared with the import-time `entityId` schema helper, so a prefix is defined once and cannot drift between minting and validation.
-
-`ctx.system.helpers` is scoped to runtime utilities sourced from an injected seam (clock, id-source). **No domain logic lives here** — that stays in services; it is not a general junk drawer.
+`newId('task')` mints a prefixed id ([identifiers.md](./identifiers.md)) from an **injected id-source** — ULID in production, deterministic in tests. The prefix registry is the single `system/` id module shared with the `entityId` schema helper — defined once; minting and validation cannot drift.
 
 ## Injectable helper vs direct import
 
-A non-adapter foundational primitive — an id helper, the pagination utilities, the `AppContext` type — is placed by two questions:
+Place a non-adapter foundational primitive by two questions:
 
-1. **Is `ctx` available where it's used?** A primitive used at a **schema-definition or type position** — `entityId('task')` inside a Zod schema, `Page<T>` in a signature, the `AppContext` type itself — runs at module-load time, where there is **no `ctx`**. It **must** be a **direct import** from `system/`. Stop here.
-2. **(`ctx` is available — runtime use) Does it read a source worth controlling in tests or varying by environment?**
-   - **Yes** → expose it as a **helper on `ctx.system.helpers.*`**, sourced from an injectable seam (clock → `timestamps` / `updatedAt`; id-generator → `newId`), so a test pins it deterministically and production uses the real source.
-   - **No** — it is pure and deterministic with nothing to control (e.g. pagination's `resolveLimit`, `toPage`, cursor encode/decode) → a **direct import** is correct; putting it on `ctx` is ceremony for no gain.
-
-The litmus: **inject through `helpers.*` to gain a controllable seam; import when there is no `ctx` to reach or nothing worth controlling.**
+1. **Is `ctx` available?** Schema/type positions (`entityId('task')` in a Zod schema, `Page<T>`, `AppContext`) run at module load, no `ctx` → **direct import** from `system/`. Stop.
+2. **Runtime: does it read a source worth controlling in tests or varying by environment?** Yes → helper on `ctx.system.helpers.*` over an injectable seam (clock → `timestamps`/`updatedAt`; id-source → `newId`). No — pure and deterministic (pagination's `resolveLimit`, `toPage`, cursor codecs) → **direct import**; `ctx` is ceremony.
 
 ## In Tests
 
-Integration tests construct a test AppContext with controlled adapters:
-
-- `system.db` — a test database client (real test DB or in-memory)
-- `system.clock` — a clock pinned to a fixed instant, so timestamps are deterministic and assertable
-- an injected **id-source** — a deterministic generator so `ctx.system.helpers.newId(...)` yields stable, assertable ids (the id analogue of the pinned clock)
-- `actor` — a fixed principal (a test `user`, or an explicit `anonymous`) so authorization is deterministic and assertable (the identity analogue of the pinned clock)
-- `tenant` (multi-tenant apps only) — a fixed tenant scope so the scoped `ctx.system.db` is deterministic and cross-tenant isolation can be asserted
-- `system.email`, `system.queue` — spy or capture adapters so side effects can be asserted
-
-The service under test receives the test context through its constructor. No service code changes between production and test — only the context differs. See [testing.md](./testing.md) for how this applies to integration test setup.
+A test context supplies: test `system.db`; pinned `system.clock`; deterministic id-source; fixed `actor` (test `user` or explicit `anonymous`); fixed `tenant` (multi-tenant apps) for assertable cross-tenant isolation; spy `system.email`/`system.queue`. No service code changes between production and test. See [testing.md](./testing.md).
 
 ---
 

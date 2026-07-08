@@ -1,18 +1,16 @@
 # Atomicity
 
-How a use case stays all-or-nothing. Every write in a single use case commits together or not at all, enforced by one transaction boundary owned by the outermost caller and carried on `ctx`.
+How a use case stays all-or-nothing.
 
-> **Scope:** this doc covers *synchronous* use cases — those that complete within one operation. A use case that waits on the outside world, sleeps, retries, or must survive a restart cannot be made atomic by a shared transaction and is **out of scope here**; see [What a Transaction Cannot Span](#what-a-transaction-cannot-span) below.
+> **Scope:** *synchronous* use cases only — those that complete within one operation. A use case that waits, sleeps, retries, or must survive a restart is out of scope here; see [What a Transaction Cannot Span](#what-a-transaction-cannot-span).
 
 ## Core Principle
 
-**A use case is all-or-nothing.** Either every write it performs commits, or none of them do. The boundary is a database transaction, opened once by the code that owns the use case and threaded to every service through `ctx`. Services never know whether they are inside a transaction — they call `ctx.system.db`, which *is* the transaction when a boundary is open. This is the same rule as [AppContext](./app-context.md): wiring changes, service code does not.
-
----
+**A use case is all-or-nothing: every write it performs commits, or none do.** The boundary is a database transaction, opened once by the code that owns the use case and threaded to every service through `ctx`. Services never know whether they are inside a transaction — they call `ctx.system.db`, which *is* the transaction when a boundary is open. Same rule as [AppContext](./app-context.md): wiring changes, service code does not.
 
 ## The Boundary Lives on `ctx`
 
-`ctx.transaction` wraps `ctx.system.db.transaction`, derives a context whose `system.db` is the transaction handle, and passes that derived context to every service. On return it commits; on any throw it rolls back — and that throw is a raised failure (a schema parse, a guard, a service rule), so a **failure is the rollback signal**. This is the *unwinding* half of the [error-handling strategy](../../error-handling.md): on any thrown failure the writes revert and the post-commit effects below never fire.
+`ctx.transaction` wraps `ctx.system.db.transaction`, derives a context whose `system.db` is the transaction handle, and passes it to every service. Return commits; any throw rolls back — and a throw is a raised failure (schema parse, guard, service rule), so a **failure is the rollback signal**: the *unwinding* half of the [error-handling strategy](../../error-handling.md) — writes revert and the post-commit effects below never fire.
 
 ```ts
 await ctx.transaction(async (txCtx) => {
@@ -21,24 +19,18 @@ await ctx.transaction(async (txCtx) => {
 }); // commit on return · rollback on any throw
 ```
 
-Because the services receive `txCtx`, every `ctx.system.db` call inside them runs on the same transaction. A service written for the non-transactional path works unchanged inside a boundary — it is agnostic by construction. See [AppContext → Transaction Boundary](./app-context.md).
-
----
+Services receive `txCtx`, so every `ctx.system.db` call inside them runs on the same transaction; a service written for the non-transactional path works unchanged inside a boundary — agnostic by construction. See [AppContext → Transaction Boundary](./app-context.md).
 
 ## The Outermost Caller Owns It
-
-The boundary belongs to whoever owns the use case:
 
 - **Multi-service use case** → the **orchestration** opens the boundary (see [orchestration.md](./orchestration.md)).
 - **Single-service use case** → the **service** opens the boundary for its own multi-write operation.
 
-A nested `ctx.transaction` **joins** the open one (a Drizzle savepoint) — it never opens a second top-level transaction. So a single-service method that owns a boundary still composes when an orchestration later wraps it: any uncaught throw propagates out and rolls the *whole* operation back. The rule is one top-level boundary per use case, owned by the outermost caller; everything beneath it participates.
-
----
+A nested `ctx.transaction` **joins** the open one (a Drizzle savepoint) — never a second top-level transaction, which would split one use case across two commits. So a single-service method that owns a boundary still composes when an orchestration later wraps it: any uncaught throw rolls the *whole* operation back. One top-level boundary per use case, owned by the outermost caller, everything beneath it participating — never some writes inside and some outside, which leaves the database half-updated on failure.
 
 ## DB-Only Inside; Effects After Commit
 
-A transaction rolls back database writes. It cannot recall an email that was sent or a job that was queued. **Non-transactional side effects are never dispatched inside the boundary** — the owner fires them only after the boundary has committed.
+A transaction rolls back database writes; it cannot recall a sent email or a queued job. **Non-transactional side effects are never dispatched inside the boundary** — a rollback would leave the effect fired and the data gone. The owner dispatches them only after commit:
 
 ```ts
 await ctx.transaction(async (txCtx) => {
@@ -50,45 +42,25 @@ await new EmailService(ctx).sendConfirmation(order);
 await new FulfillmentService(ctx).enqueue(order);
 ```
 
-**Consequence — split mixed methods.** A service method that both writes to the database *and* dispatches a side effect cannot run as-is inside a boundary. Separate the persistence from the dispatch: the write runs inside the transaction, and the owner triggers the effect after commit.
+**Split mixed methods:** a method that both writes *and* dispatches cannot run as-is inside a boundary — the write runs inside the transaction; the owner triggers the effect after commit.
 
-**What atomicity does and does not guarantee.** It guarantees **database consistency** — the use case's writes are all present or all absent. It does **not** guarantee effect delivery. A post-commit effect can still fail after the data is committed; that is handled by the effect's own retry/idempotency, not by rolling the database back. The database is the source of truth; effects reconcile toward it.
-
----
+**Guarantee:** atomicity guarantees **database consistency** (the use case's writes are all present or all absent), not effect delivery — a post-commit effect can still fail after the data is committed; that is the effect's own retry/idempotency, never a database rollback. The database is the source of truth; effects reconcile toward it.
 
 ## What a Transaction Cannot Span
 
-A transaction is all-or-nothing but effectively instantaneous — it holds locks and a connection open for its whole duration, so it **cannot be held across a wait**. A sleep, a retry with backoff, an external call you must await, or a process restart all break it.
+A transaction is all-or-nothing but effectively instantaneous — it holds locks and a connection for its whole duration, so it **cannot be held across a wait**: a sleep, a retry with backoff, an awaited external call, or a process restart all break it. Do not open a boundary for:
 
-So a use case that must wait on the outside world, sleep, retry, or survive a crash **cannot be made atomic by one shared transaction**. That kind of long-running, multi-step execution is **outside this playbook's current scope** — if you hit one, raise it (see the README's *When in doubt*) rather than stretching a transaction across the waits, or splitting the use case silently across several commits and hoping.
+- **Read-only use cases** — nothing to commit; wrapping adds overhead and false intent.
+- **Single-write use cases** — one write is already atomic; a boundary is ceremony.
+- **Long-running use cases** — anything that must wait on the outside world, sleep, retry, or survive a crash cannot be made atomic by one shared transaction. That kind of multi-step execution is **outside this playbook's current scope** — raise it (README → *When in doubt*) rather than stretching a transaction across the waits or silently splitting the use case across several commits.
 
-**Atomicity still applies per step.** Within such a longer process, each discrete step's *own* writes can be wrapped in its own transaction. Atomicity is per step, never across the whole process — the process as a whole is not atomic, but each individual write it performs can be.
-
----
+**Atomicity still applies per step:** within such a process, each discrete step's *own* writes get their own transaction — atomic per step, never across the whole process.
 
 ## Validation Inside the Boundary
 
-Existence and uniqueness guards that read run *inside* the transaction, so they see a consistent snapshot (see [Validation](./implementation-validation.md)). A [cross-entity invariant](./orchestration.md#cross-entity-invariants) an orchestration enforces runs inside the same boundary, for the same reason — it must judge a consistent snapshot before the guarded write commits.
+Existence and uniqueness guards that read run *inside* the transaction, so they see a consistent snapshot ([Validation](./implementation-validation.md)); a [cross-entity invariant](./orchestration.md#cross-entity-invariants) runs inside the same boundary for the same reason — it must judge a consistent snapshot before the guarded write commits.
 
-Any **read-then-write** check is still subject to a race under concurrency — a uniqueness check ("no duplicate"), a quota ("under the limit"), or an aggregate ("sum within cap") can all have two transactions both read "OK" before either writes. Back it with a database constraint or a row lock; the read is not sufficient on its own.
-
----
-
-## When NOT to Open a Boundary
-
-- **Read-only use cases** — nothing to commit; wrapping them adds overhead and signals intent that isn't there.
-- **Single-write use cases** — one write is already atomic; a boundary is ceremony.
-- **Long-running use cases** — those that wait on the outside world, sleep, retry, or must survive a restart; a transaction cannot span them. See [What a Transaction Cannot Span](#what-a-transaction-cannot-span).
-
----
-
-## Anti-Patterns
-
-- **Side effects inside the boundary** — dispatching email or queueing a job before commit; a rollback leaves the effect sent and the data gone.
-- **A second top-level transaction** — an inner service opening its own boundary instead of joining the outer one, splitting one use case across two commits.
-- **Partial use case** — some writes inside the boundary and some outside it, so a failure leaves the database half-updated.
-- **Relying on a guard read for uniqueness under concurrency** — a check-then-insert with no database constraint behind it.
-- **Holding a transaction across a wait** — keeping a boundary open across a sleep, a retry, or an external call; a transaction cannot span those (see [What a Transaction Cannot Span](#what-a-transaction-cannot-span)).
+Any **read-then-write** check (uniqueness, quota, aggregate cap) still races under concurrency — two transactions can both read "OK" before either writes. Back it with a database constraint or a row lock; the read alone is never sufficient.
 
 ---
 

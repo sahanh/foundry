@@ -1,19 +1,14 @@
 # Code Placement
 
-**Read this first.** It defines the shape of the whole repository and the single rule for deciding *where any piece of code belongs* — before you reach for a folder, before you add a library. Every other guide sits underneath this one:
+**Read this first** — the repository's shape and the single rule for *where any piece of code belongs*. Guides underneath: **[packages/core/start-here.md](./packages/core/start-here.md)** · **[packages/core/system/start-here.md](./packages/core/system/start-here.md)** · **[apps/start-here.md](./apps/start-here.md)** · **[packages/start-here.md](./packages/start-here.md)**.
 
-- **[packages/core/start-here.md](./packages/core/start-here.md)** — how to build the domain core (services, orchestrations, validation, schemas, testing).
-- **[packages/core/system/start-here.md](./packages/core/system/start-here.md)** — the driven infrastructure inside the core (db, logger, clock).
-- **[apps/start-here.md](./apps/start-here.md)** — the driving adapters (HTTP, CLI, workers, MCP servers).
-- **[packages/start-here.md](./packages/start-here.md)** — libraries, including driven adapters that graduated out of the core.
-
-When implementation is complete, run the [review protocol](./review.md) — it maps what you touched and validates each area against its `end-here`.
+Implementation complete → run the [review protocol](./review.md).
 
 ---
 
 ## The Topology
 
-The repository is a monorepo with exactly two top-level homes: **`apps/`** and **`packages/`**. There is no top-level `src/` — each app and each package has its *own* internal `src/`, so nothing ever fights over the name.
+A monorepo with exactly two top-level homes: **`apps/`** and **`packages/`**. No top-level `src/` — each app and package has its own `src/`.
 
 ```
 apps/                  ← driving adapters: inbound entry points, each deployable
@@ -30,7 +25,7 @@ packages/              ← libraries: consumed, never run on their own
   notifications/         a driven adapter that graduated out of core (example)
 ```
 
-**`packages/core` is the hexagon**: the domain layer (framework-agnostic business logic) together with the driven infrastructure it cannot live without (`core/src/system/`). It is meant to be reusable and to sit *beside* an integration framework — which ships its own `src/` — and be consumed by it. That is why it has a package identity (`@app/core`) rather than being a loose `src/` folder: you import it by name, the way you import any dependency.
+**`packages/core` is the hexagon**: the framework-agnostic domain layer plus the driven infrastructure it cannot live without (`core/src/system/`). Its package identity (`@app/core`) lets any integration framework consume it by name.
 
 ## Layering: three roles, one direction
 
@@ -42,36 +37,24 @@ Every piece of code plays one of three roles:
 | **Driven adapter** | infrastructure the domain calls *out* to (db, logger, clock, email, queue) | `packages/core/src/system/` — or its own `packages/<name>/` once graduated |
 | **Driving adapter** | an inbound entry point that calls *into* the domain (HTTP, CLI, worker, MCP, web UI) | `apps/<name>/` |
 
-Alongside the driven adapters, `packages/core/src/system/` also holds the core's **foundational primitives** — the `AppContext` type and `ctx.transaction` factory, the id helpers and prefix registry, and pagination. These are *not* a fourth role: they are the non-domain substrate the three roles rest on (the contract adapters plug into, the id system every entity uses). They differ from an adapter only in how the domain reaches them — imported directly rather than injected — and, like adapters, they hold no business rules. See [system/start-here.md](./packages/core/system/start-here.md).
+`system/` also holds the core's **foundational primitives** (`AppContext` + `ctx.transaction` factory, id helpers + prefix registry, pagination) — not a fourth role: non-domain substrate, imported directly (or via `ctx.system.helpers.*`), never injected, no business rules. See [system/start-here.md](./packages/core/system/start-here.md).
 
-Business logic lives in the **service layer** — never in controllers or integration code. The service layer is **integration-agnostic**: the same logic works behind REST, GraphQL, a worker, a scheduled job, or an MCP tool. Build it first, then wire a delivery mechanism to it from an app.
+Business logic lives in the **service layer**, never in controllers or integration code, and is **integration-agnostic** — the same logic serves REST, GraphQL, workers, MCP tools. Build it first; wire delivery to it from apps.
 
-Dependencies point in **one direction only**:
+At the boundary, a driving adapter **reuses the core's Zod schemas** rather than redefining input shapes — a redefined schema silently drifts from the domain's real constraints.
+
+Dependencies point **one direction only**:
 
 ```
 driving adapters   →   domain core   →   driven adapters
 (apps/*)               (packages/core)    (core/src/system + graduated packages/*)
 ```
 
-The core never imports an app. A driven adapter never imports the domain. This one-way flow is what makes the core portable: any number of apps can drive it, and its infrastructure can be swapped, without the domain knowing.
-
-## Driving vs Driven — the direction test
-
-The two kinds of adapter differ only by *which way the dependency points*:
-
-- **Driven (outbound):** the domain calls *out* to it. The domain *depends on* it. → lives inside the core (`system/`) or graduates to its own package.
-- **Driving (inbound):** it calls *into* the domain. It *depends on* the domain. → lives in `apps/`.
-
-A single technology can split across both by direction. A job queue is the clean example:
-
-- **Enqueuing** a job — a service calls `ctx.system.queue.enqueue(...)`. The domain calls *out*. → driven → `core/src/system/queue/`.
-- **The worker** that consumes jobs and calls a service. It calls *into* the domain. → driving → `apps/worker/`.
-
-Same library, two homes — because you classify each *piece of code by its direction*, not the vendor.
+The core never imports an app; a driven adapter never imports the domain.
 
 ## The Placement Criteria
 
-Given any piece of code or any library you're bringing in, run these three questions in order. **Classify the code *you* write, not the npm package** — a library like an MCP SDK or a database driver is just a dependency in some `package.json`; what gets *placed* is the adapter you author around it.
+Three questions, in order. **Classify the code *you* write, not the npm package** — the SDK is just a `package.json` dependency; you place the adapter you author around it.
 
 ```
 Q1 — Is it business logic (rules/decisions about your entities)?
@@ -92,7 +75,9 @@ Q3 — (driven only) Does it earn its own package, or stay in core?
         • a swappable implementation you want to version on its own
 ```
 
-Q3 is the same "climb on a real signal, not in anticipation" ladder used for services and sub-features. Default is in-`system/`; graduation is a refactor triggered by a signal, not an upfront guess.
+Q2 classifies by **which way the dependency points, never by vendor or technology** — one technology can split (queue *enqueue* is outbound → `system/queue/`; the *worker* calling services is inbound → `apps/worker/`).
+
+Q3 is [logic-placement.md](./packages/core/logic-placement.md)'s promotion philosophy — climb on a real signal, never in anticipation; graduation is a refactor, not a guess.
 
 ## Worked Examples
 
@@ -110,50 +95,30 @@ Q3 is the same "climb on a real signal, not in anticipation" ladder used for ser
 | Email send | no | outbound | one capability → stays (until it grows) | `packages/core/src/system/email/` |
 | "Can this task be claimed?" rule | **yes** | — | — | `packages/core/src/<feature>/` (a service) |
 
-### Tenancy splits by which face you are placing
+Common trip-ups:
 
-Multi-tenancy has two faces, and they land in two different homes — the same way a job queue splits into enqueue (driven) and worker (driving):
-
-- **Tenant-as-scope** — the *isolation boundary* an operation runs within (`ctx.tenant`, the scoped `ctx.system.db`, the `tenantId` column and the scoped seam). This is outbound infrastructure the domain is scoped *by*, not business logic — the domain is identical for every tenant. It lives at the **system** seam (mechanism in `system/db`, threaded on `AppContext`), governed by the `system/` non-domain invariant.
-- **Tenant-as-entity** — the *org / workspace / plan / members* themselves, with their own rules (what a plan permits, who belongs). This is **domain**: an ordinary feature in `packages/core/src/<feature>/`.
-
-So "where does multi-tenancy go?" is not one question. The isolation mechanism is system-level; the tenant entity is a feature. The full convention is in [multi-tenancy.md](./packages/core/multi-tenancy.md).
-
-### MCP is a driving adapter, not infrastructure
-
-An MCP server *feels* like infrastructure — it's a protocol — so the instinct is to file it under `system/`. That is wrong: `system/` is for adapters the domain calls *out* to, and an MCP server does the opposite — an LLM client invokes its tools, each tool parses input, calls a service or orchestration, and formats the result. It **imports** the domain. That makes it a *driving* adapter, structurally identical to a REST route or a CLI command, and its home is `apps/mcp/`.
-
-A well-built MCP server keeps the transport/bootstrap (server + session lifecycle + `AppContext` assembly) separate from the per-tool handlers, and each handler stays thin: parse → call the domain → format, with **no business logic**. It also **reuses the core's Zod schemas** at the boundary rather than redefining input shapes — a redefined schema silently drifts from the domain's real constraints. None of this changes the placement rule: however cleanly it is built, an inbound transport belongs in `apps/`, never beside the feature folders and never in `system/`.
-
-### The frontend is a driving adapter too
-
-A client UI — the React/web app in `apps/web/` — is a *driving* adapter like any other: humans drive it, and it drives the system, reaching the core through the `api/` app over HTTP (or directly from server-side code). It differs from a server-side transport only in *how* it reaches the core — consuming the API rather than importing `@app/core` in the browser — but the direction still points inward, so its home is `apps/`.
-
-At this macro scale it holds **no business rules**, exactly like a thin controller: a rule may be *mirrored* in the UI for fast feedback, but the core stays the source of truth. What makes the frontend distinct is its rich *internal* structure — component hierarchy, app shell, visual system, scope discipline — which the server-transport guidance never had to cover. That structure has its own subtree, **[apps/web/start-here.md](./apps/web/start-here.md)**, and it is a **skippable branch**: a reader not doing UI work never needs to open it.
+- **MCP server** — feels like infrastructure but **imports the domain** (each tool calls a service) → driving, structurally a REST route: `apps/mcp/`, never `system/`. A well-built one keeps the transport/bootstrap (server + session lifecycle + `AppContext` assembly) separate from the per-tool handlers; handler discipline (thin parse → call → format) is taught in [apps/transport-mapping.md](./apps/transport-mapping.md) and checked in [apps/end-here.md](./apps/end-here.md).
+- **Frontend** — `apps/web/` drives the core via `api/` over HTTP (or `@app/core` server-side); direction still inward → driving. No business rules here — the UI may *mirror* a rule for fast feedback; the core stays source of truth. Internal structure (skippable subtree): [apps/web/start-here.md](./apps/web/start-here.md).
+- **Multi-tenancy** — splits by face: tenant-as-*scope* (`ctx.tenant`, the scoped `ctx.system.db`) is system-level; tenant-as-*entity* (org/plan/members and their rules) is a domain feature. See [multi-tenancy.md](./packages/core/multi-tenancy.md).
 
 ### Graduation: when a driven adapter leaves `system/`
 
-An adapter starts in `core/src/system/` and moves to its own package only when a real signal appears. Email is the canonical walk:
+An adapter leaves `system/` only on a real Q3 signal; email → `packages/notifications/` is canonical. Growing weight (templates, channels, digests) is soft — stay. The tip: a **non-domain consumer needs it directly** (an `apps/web` settings page reads templates directly) or it grows **its own lifecycle** (a digest scheduler). After: `core` depends on it as a driven port, `apps/web` directly; the provider SDK moves to *its* `package.json`.
 
-- **Day 1** — `core/src/system/email/` wraps a provider's `send()`. One capability, one method. Stays.
-- **It grows** — templates, multiple channels (email + push + Slack), digests. Weight alone is a soft signal; keep watching.
-- **The tip** — a **non-domain consumer needs it directly** (a settings/preview page in `apps/web` reads templates and preferences without going through a domain service) *or* it grows **its own lifecycle** (a digest scheduler running on its own cadence). Now it's an engine, reused beyond the core.
-- **After** — `packages/notifications/`. `core` depends on it as a driven port; `apps/web` depends on it directly; the provider SDK moves to *its* `package.json`.
-
-What graduation moves is **delivery mechanics**, never the **decision**. "A task assignment *should* notify the assignee" is a business rule — it stays in a core service (as a post-commit effect). The package only decides *how* a notification is rendered and delivered. If a domain rule leaked into the package, you'd have rebuilt the original mistake — business logic outside the core — one package over.
+Graduation moves **delivery mechanics, never the decision**: "a task assignment *should* notify the assignee" stays in a core service (post-commit effect); the package decides only rendering and delivery.
 
 ## Building a driven adapter
 
-Wherever a driven adapter lives — inside `core/src/system/` or as a graduated `packages/<name>/` — the same rules hold, so a package that leaves the core keeps following the standard without reaching back into it:
+Same rules in `core/src/system/` and graduated `packages/<name>/`:
 
-- **Name it by capability, not vendor** — `email/` not `sendgrid/`, `queue/` not `bullmq/`. Swapping the vendor is then a change inside the adapter, invisible to the domain.
-- **Expose a focused interface** that expresses what the domain needs — not a thin passthrough of the library's full API.
-- **No business logic.** An adapter that makes decisions about domain rules has crossed into the wrong layer.
+- **Name it by capability, not vendor** — `email/` not `sendgrid/`, `queue/` not `bullmq/`; a vendor swap stays inside the adapter.
+- **Expose a focused interface** — what the domain needs, not a passthrough of the library's full API.
+- **No business logic** — an adapter that decides domain rules has crossed layers.
 - **The domain reaches it through `AppContext`** (`ctx.system.*`), never a direct import — see [app-context.md](./packages/core/app-context.md).
 
 ## Folder rules
 
-- **Organize by feature/domain, not by technical layer.** Everything for one capability lives in one feature folder under the core's `src/`; adding a feature means adding a folder, not editing scattered `services/`, `schemas/`, `exceptions/` directories.
-- **`packages/core/src/system/` is the core's non-domain infrastructure** — driven adapters (db, logger, clock, …) *and* the cross-cutting **foundational primitives** the domain is built on (the `AppContext` type + `ctx.transaction` factory, the id helpers + prefix registry, pagination). The invariant across everything here: it carries **no business rules and no domain vocabulary** — adapters are injected via `ctx.system.*`, foundational primitives are imported directly or exposed as `ctx.system.helpers.*` (see [system/start-here.md](./packages/core/system/start-here.md)). Every *other* child of the core's `src/` is a feature folder.
+- **Organize by feature/domain, not technical layer** — one capability, one feature folder under the core's `src/`; a new feature adds a folder, not edits across `services/`, `schemas/`, `exceptions/` directories.
+- **`packages/core/src/system/` is the core's non-domain infrastructure** — driven adapters plus the foundational primitives above. Invariant: **no business rules, no domain vocabulary** (see [system/start-here.md](./packages/core/system/start-here.md)). Every *other* child of the core's `src/` is a feature folder.
 - **`apps/` is reserved for driving adapters.** Nothing inbound belongs inside the core.
-- **Any folder that fits *none* of these categories requires explicit confirmation from the user before it is created.** A shared-utilities folder, a cross-cutting helpers folder — anything that is not a domain feature, not a driven adapter, and not a driving-adapter app — is not the developer's call to make unilaterally. Stop and confirm. This applies at every level of the tree, not just the top.
+- **Any folder fitting *none* of these categories requires explicit confirmation from the user before it is created** — a shared-utilities or cross-cutting-helpers folder is not the developer's unilateral call; stop and confirm. Applies at every level of the tree.

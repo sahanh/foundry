@@ -1,200 +1,84 @@
 # Validation
 
-Validation strategy for the domain layer — services and orchestrations. Services are the primary site (they own business logic); orchestrations validate thinly.
+Validation strategy for the domain layer: services and orchestrations.
 
 ## Core Principle
 
-**The domain layer validates everything.** Treat services and orchestrations as a standalone library — they cannot assume anything about how they will be consumed. Every input is validated against business rules and system constraints before use, and failures throw the feature's domain exception.
-
-- **Services are primary** — they own the business logic, so the bulk of validation lives there.
-- **Orchestrations are thin** — a orchestration validates only the inputs handed to it (via shared guards); everything beyond input validity belongs to the services it calls. The **one** business rule an orchestration may enforce itself is a *cross-entity invariant* — a predicate spanning ≥2 owners' data that no single service or guard can evaluate (see [orchestration.md → Cross-Entity Invariants](./orchestration.md#cross-entity-invariants)).
-
----
+**The domain layer validates everything**: treat services and orchestrations as a standalone library, assuming nothing about consumers. Every input is validated before use; failures throw the feature's domain exception. Services are primary; an orchestration validates only its own inputs plus any owned [cross-entity invariant](./orchestration.md#cross-entity-invariants).
 
 ## Why the Domain Layer Owns Validation
 
-1. **It knows the constraints** — Database column limits, business rules, relationship requirements. The domain layer is closest to the model and understands what's valid.
+1. **It knows the constraints** — column limits, business rules, relationships.
+2. **Multiple integration points** — API, queue worker, CLI, scheduled job consume the same code and must not duplicate validation.
+3. **Defense in depth** — edge validation is convenience; the domain's is the guarantee and runs even when the edge already did.
 
-2. **Multiple integration points** — The same service or orchestration may be consumed via API, queue worker, CLI, or scheduled job. Each integration point shouldn't duplicate validation logic.
-
-3. **Defense in depth** — Even if an integration layer validates inputs, the domain layer validates again. External validation is a convenience; domain-layer validation is the guarantee.
-
----
+Other docs cite this argument; this is its single home.
 
 ## What Gets Validated
 
-### Data Constraints
-
-- **Type correctness** — Expected types (string, array, integer)
-- **Length limits** — Based on storage constraints (database column sizes)
-- **Format requirements** — Patterns, allowed characters
-- **Required vs optional** — Presence of mandatory fields
-
-### Business Rules
-
-- **Uniqueness** — Names, identifiers within a scope
-- **Referential integrity** — Entity relationships (does the parent exist? does this belong to that?)
-- **Cardinality limits** — Maximum items, one-per-type restrictions
-- **State validity** — Is this operation allowed in the current state?
-
-### Domain Semantics
-
-- **Value validity** — Is this value meaningful in the domain? (e.g., selected option exists in allowed list)
-- **Cross-field consistency** — Do related fields make sense together?
-
----
+- **Data constraints** — types; length limits (column sizes); formats; required vs optional.
+- **Business rules** — uniqueness within a scope; referential integrity (parent exists, ownership); cardinality limits (maximums, one-per-type); state validity (allowed now?).
+- **Domain semantics** — value validity (e.g. option in allowed list); cross-field consistency.
 
 ## Exception Strategy — `exceptions.ts`
 
-When validation fails, the domain layer throws exceptions that let integrators handle errors appropriately. Each feature owns an `exceptions.ts`. Start simple — two kinds of failure cover most cases.
+Each feature owns one; two kinds of failure cover most cases.
 
 ### Input Failures — the Schema Library
 
-Malformed input (wrong type, bad format, missing required field) is caught at the boundary by the schema library (e.g. Zod's `.parse()`). A dedicated input-validation exception is usually unnecessary — the schema library throws its own. This is the first line of defense wherever data enters a service or orchestration.
+Malformed input (wrong type, bad format, missing field) is caught by the schema library (e.g. Zod's `.parse()`) throwing its own error — a dedicated input-validation exception is usually unnecessary. The first line of defense wherever data enters the domain.
 
 ### The Domain Exception
 
-`exceptions.ts` holds **one domain exception per feature**, named after the feature:
+`exceptions.ts` holds **one domain exception per feature**, named after it (`OrderProcessingException`), covering all business-rule violations: not found, constraints, authorization, invalid state. Every layer throws, and the integrator catches, the *same* type ([Who Validates What](#who-validates-what)).
 
-- `AdvancedRoundRobinException`
-- `OrderProcessingException`
-- `UserManagementException`
+**Granular subtypes:** only when an integrator must catch distinctly (e.g. retry vs fail) or multiple services throw the same specific error; start with the single feature exception.
 
-It covers all business-rule violations within the feature: not found, constraint violations, authorization failures, invalid state, etc.
-
-**Who throws it** — every layer in the feature throws the *same* feature exception:
-
-- **Services** — on any business-rule violation in their own logic.
-- **`shared/validation.ts` guards** — when a shared check fails (see Shared Validation Helpers).
-- **Orchestrations** — *via* those shared guards as part of their thin input validation, and **directly** when a *cross-entity invariant* it owns is violated (it throws the owning feature's exception — see [orchestration.md → Cross-Entity Invariants](./orchestration.md#cross-entity-invariants)). A orchestration raises no *single-entity* business-rule failures of its own — those stay in the services it calls.
-
-Because it's one exception per feature, a guard, a service, and a orchestration all throw (and an integrator catches) the same type.
-
-### When to Add Granular Exceptions
-
-Start with a single domain exception. Only introduce specific subtypes when there's a clear need:
-
-- An integrator needs to catch and handle a specific error differently
-- The error requires distinct recovery logic (e.g., retry vs fail)
-- Multiple services need to throw the same specific error type
-
-Example progression:
-```
-AdvancedRoundRobinException          ← Start here
-    ↓ (when needed)
-AdvancedRoundRobinGroupNotFoundException   ← Add when specific handling required
-```
-
-### Exception Design
-
-Exceptions should include:
-
-- **Contextual data** — IDs of entities involved, field names, attempted values
-- **Human message** — Default message for logging/debugging
-- **Structured access** — Programmatic access to context for integrators
-
-The integrator catches the exception and decides presentation: a JSON error response, a CLI alert, a queue retry, or logging. That presentation is not ad hoc. Both failure sources in this section — this domain exception and the [schema library](#input-failures--the-schema-library) above — are *anticipated* failures, and the edge transforms them into **one response shape**: a domain failure is a handled `4xx`, **never** a `500`. The single strategy is [error-handling.md](../../error-handling.md); its HTTP realization — the response envelope and status mapping — is [apps/transport-mapping.md](../../apps/transport-mapping.md). (Finer per-status mapping — `403`, `404`, `409` — is a growth path documented there; it awaits a machine-readable failure category on the exception, deliberately not added yet.)
-
----
+**Exception design:** contextual data (entity IDs, fields, attempted values), a human message, structured programmatic access. The integrator decides presentation — but not ad hoc: both failure sources are *anticipated*; the edge maps them to **one response shape**, a handled `4xx`, **never** a `500`. Strategy: [error-handling.md](../../error-handling.md); HTTP realization: [apps/transport-mapping.md](../../apps/transport-mapping.md). Deferred: per-status mapping (`403`, `404`, `409`) — awaiting a machine-readable failure category on the exception.
 
 ## Who Validates What
 
 | Layer | Validates | Throws |
 |-------|-----------|--------|
-| **Service** | its own inputs (schema parse) **and** all business rules for its entity (uniqueness, relationships, state); calls shared guards for recurring checks | feature domain exception (+ schema library on bad input) |
+| **Service** | own inputs (schema parse first) **and** all its entity's business rules; shared guards for recurring checks | feature domain exception (+ schema library on bad input) |
 | **`shared/validation.ts`** | a single shared business-rule check, reused by ≥2 callers | feature domain exception |
-| **Orchestration** | the inputs handed to it — schema parse + shared guards to confirm referenced entities exist — **plus any cross-entity invariant it owns** (a predicate spanning ≥2 owners' data); then delegates | feature domain exception — via the shared guards, or directly for a cross-entity invariant |
+| **Orchestration** | its inputs only — schema parse + guards that referenced entities exist — **plus any owned cross-entity invariant** (never a single-entity rule); then delegates | feature domain exception — via guards, or directly for the invariant (the owning feature's) |
 
-The rule: a orchestration's validation is **thin and input-bounded**, with one addition — it may enforce a **cross-entity invariant** no single owner can see. Anything else past "are my inputs well-formed and do the referenced entities exist?" is the job of the services it calls.
-
-## Validation Flow
-
-Service — owns the full flow:
-
-```
-Input arrives at service method
-        ↓
-Validate against schema (type, format, required)
-        ↓  (failure → schema library error)
-Validate business rules (uniqueness, relationships, state)
-        ↓  (failure → domain exception)
-Proceed with operation
-```
-
-Orchestration — thin, then delegate:
-
-```
-Inputs arrive at orchestration
-        ↓
-Validate against schema (type, format, required)
-        ↓  (failure → schema library error)
-Shared guards: referenced entities exist
-        ↓  (failure → domain exception)
-Cross-entity invariant (if owned): gather each side via its service, evaluate the predicate
-        ↓  (failure → owning feature's domain exception, thrown directly)
-Call services in sequence  ← each service validates its own single-entity business rules
-```
-
----
+The sequence everywhere: schema parse (→ schema library error), business rules (→ domain exception), proceed; an orchestration's validation is **thin and input-bounded**.
 
 ## Shared Validation Helpers
 
-**By default, validation lives inside the service that owns the operation** — that is the rule. This layer is the exception: when the *same* business-rule check keeps recurring across a feature's services (a parent-exists check written in several of the feature's own services is the typical case), extract that shared subset into `shared/validation.ts` so it lives in one place. The shared module is for de-duplicating recurring domain validation, not the default home for validation.
+**By default, validation lives in the service owning the operation.** `shared/validation.ts` is the exception: when the *same* check recurs across a feature's services (parent-exists is typical), extract the shared subset on the **second** caller, not in anticipation ([logic-placement.md](./logic-placement.md)). Shared helpers do **not** replace a service's own boundary validation (defense in depth); they are also an orchestration's thin input validation.
 
-### The Contract
+**The contract.** A shared helper is a **guard**: it asserts a business rule and **throws the feature's domain exception** on violation; on success it returns nothing meaningful, or the entity it just confirmed. A guard may perform IO (existence, uniqueness) — it asserts and halts rather than computing; the defining trait is the throw.
 
-A shared validation helper is a **guard**: it asserts a business rule and **throws a domain exception** (from the feature's `exceptions.ts`) when the rule is violated. On success it returns nothing meaningful, or returns the entity it just confirmed exists.
-
-A guard **may perform IO** — it commonly checks existence or uniqueness against a store. This is what distinguishes it from a pure helper: it asserts and halts rather than computing and returning. The defining trait is the throw.
-
-### What Belongs There
-
-- **Referential checks** — "the referenced parent/owner exists" (e.g. a guard confirming a parent record exists before a child is attached).
-- **Uniqueness** — a name or identifier is unique within its scope.
-- **Relationship / ownership invariants** — this entity belongs to that parent; this operation is allowed for this owner.
-- **Authorization** — this *actor* may perform this operation. A guard reads `ctx.actor` (the caller resolved at the edge) and asserts the actor is permitted — e.g. `requireAuthor(ctx, todoId)` comparing `ctx.actor` to the resource's owner. Authorization is enforced here in the domain, not only at the edge, for the same multi-consumer reason the domain owns all validation. The full model is in [identity-and-access.md](./identity-and-access.md).
-
-Only the checks **reused by two or more** services/orchestrations belong here. A check used by exactly one service stays inline in that service — extract it on the *second* caller, not in anticipation. This mirrors the playbook's "extract as a refactor, not upfront" stance.
+What belongs there: **referential checks** (parent/owner exists); **uniqueness** within a scope; **relationship/ownership invariants**; **authorization** — the guard reads `ctx.actor` (resolved at the edge) and asserts permission for the operation, e.g. `requireAuthor(ctx, todoId)`; enforced in the domain, not only at the edge (the multi-consumer reason; [identity-and-access.md](./identity-and-access.md)).
 
 ### Cross-Feature Guards
 
-A feature's `shared/validation.ts` is also its **published contract**: those guards are the one thing another feature's domain code may import from it. When feature A must assert a rule that feature B owns — a todo service checking "is this user active?" — B *exports* the guard and A calls it. Nothing else of B's crosses the boundary: not its tables, not its services.
+A feature's `shared/validation.ts` is its **published contract**: the one thing another feature's domain code may import. When feature A must assert a rule B owns ("is this user active?"), B *exports* the guard and A calls it; nothing else of B's crosses — not tables, not services.
 
-This is where the guard contract **tightens**. A guard used only *within* its own feature keeps the full contract above — it may return the entity it just confirmed. A **cross-feature guard returns `void`**: it asserts and throws, and hands nothing back. It reads only its owner's tables (through the `ctx` passed in) and throws its owner's domain exception. The *verdict* crosses the boundary; the *data* does not.
+Here the contract **tightens**: a within-feature guard may return the confirmed entity, but a **cross-feature guard returns `void`** — it reads only its owner's tables (through the passed `ctx`) and throws its owner's domain exception. The *verdict* crosses; the *data* does not. The `void` return is the enforcement — nothing can be smuggled through it; a signature returning an entity is the **guard-as-read-API** drift, visible in one line.
 
-The routing rule follows directly:
+Routing:
 
-- **A needs B's _verdict_** — a yes/no about B's state → B exports a cross-feature guard; A calls it and stays a service.
-- **A needs B's _data_** — a field of B's entity flows into A's own logic → that is genuinely multi-service; promote to an [orchestration](./orchestration.md), the one unit allowed to inject both services. A guard is the wrong tool here — the moment you want it to *return* B's entity, it is no longer a guard.
-- **The rule spans _both_ owners at once** — a predicate that reads A's *and* B's data together (a quota, a cross-owner uniqueness, an aggregate: "plan limit vs. count of runs") → no single owner can evaluate it, so it is neither a guard nor a single service. It is a **cross-entity invariant**, owned by an [orchestration](./orchestration.md#cross-entity-invariants) that gathers each side via its service and enforces the predicate directly.
+- **A needs B's _verdict_** (a yes/no about B's state) → B exports a guard; A calls it and stays a service.
+- **A needs B's _data_** — B's entity fields flow into A's logic → genuinely multi-service; promote to an [orchestration](./orchestration.md).
+- **The rule spans _both_ owners** — a predicate over A's *and* B's data together → a [cross-entity invariant](./orchestration.md#cross-entity-invariants) in an orchestration.
 
-The `void` return is what keeps the two apart: you cannot smuggle data through a guard that hands nothing back, so a check can never quietly decay into a read. A cross-feature guard whose signature returns an entity is the **guard-as-read-API** drift — and it is visible in one line.
+**Reuse threshold.** The second-caller rule is *within*-feature; a cross-feature guard is a boundary contract, in the owner's `shared/validation.ts` from the **first** cross-feature caller. Canonical: `requireActiveUser` / `requireAuthor` are **user**-feature exports called by todo and comment services, never a todo guard reaching into the users table; the same guards serve `ctx.actor` authorization verdicts, contract unchanged.
 
-This is the Domain Service from Domain-Driven Design — a named, stateless domain operation owned by one model — constrained to a published, verdict-only shape, the same boundary a modular monolith draws with a module's public API.
-
-**Reuse threshold.** The "extract on the second caller" rule above is about de-duplicating a check *within* a feature. A cross-feature guard is different: it is a boundary contract, so it lives in the owner's `shared/validation.ts` from the **first** cross-feature caller — there is no other legal place for the crossing to happen. The canonical author-existence check (`requireAuthor` / `requireActiveUser`) is therefore a guard the **user** feature exports from `user/shared/validation.ts`, called by the todo and comment services — not a todo-feature guard reaching into the users table. These same guards generalize to read `ctx.actor` when the verdict is an authorization one ("is this actor the author?") — the `void`/verdict contract is unchanged; see [identity-and-access.md](./identity-and-access.md).
-
-**Keep the feature dependency graph acyclic.** Exporting guards makes one feature depend on another's contract; let those dependencies point one direction (a `todo` feature depending on `user`, not the reverse). A cycle of cross-feature guards is a sign two features are really one.
-
-### Relationship to In-Service Validation
-
-Shared helpers do **not** replace a service's own boundary validation. A service still validates its input at the boundary (schema parse, then its own rules) — defense in depth, per the Validation Flow above. `shared/validation.ts` holds the *shared subset* of business rules so they live in one place, not a substitute for each service validating its own inputs.
-
-These guards are also what a **orchestration** uses for its thin input validation — confirming referenced entities exist before delegating to services.
-
----
+**Keep the feature dependency graph acyclic** — guard exports point one direction (`todo` depends on `user`, never the reverse); a cycle means two features are really one.
 
 ## Anti-Patterns to Avoid
 
-- **Silent failures** — Returning null or false instead of throwing
-- **Language-level exceptions only** — Throwing base Exception without domain context
-- **Validation in integrators only** — Relying on controllers/CLI to validate
-- **Partial validation** — Validating some fields but not others
-- **Implicit constraints** — Database errors surfacing instead of explicit validation
-- **Over-engineered exceptions** — Creating granular exception types before they're needed
-- **Single-entity rules in a orchestration** — validation beyond input/existence checks that belongs in a service (a *cross-entity invariant* spanning ≥2 owners is the sanctioned exception, not this smell)
-- **Guard as read API** — A cross-feature guard that returns an entity instead of `void`, letting the caller read another feature's data through what is nominally a check
-- **Foreign guard, local exception** — A caller catching another feature's guard exception only to re-wrap it in its own; the owner's exception should propagate unchanged
+- **Silent failures** — returning null/false instead of throwing.
+- **Language-level exceptions only** — base Exception without domain context.
+- **Partial validation** — some fields validated, others not.
+- **Implicit constraints** — database errors surfacing instead of explicit validation.
+- **Foreign guard, local exception** — re-wrapping another feature's guard exception; the owner's propagates unchanged.
+
+(Integrator-only validation, premature subtypes, single-entity rules in an orchestration, guard-as-read-API — covered above.)
 
 ---
 

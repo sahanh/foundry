@@ -4,7 +4,7 @@
 
 > **Zoom out first.** For where `packages/core` sits in the whole repo — alongside `apps/` and other `packages/` — and the rule for deciding *where any piece of code belongs*, read [code-placement.md](../../code-placement.md) before this. That doc covers the topology and placement criteria; this doc covers what lives *inside* the core.
 
-**The concern docs:** logic-placement (which construct logic lives in & when to promote it — consult when touching the service layer) · service-first-architecture (services) · implementation-schemas · identifiers · implementation-validation · orchestration · atomicity · working-with-databases · identity-and-access (the actor, identity lifecycle, authN at the edge, authZ in the domain) · multi-tenancy (tenant isolation — an edge-resolved scope enforced at the db seam; multi-tenant apps only) · app-context · testing. Reference: named-decisions, implementation-strategy-pattern. Driven infrastructure that lives inside the core is documented under [system/](./system/start-here.md). Repo-wide TypeScript coding standards (which apply to every package and app, not just the core) live in `common/` — see [typescript-coding-standards.md](../../common/typescript-coding-standards.md).
+**The concern docs:** logic-placement (which construct logic lives in & when to promote it — consult when touching the service layer) · service-first-architecture (services) · implementation-schemas · identifiers · implementation-validation · orchestration · atomicity · working-with-databases · identity-and-access (the actor, identity lifecycle, authN at the edge, authZ in the domain) · multi-tenancy (tenant isolation — an edge-resolved scope enforced at the db seam; multi-tenant apps only) · app-context · testing. Reference: named-decisions (incl. its Strategy escalation tier). Driven infrastructure that lives inside the core is documented under [system/](./system/start-here.md). Repo-wide TypeScript coding standards (which apply to every package and app, not just the core) live in `common/` — see [typescript-coding-standards.md](../../common/typescript-coding-standards.md).
 
 When implementation is complete, verify against [end-here.md](./end-here.md) — the mandatory verify companion to this file. Every box must be ticked for every feature before the work is considered done. You are usually routed there by the [review protocol](../../review.md), which maps what you touched.
 
@@ -12,11 +12,7 @@ When implementation is complete, verify against [end-here.md](./end-here.md) —
 
 ## The domain layer
 
-Business logic lives in the **service layer** — never in controllers or integration code. The service layer is **integration-agnostic**: the same logic works behind REST, GraphQL, a worker, a scheduled job, or an MCP tool. Build it first, then wire a delivery mechanism to it from an app (see [code-placement.md](../../code-placement.md)).
-
-Together, services, orchestrations, and shared validation form the **domain layer** — the feature's framework-agnostic business code. When a rule applies across the feature's business code (not just one service), docs refer to the domain layer. Beneath it sits the core's driven infrastructure (`system/`), which the domain reaches only through `AppContext` — see [app-context.md](./app-context.md).
-
-See service-first-architecture.md (services) and orchestration.md (multi-service coordination).
+Services, orchestrations, and shared validation together form the **domain layer** — the feature's framework-agnostic business code; when a rule applies across a feature's business code (not just one service), docs refer to the domain layer. Business logic lives here and nowhere else, integration-agnostic — the rule is owned by [code-placement.md](../../code-placement.md#layering-three-roles-one-direction). Beneath it sits the core's driven infrastructure (`system/`), reached only through `AppContext` ([app-context.md](./app-context.md)).
 
 ## Designing a Feature
 
@@ -55,10 +51,6 @@ Inside a single feature folder:
 ```
 
 Where feature folders sit relative to `system/`, `apps/`, and other `packages/` — the macro tree, and the rule that any folder fitting *neither* a feature nor an adapter needs explicit confirmation — lives in [code-placement.md](../../code-placement.md). Besides the driven adapters, `system/` also holds the core's non-domain **foundational primitives** — the id helpers + prefix registry, pagination, and the `AppContext` type — reached either as `ctx.system.helpers.*` or a direct import; see [system/start-here.md](./system/start-here.md).
-
-## Anti-Patterns (cross-cutting)
-
-- **Scattered business rules** — logic spread across controllers, middleware, and utilities instead of consolidated in the service layer.
 
 ## File Naming
 

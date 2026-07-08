@@ -1,67 +1,39 @@
 # Named Decisions
 
-When a handler contains a branching policy whose outcome is simple but whose internals fan out into many cases, extract the policy into a pure function named in domain terms. The caller sees one named decision; the helper holds the branching internally where it can be exhaustively tested.
-
----
-
-## Core Principle
-
-**Name the decision, hide the branches behind a pure helper.** The handler's job is to gather inputs and execute the side effect. The decision about *what* to do is a separate concern — extract it into a pure function with a domain-meaningful name, and let the caller dispatch on the result.
-
----
+When a handler's branching policy has a simple outcome but internals that fan out into many cases, extract it into a **pure function named in domain terms**: the handler gathers inputs, dispatches on the helper's result, and executes the side effect; the helper holds the branching, exhaustively tested. `if (shouldRetry(err, attempts))` is policy; `if (err.code !== "FATAL" && attempts < 3 && !err.isRateLimited)` is plumbing — the helper's name *is* the abstraction. When the decision grows into a **family of substantial behaviors**, escalate to a [Strategy](#escalation-when-the-decision-grows-into-a-family--extract-a-strategy).
 
 ## Why It Pays Off
 
-### Domain naming at the call site
-
-`if (shouldRetry(err, attempts))` reads as policy.
-`if (err.code !== "FATAL" && attempts < 3 && !err.isRateLimited)` reads as plumbing.
-
-Same outcome, very different signal-to-noise. The helper's name *is* the abstraction — the caller no longer needs to know which conditions matter or in what order.
-
-### The cost asymmetry is the whole point
-
-Testing all the internal branches through the caller is expensive — seeded state, framework harness, IO, end-to-end setup per case. Testing them through a pure helper is cheap — one input, one assertion, microseconds. Extraction collapses an expensive test surface into a cheap one, which is what lets you actually cover the matrix instead of picking three representative scenarios.
-
-### The invariants become tests
-
-Subtle rules ("X wins over Y," "out-of-order input can't cause Z") that previously lived as comments or as "I'm pretty sure this is right" can be pinned as named tests on the helper. The next person to touch the policy gets a regression suite, not a comment.
-
----
+- **Domain naming at the call site** — the caller no longer knows which conditions matter or in what order.
+- **Cost asymmetry** — caller-path tests cost seeded state, harness, IO per case; a pure helper: one input, one assertion — cover the whole matrix. Same per Strategy class: each tests in isolation.
+- **Invariants become tests** — subtle rules ("X wins over Y") pin as named regression tests, not comments.
 
 ## Apply As A Refactor, Not Upfront Design
 
-Write the handler inline first. Extract the helper only when the branching has revealed itself — when you can name the policy from observed reality rather than imagined future needs.
+Write the handler inline first; extract when the branching has revealed itself, naming the policy from observed reality (why: speculation guesses cases, inputs, layer wrong). Both tiers — a Strategy too is extracted from a lived-in conditional, never designed upfront.
 
-Speculative extraction tends to fail in predictable ways: the helper handles two cases when only one ever materializes, takes the wrong inputs and gets rewritten on first use, or sits at the wrong abstraction layer because the real boundary wasn't visible yet. Upfront, you don't know which inputs the policy actually depends on, which cases will occur, or what the team will call it. Those answers come from writing the inline version and living with it.
+Signals the policy has earned extraction:
 
-Signals that the policy has earned its name:
-
-- A third branch is going in and you have to re-read the whole block to keep the logic straight.
-- You're writing a comment to explain why one condition wins over another, or why an "obvious" simplification would be wrong.
-- You want to test a case but the path through the handler is expensive to set up.
-- The same conditional shape is showing up in a second handler.
-
-This is a sequencing rule, not a contradiction of the principle. Naming a decision is most valuable when the decision has shown you what it is.
-
----
+- A third branch goes in and you must re-read the whole block to keep it straight.
+- You're writing a comment explaining why one condition wins, or why an "obvious" simplification would be wrong.
+- You want to test a case the caller's path makes expensive to set up.
+- The same conditional shape appears in a second handler.
+- Type/category branching with substantial logic per branch → go straight to the Strategy tier.
 
 ## Output Shape — Pick The Simplest One The Caller Can Use
-
-The return type follows what the caller actually needs:
 
 | Shape | When to use |
 |---|---|
 | **Boolean** | Caller only branches yes/no, doesn't need to know why |
 | **Enum / string literal union** | Caller dispatches on a small set of outcomes |
 | **Value or `T \| null`** | Caller consumes a result the helper computed |
-| **Tagged union (`{ kind, reason }`)** | Caller (or its logs) needs to know not just *what* but *why*, or you want exhaustiveness checking across cases |
+| **Tagged union (`{ kind, reason }`)** | Caller (or its logs) needs *why* as well as *what*, or you want exhaustiveness checking |
 
-The shape is a downstream choice. The principle is the extraction and the naming.
+The shape is downstream; the principle is the extraction and the naming.
 
 ### Upgrading A Boolean To A Tagged Union
 
-A boolean answers *what*; the tagged form answers *what and why*. The moment you find yourself wanting to log, branch on, or test the *reason* a boolean came back false, upgrade:
+A boolean answers *what*; the tagged form adds *why*. Upgrade the moment you want to log, branch on, or test *why* it came back false:
 
 ```ts
 type Decision =
@@ -69,41 +41,56 @@ type Decision =
   | { allow: false; reason: "rate-limited" | "blocked" | "unverified" };
 ```
 
-Signals to upgrade:
+Upgrade signals: a comment next to the `false` return naming the case; the caller reconstructing the reason in a log; a test named "returns false when X" — a case the type can't express.
 
-- You write a comment next to the `false` return explaining which case it is.
-- The caller does `if (!ok) log("denied because ...")` and the string is reconstructed at the call site.
-- A test name is "returns false when X" — meaning the test cares about a case the type can't express.
+## Escalation: When The Decision Grows Into A Family — Extract A Strategy
 
----
+When branching is on a type/category and each branch is a substantial behavior (many lines of distinct logic per type, more types expected), a pure helper no longer fits. Extract each branch into a class behind a common interface; a factory selects by type.
+
+Before:
+
+```
+function evaluate(field, agent) {
+    if (field.type === 'multiselect') {
+        // multiselect evaluation logic
+    } else if (field.type === 'timezone') {
+        // timezone evaluation logic
+    } else if (field.type === 'weight') {
+        // weight evaluation logic
+    }
+}
+```
+
+After:
+
+```
+function evaluate(field, agent) {
+    const evaluator = factory.getEvaluator(field.type);
+    return evaluator.evaluate(field, agent);
+}
+```
+
+Steps: define the interface → move each branch into an implementing class → add a factory mapping type → implementation → replace the conditional with the factory lookup. A new type is a new class, not modified code; each tests independently.
 
 ## When To Apply
 
-- The handler reads like plumbing because the policy is tangled with the IO.
+- The handler reads like plumbing — policy tangled with IO.
 - The decision is, or can be made, pure — its inputs are values, not framework handles.
-- You'd like to assert on edge cases that the caller's test harness makes expensive.
-- The policy has a name in the team's vocabulary that doesn't appear in the code yet.
+- Edge cases you want to assert are expensive through the caller's harness.
+- The policy has a team-vocabulary name that doesn't appear in the code yet.
 
----
+Tier choice: simple outcome (bool/enum/value) from small branches → named decision; substantial per-type behaviors → Strategy.
 
 ## When Not To
 
-- The decision is a single condition. Inlining is fine; a helper would just be ceremony.
-- The decision genuinely needs IO mid-flight (it must query a second source to know what to do). The helper can't stay pure; reach for a domain service or the strategy pattern instead.
-
----
+- A single condition, two trivial branches, or a one-off conditional that won't grow — inline it; a helper is ceremony.
+- The decision genuinely needs IO mid-flight (queries a second source to decide) — it can't stay pure; reach for a domain service or the [Strategy tier](#escalation-when-the-decision-grows-into-a-family--extract-a-strategy) instead (strategy classes may do IO).
+- Branches just map values without logic — a lookup table is simpler than either tier.
 
 ## It's An Extraction, Not An Escape Hatch
 
-A Named Decision extracts *branching* into a pure, domain-named helper — it does not move business rules out of the service. The helper is the service's functional core: it stays with the service that owns the policy, and the service still calls it and performs the side effect. Naming `shouldRetry` makes the service's own retry policy pure and testable; it doesn't make that policy live "outside" the service. So the pattern never loosens the rule that **every business rule lives in a service or orchestration** — see [end-here.md](./end-here.md). Nor is it a home for *cross-entity* rules: a decision helper reads the values its single caller already holds, so a rule that is a predicate over ≥2 owners' data belongs to an orchestration as a [cross-entity invariant](./orchestration.md#cross-entity-invariants), not here.
+A Named Decision extracts *branching*, not business rules out of the service. The helper is the service's functional core ("functional core, imperative shell" at handler scope): it stays with the owning service, which calls it and performs the side effect. The policy doesn't live "outside" the service, so **every business rule lives in a service or orchestration** holds — see [end-here.md](./end-here.md). Nor a home for cross-entity rules: a decision helper reads values its single caller holds; a predicate over ≥2 owners' data belongs to an orchestration as a [cross-entity invariant](./orchestration.md#cross-entity-invariants). The same boundaries bind the Strategy tier.
 
 ---
 
-## Related
-
-- **[Strategy Pattern](./implementation-strategy-pattern.md)** — for when each branch is substantial enough to warrant its own class. Named Decisions is the lighter alternative when the branches are small and the caller wants a simple outcome.
-- This is "functional core, imperative shell" applied at handler scope, with the decision helper as the functional core.
-
----
-
-**Verify:** the Patterns sweep in the [review protocol](../../review.md) (Step 4) covers this.
+**Verify:** covered by the [review protocol](../../review.md)'s Patterns sweep (Step 4).
