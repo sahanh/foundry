@@ -1,6 +1,8 @@
 # Foundry
 
-Foundry is the engineering standard for this project. It is not a reference to consult occasionally — it is the specification to follow when building any part of the codebase. If you are new to the project, read it before writing code.
+**Foundry is an engineering standard for TypeScript codebases** — an opinionated take on how the domain, services, adapters, and edges are organised, with a review protocol built in. It's a guideline, not a dependency: a project adopts it by pointing its coding agents at this repository, and there's nothing to install or upgrade. For a human-friendly overview, see [sahanh.github.io/foundry](https://sahanh.github.io/foundry/).
+
+This file is the entry point to the standard. When an agent builds in a codebase that adopts Foundry, it reads here first and follows where it leads — this is the specification to follow, not a reference to consult occasionally. Read it before writing code.
 
 **Start with [code-placement.md](./code-placement.md)** — it defines the repository's shape (`apps/` + `packages/`) and the one rule for where any piece of code belongs. Everything else sits underneath it:
 
@@ -20,7 +22,7 @@ Renamed or removed concepts are recorded in **[CHANGELOG.md](./CHANGELOG.md)** �
 Repo-wide standards apply to every package and app, not just the domain core. Cross-cutting standard docs live in **[common/](./common/)**:
 
 - **Package manager:** use `pnpm`. Do not use `npm` or `yarn`.
-- **TypeScript:** [common/typescript-coding-standards.md](./common/typescript-coding-standards.md) — coding standards for all TypeScript in the repo.
+- **TypeScript:** [common/typescript-coding-standards.md](./common/typescript-coding-standards.md) — coding standards for all TypeScript in an adopting codebase.
 
 ## When in doubt
 
