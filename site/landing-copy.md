@@ -11,11 +11,9 @@ Sections are numbered to match the `§` marginal numbers in the design.
 
 **Byline:** by @sahanh → <https://github.com/sahanh>
 
-**Eyebrow label:** ENGINEERING STANDARD
-
 **Tagline:**
 
-> An engineering standard that autonomous coding agents actually follow.
+> An engineering standard for TypeScript, built for autonomous software factories.
 
 ---
 
@@ -29,7 +27,22 @@ take a PRD and build the whole thing.
 
 ---
 
-## §2 — How it's structured
+## §2 — Setup
+
+**Intro line:** Point your agent at it. Add this to your `AGENTS.md` or `CLAUDE.md`:
+
+**Code block (copyable):**
+
+```md
+## Engineering standard
+
+Before writing any code, read the Foundry README and follow it — https://github.com/sahanh/foundry
+When the change is complete, run the review protocol, ideally in a sub-agent — https://github.com/sahanh/foundry/blob/main/review.md
+```
+
+---
+
+## §3 — How it's structured
 
 At the centre is a domain that knows nothing about the world around it. No framework, no transport,
 no database driver reaches into it. Foundry's first job is to organise that domain: services are the
@@ -62,7 +75,7 @@ not what sits behind it.
 
 ---
 
-## §3 — Why a guideline, not a framework
+## §4 — Why a guideline, not a framework
 
 A framework would hand you most of this for free. But frameworks come and go, and they ship updates
 on their own schedule rather than yours. Some projects take years to find their shape, and I'd
@@ -73,52 +86,35 @@ was never the framework's to hold.
 
 ---
 
-## §4 — Setup
-
-**Intro line:** Point your agent at it. Add this to your `AGENTS.md` or `CLAUDE.md`:
-
-**Code block (copyable):**
-
-```md
-## Engineering standard
-
-Build per Foundry — https://github.com/sahanh/foundry
-
-Read code-placement.md before you write any code; it decides where things live.
-At each level, read its start-here.md before building, end-here.md after.
-When the change is complete, run the review.md protocol. It is mandatory.
-```
-
----
-
 ## Footer
 
-- README → <https://github.com/sahanh/foundry/blob/main/README.md>
-- Review protocol → <https://github.com/sahanh/foundry/blob/main/review.md>
-- GitHub → <https://github.com/sahanh/foundry>
+- The Standard → `./docs/` (the docs viewer)
+- GitHub → <https://github.com/sahanh>
+- X → <https://x.com/sahan_dsh>
 
 ---
 
 ## Notes on the copy
 
 **Voice.** Descriptive, not promotional. Each claim states a rule and the reason it is a rule; no
-outcome is promised to the reader. First person in §1 and §3, where the opinion is the point.
+outcome is promised to the reader. First person in §1 and §4, where the opinion is the point.
 
-**Ordering.** §2 moves centre-outward — the domain, then what's inside it, then the adapters around
-it, then the repository that holds them. Only after the layers are laid down do the two *vertical
-spines* (failure, identity) get drawn through them, and the two *consequences* (testability,
-stack-agnosticism) come last. Anything that is a consequence rather than a layer must stay at the
-end, or it interrupts the progression.
+**Ordering.** Setup (§2) sits right after Origin so the one action a reader can take is reachable
+before the long prose — the page earns attention with the backstory, then converts it immediately.
+The structure section (§3) moves centre-outward — the domain, then what's inside it, then the
+adapters around it, then the repository that holds them. Only after the layers are laid down do the
+two *vertical spines* (failure, identity) get drawn through them, and the two *consequences*
+(testability, stack-agnosticism) come last. Anything that is a consequence rather than a layer must
+stay at the end, or it interrupts the progression.
 
-**§3 sits after §2 deliberately.** "Why not a framework" is an objection-handler. Answering it before
+**§4 sits last deliberately.** "Why not a framework" is an objection-handler. Answering it before
 the reader knows what the thing does reads as defensiveness; answering it after they've read the
 structure reads as a relief.
 
-**Claims that depend on the guidelines staying strict.** The tagline's "actually follow" is only
-earned because `review.md` and the `end-here` seams are mandatory. If those ever soften into advice,
-the tagline becomes a lie. Likewise §2's "nothing has to be stood up or mocked" leans on
-`testing.md`, and "context of established facts" leans on the context-as-facts invariant in
-`app-context.md`.
+**Claims that depend on the guidelines staying strict.** §3's "nothing has to be stood up or mocked"
+leans on `testing.md`, and "context of established facts" leans on the context-as-facts invariant in
+`app-context.md`. If those rules ever soften into advice, the copy overstates what the standard
+guarantees.
 
 **No filenames in prose that could rot.** Document names are named only where they are load-bearing
 (the Setup block). `named-decisions.md` → `branching-logic.md` has already happened once; the page

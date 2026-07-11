@@ -22,6 +22,7 @@ L1 — where in the repo?
   packages/core/            → the domain core                → L2a
   packages/<other>/         → graduated package (driven adapter)
   repo root / config        → cross-cutting
+  site/                     → the website (landing + docs viewer) — OUT OF SCOPE; not the standard, skip it
 
 L2a — inside packages/core/
   src/system/<adapter>      → driven adapter (db, logger, clock, queue, email, …)

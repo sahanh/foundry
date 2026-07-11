@@ -5,6 +5,16 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-11 — Public website added under `site/`; `viewer/` renamed, `landing-copy.md` moved
+
+The local Markdown viewer at `viewer/` is now **`site/`**, which additionally holds the public
+landing page and a static build of the docs viewer (published to GitHub Pages). `landing-copy.md`
+moved from the repo root to `site/landing-copy.md`.
+
+No rule changed and nothing in the standard is affected — `site/` is website content, off the agent
+reading path. Anyone looking for `viewer/` or root `landing-copy.md` finds them under `site/`; see
+[AGENTS.md](./AGENTS.md) → *The `site/` directory is not part of the standard*.
+
 ## 2026-07-09 — named-decisions.md renamed to branching-logic.md
 
 `packages/core/named-decisions.md` is now

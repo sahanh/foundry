@@ -1,26 +1,32 @@
-import { createServer } from 'node:http';
+// Shared rendering engine for the docs viewer.
+//
+// This module is the single definition of how a Markdown doc becomes HTML, how
+// the doc tree (with token counts) is built, and how internal links are rewritten
+// to `?doc=` routes the client intercepts. It is imported by BOTH:
+//   - server.mjs  — the local live-reload authoring server (renders per request)
+//   - build.mjs   — the static exporter (renders every doc once at build time)
+// so the published site and the local preview are byte-for-byte the same render.
+
 import { readFile, readdir, stat } from 'node:fs/promises';
-import { watch } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
 import { encode } from 'gpt-tokenizer/encoding/o200k_base';
 
-const VIEWER_DIR = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(VIEWER_DIR, '..');
-const PUBLIC_DIR = path.join(VIEWER_DIR, 'public');
-const PORT = Number(process.env.PORT) || 4321;
+const SITE_DIR = path.dirname(fileURLToPath(import.meta.url));
+export const REPO_ROOT = path.resolve(SITE_DIR, '..');
 
-// Directories/entries that never belong in the doc tree.
-const IGNORED_DIRS = new Set(['node_modules', '.git', 'viewer']);
+// Directories/entries that never belong in the doc tree. `site` excludes this
+// whole website subtree so the viewer never lists its own source as docs.
+export const IGNORED_DIRS = new Set(['node_modules', '.git', 'site']);
 
 // ---------------------------------------------------------------------------
 // Path helpers — everything is validated to stay inside REPO_ROOT.
 // ---------------------------------------------------------------------------
 
 /** Resolve a repo-relative path to an absolute one, or null if it escapes root. */
-function resolveInRepo(relPath) {
+export function resolveInRepo(relPath) {
   const clean = (relPath || '').replace(/^\/+/, '');
   const abs = path.resolve(REPO_ROOT, clean);
   if (abs !== REPO_ROOT && !abs.startsWith(REPO_ROOT + path.sep)) return null;
@@ -28,7 +34,7 @@ function resolveInRepo(relPath) {
 }
 
 /** Repo-relative POSIX path for an absolute path. */
-function toRepoRel(abs) {
+export function toRepoRel(abs) {
   return path.relative(REPO_ROOT, abs).split(path.sep).join('/');
 }
 
@@ -36,7 +42,7 @@ function toRepoRel(abs) {
 // GitHub-style heading slugs.
 // ---------------------------------------------------------------------------
 
-function githubSlug(text) {
+export function githubSlug(text) {
   return text
     .trim()
     .toLowerCase()
@@ -127,6 +133,11 @@ function rewriteHref(token, hrefIndex, href, env) {
   }
 }
 
+/** Render a Markdown string to HTML, tagging internal links with the doc's path. */
+export function renderDoc(raw, repoRelPath) {
+  return md.render(raw, { docPath: repoRelPath });
+}
+
 // ---------------------------------------------------------------------------
 // Doc tree.
 // ---------------------------------------------------------------------------
@@ -135,7 +146,7 @@ function rewriteHref(token, hrefIndex, href, env) {
 // actually changed. Counts use the o200k BPE encoding as a proxy for Claude.
 const tokenCache = new Map(); // abs -> { mtimeMs, tokens }
 
-async function tokensForFile(abs) {
+export async function tokensForFile(abs) {
   const info = await stat(abs);
   const cached = tokenCache.get(abs);
   if (cached && cached.mtimeMs === info.mtimeMs) return cached.tokens;
@@ -145,7 +156,7 @@ async function tokensForFile(abs) {
   return tokens;
 }
 
-async function buildTree(absDir) {
+export async function buildTree(absDir = REPO_ROOT) {
   const entries = await readdir(absDir, { withFileTypes: true });
   const nodes = [];
   for (const entry of entries) {
@@ -180,7 +191,7 @@ async function buildTree(absDir) {
 }
 
 /** Auto-generated index HTML for a directory target. */
-async function renderDirIndex(absDir, relDir) {
+export async function renderDirIndex(absDir, relDir) {
   const entries = await readdir(absDir, { withFileTypes: true });
   const items = entries
     .filter((e) => e.isFile() && /\.md$/i.test(e.name))
@@ -197,135 +208,12 @@ async function renderDirIndex(absDir, relDir) {
 }
 
 // ---------------------------------------------------------------------------
-// SSE live reload.
+// highlight.js theme CSS. The viewer commits to a single dark (forge) look
+// regardless of OS preference, so we ship only the dark token theme — a
+// light theme would render unreadable on the dark background.
 // ---------------------------------------------------------------------------
 
-const sseClients = new Set();
-let watchDebounce = null;
-let pendingPath = '';
-
-function notifyReload(changedRel) {
-  pendingPath = changedRel;
-  if (watchDebounce) return;
-  watchDebounce = setTimeout(() => {
-    watchDebounce = null;
-    const payload = `event: reload\ndata: ${JSON.stringify({ path: pendingPath })}\n\n`;
-    for (const res of sseClients) res.write(payload);
-  }, 100);
+export async function highlightThemeCss() {
+  const p = fileURLToPath(import.meta.resolve('highlight.js/styles/github-dark.css'));
+  return readFile(p, 'utf8');
 }
-
-watch(REPO_ROOT, { recursive: true }, (_event, filename) => {
-  if (!filename) return;
-  const rel = filename.split(path.sep).join('/');
-  const top = rel.split('/')[0];
-  if (IGNORED_DIRS.has(top) || top.startsWith('.')) return;
-  if (!/\.md$/i.test(rel)) return;
-  notifyReload(rel);
-});
-
-// ---------------------------------------------------------------------------
-// HTTP server.
-// ---------------------------------------------------------------------------
-
-const STATIC_FILES = {
-  '/': { file: 'index.html', type: 'text/html; charset=utf-8' },
-  '/app.js': { file: 'app.js', type: 'text/javascript; charset=utf-8' },
-  '/styles.css': { file: 'styles.css', type: 'text/css; charset=utf-8' },
-};
-
-function send(res, status, type, body) {
-  // Never cache: this is a live-reload dev tool, always serve the latest asset.
-  res.writeHead(status, {
-    'Content-Type': type,
-    'Cache-Control': 'no-store, must-revalidate',
-  });
-  res.end(body);
-}
-
-async function handle(req, res) {
-  const url = new URL(req.url, `http://localhost:${PORT}`);
-  const pathname = url.pathname;
-
-  // Static assets.
-  if (STATIC_FILES[pathname]) {
-    const { file, type } = STATIC_FILES[pathname];
-    try {
-      const body = await readFile(path.join(PUBLIC_DIR, file));
-      return send(res, 200, type, body);
-    } catch {
-      return send(res, 404, 'text/plain', 'Not found');
-    }
-  }
-
-  // Color-scheme-aware highlight.js theme: light + dark variants, each behind
-  // a prefers-color-scheme media query so token colors match the active theme.
-  if (pathname === '/vendor/highlight.css') {
-    try {
-      const readTheme = async (name) => {
-        const p = fileURLToPath(import.meta.resolve(`highlight.js/styles/${name}`));
-        return readFile(p, 'utf8');
-      };
-      const [light, dark] = await Promise.all([
-        readTheme('github.css'),
-        readTheme('github-dark.css'),
-      ]);
-      const css =
-        `@media (prefers-color-scheme: light) {\n${light}\n}\n` +
-        `@media (prefers-color-scheme: dark) {\n${dark}\n}\n`;
-      return send(res, 200, 'text/css; charset=utf-8', css);
-    } catch {
-      return send(res, 404, 'text/plain', 'highlight theme not found');
-    }
-  }
-
-  // File tree.
-  if (pathname === '/api/tree') {
-    const tree = await buildTree(REPO_ROOT);
-    return send(res, 200, 'application/json; charset=utf-8', JSON.stringify(tree));
-  }
-
-  // Rendered doc (or directory index).
-  if (pathname === '/api/doc') {
-    const relParam = url.searchParams.get('path') || '';
-    const abs = resolveInRepo(relParam);
-    if (!abs) return send(res, 400, 'text/plain', 'Invalid path');
-    try {
-      const info = await stat(abs);
-      if (info.isDirectory()) {
-        const html = await renderDirIndex(abs, toRepoRel(abs));
-        return send(res, 200, 'text/html; charset=utf-8', html);
-      }
-      if (!/\.md$/i.test(abs)) return send(res, 400, 'text/plain', 'Not a Markdown file');
-      const raw = await readFile(abs, 'utf8');
-      const html = md.render(raw, { docPath: toRepoRel(abs) });
-      return send(res, 200, 'text/html; charset=utf-8', html);
-    } catch {
-      return send(res, 404, 'text/plain', 'Not found');
-    }
-  }
-
-  // SSE stream.
-  if (pathname === '/api/events') {
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
-    });
-    res.write('retry: 2000\n\n');
-    sseClients.add(res);
-    req.on('close', () => sseClients.delete(res));
-    return;
-  }
-
-  return send(res, 404, 'text/plain', 'Not found');
-}
-
-createServer((req, res) => {
-  handle(req, res).catch((err) => {
-    console.error(err);
-    if (!res.headersSent) send(res, 500, 'text/plain', 'Internal error');
-  });
-}).listen(PORT, () => {
-  console.log(`Playbook viewer running at http://localhost:${PORT}`);
-  console.log(`Serving Markdown from ${REPO_ROOT}`);
-});

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Foundry — An engineering standard for autonomous software factories</title>
+<style>
+  :root {
+    --bg: #0C0C0D;
+    --band: #141312;
+    --text: #EDE9E1;
+    --muted: #948E85;
+    --accent: #D68B3E;
+    --slab: #121110;
+    --hair: #2A2724;
+    --sans: "Avenir Next", "Avenir", "Optima", "Futura", sans-serif;
+    --mono: "SF Mono", "Menlo", ui-monospace, monospace;
+    --measure: 44rem;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); }
+
+  #foundry {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 1.2rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  #foundry p { margin: 0 0 1.15em; }
+  #foundry p:last-child { margin-bottom: 0; }
+
+  #foundry a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  #foundry a:hover { text-decoration: underline; }
+  #foundry a.cta-link { color: var(--bg); }
+  #foundry a.cta-link:hover { text-decoration: none; }
+
+  .wrap {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* Section bands */
+  .band { padding: 5.5rem 0; }
+  .band--lift { background: var(--band); }
+
+  /* Dashed blue separator — the one signature flourish */
+  .rule {
+    border: 0;
+    border-top: 1.5px dashed var(--accent);
+    opacity: 0.28;
+    margin: 0;
+  }
+
+  /* Masthead */
+  .masthead { padding: 7rem 0 6rem; }
+
+  .eyebrow {
+    font-size: 0.82rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1.6rem;
+    font-weight: 600;
+  }
+
+  .wordmark {
+    font-size: clamp(3.2rem, 9vw, 5.5rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 0.98;
+    margin: 0;
+  }
+
+  .byline {
+    font-size: 1rem;
+    color: var(--muted);
+    margin: 0.9rem 0 2.2rem;
+  }
+
+  .tagline {
+    font-size: 1.55rem;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    margin: 0;
+    max-width: 34rem;
+  }
+
+  /* Section headings */
+  .band h2 {
+    color: var(--accent);
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin: 0 0 1.4rem;
+  }
+
+  /* §1 lead — noticeably larger */
+  .lead { font-size: 1.55rem; line-height: 1.45; letter-spacing: -0.01em; }
+
+  code, .mono { font-family: var(--mono); }
+  .prose code {
+    font-size: 0.92em;
+    color: var(--text);
+  }
+
+  /* Setup intro */
+  .setup-intro { margin-bottom: 1.8rem; }
+
+  /* Code slab */
+  .codewrap {
+    position: relative;
+    background: var(--slab);
+    border: 1px solid var(--hair);
+    border-radius: 8px;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: transparent;
+    border: 1px solid var(--hair);
+    color: var(--accent);
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.35rem 0.7rem;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .copy-btn:hover { border-color: var(--accent); }
+
+  /* View-the-standards call to action */
+  .band.cta { padding: 4rem 0; }
+  .cta .wrap { text-align: center; }
+  .cta-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+    color: var(--bg);
+    background: var(--accent);
+    padding: 0.85rem 1.7rem;
+    border-radius: 7px;
+    text-decoration: none;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .cta-link:hover { opacity: 0.92; transform: translateY(-1px); }
+  .cta-link .arrow { font-size: 1.15em; line-height: 1; }
+  .cta-note { margin-top: 1.1rem; color: var(--muted); font-size: 0.95rem; }
+  .codewrap pre {
+    margin: 0;
+    padding: 1.5rem 1.5rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .codewrap code { font-family: var(--mono); }
+
+  /* Footer */
+  footer.site {
+    padding: 3.5rem 0;
+    border-top: 1px solid var(--hair);
+  }
+  .footlinks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.4rem;
+    font-size: 1rem;
+    align-items: center;
+  }
+  .footlinks .sep { color: var(--muted); opacity: 0.5; }
+  .footnote {
+    margin-top: 1.6rem;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  /* Hero fade-up */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .masthead .wrap > * {
+    animation: fadeUp 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  .masthead .eyebrow  { animation-delay: 0.02s; }
+  .masthead .wordmark { animation-delay: 0.08s; }
+  .masthead .byline   { animation-delay: 0.16s; }
+  .masthead .tagline  { animation-delay: 0.24s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .masthead .wrap > * { animation: none; }
+  }
+
+  @media (max-width: 40rem) {
+    #foundry { font-size: 1.1rem; }
+    .band { padding: 4rem 0; }
+    .masthead { padding: 4.5rem 0 4rem; }
+    .tagline, .lead { font-size: 1.35rem; }
+  }
+</style>
+</head>
+<body>
+
+<main id="foundry">
+
+  <header class="masthead">
+    <div class="wrap">
+      <h1 class="wordmark">Foundry</h1>
+      <p class="byline">by <a href="https://github.com/sahanh">@sahanh</a></p>
+      <p class="tagline">An engineering standard for TypeScript, built for autonomous software factories.</p>
+    </div>
+  </header>
+
+  <hr class="rule">
+
+  <section class="band">
+    <div class="wrap prose">
+      <h2>Origin</h2>
+      <p class="lead">Foundry is the shape I kept arriving at. Over a decade of building systems I found myself re-deriving the same structure on every project, so eventually I wrote it down. What turned those notes into a standard was an experiment: how far can you push a coding agent to build software the way I'd architect it myself? Far enough that it now runs inside software factories, where agents take a PRD and build the whole thing.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section class="band band--lift">
+    <div class="wrap prose">
+      <h2>Setup</h2>
+      <p class="setup-intro">Point your agent at it. Add this to your <code>AGENTS.md</code> or <code>CLAUDE.md</code>:</p>
+      <div class="codewrap">
+        <button class="copy-btn" id="copyBtn" type="button" aria-label="Copy setup snippet">Copy</button>
+        <pre><code id="snippet">## Engineering standard
+
+Before writing any code, read the Foundry README and follow it — https://github.com/sahanh/foundry
+When the change is complete, run the review protocol, ideally in a sub-agent — https://github.com/sahanh/foundry/blob/main/review.md</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section class="band cta">
+    <div class="wrap">
+      <a class="cta-link" href="./docs/">View the Standards <span class="arrow">&rarr;</span></a>
+      <p class="cta-note">Read the full standard — the reading path, every rule, and the review protocol.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section class="band band--lift">
+    <div class="wrap prose">
+      <h2>How it's structured</h2>
+      <p>At the centre is a domain that knows nothing about the world around it. No framework, no transport, no database driver reaches into it. Foundry's first job is to organise that domain: services are the only seam that touches data, orchestrations coordinate them, schemas are the source of truth. Its second job is the more opinionated one — saying where a rule is allowed to live, and how boundaries inside the domain speak to one another, so that logic doesn't scatter across the edges of the modules it half-belongs to.</p>
+      <p>Because the core is self-contained, everything that reaches it is an adapter. Foundry sets a standard for those too: a tRPC router, a REST controller, an MCP tool handler, a web app, a CLI, a queue consumer. Each one translates at the edge and calls in. Business logic never leaks into an integration point, which means a new distribution channel is a new adapter rather than a second copy of the rules — and modern software is expected to arrive through several channels at once.</p>
+      <p>Those channels have to live somewhere. The repository is a monorepo with exactly two homes — the apps that drive the domain, and the packages it's built from — and the placement rule decides which one a given piece of code belongs in, so the answer is derived rather than argued about.</p>
+      <p>Two concerns cut vertically through all of it. Failure is one strategy, not one per edge: the domain raises, and every adapter maps what it's given onto its own transport, so consumers meet a consistent error surface no matter which channel they came through. Identity is the other: authentication resolves at the edge, authorization lives in the domain, and every operation runs as an actor carried on a context of established facts.</p>
+      <p>Two properties fall out of the arrangement rather than being bolted onto it. The domain is testable, because nothing has to be stood up or mocked to reach it. And the standard is stack-agnostic within TypeScript: the examples reach for Zod and Drizzle because those are what I use today, but nothing in the structure depends on them — the rule is that services are the only seam that touches data, not what sits behind it.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section class="band">
+    <div class="wrap prose">
+      <h2>Why a guideline, not a framework</h2>
+      <p>A framework would hand you most of this for free. But frameworks come and go, and they ship updates on their own schedule rather than yours. Some projects take years to find their shape, and I'd rather not spend those years on migrations I didn't ask for. Foundry is a guideline, not a dependency: there's nothing to install and nothing to upgrade. Depending on the project I might reach for a standard toolkit or assemble my own stack — the structure holds either way, because it was never the framework's to hold.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <footer class="site">
+    <div class="wrap">
+      <nav class="footlinks">
+        <a href="./docs/">The Standard</a>
+        <span class="sep">·</span>
+        <a href="https://github.com/sahanh" target="_blank" rel="noopener">GitHub</a>
+        <span class="sep">·</span>
+        <a href="https://x.com/sahan_dsh" target="_blank" rel="noopener">X</a>
+      </nav>
+      <p class="footnote">Foundry — an engineering standard built for autonomous software factories.</p>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+  (function () {
+    var btn = document.getElementById('copyBtn');
+    var snippet = document.getElementById('snippet');
+    if (!btn || !snippet) return;
+    var resetTimer;
+
+    function flash() {
+      btn.textContent = 'Copied';
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+    }
+
+    function legacyCopy(text) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'absolute';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+
+    btn.addEventListener('click', function () {
+      var text = snippet.innerText;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(flash, function () {
+          legacyCopy(text); flash();
+        });
+      } else {
+        legacyCopy(text); flash();
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>

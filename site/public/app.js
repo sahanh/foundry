@@ -53,7 +53,11 @@ function navigate(doc, anchor) {
 async function render() {
   const { doc, anchor } = readRoute();
   try {
-    const res = await fetch(`/api/doc?path=${encodeURIComponent(doc)}`);
+    // Static build: prerendered file per doc. Local server: render on demand.
+    const src = window.__DOCS_STATIC__
+      ? `./content/${doc}.html`
+      : `/api/doc?path=${encodeURIComponent(doc)}`;
+    const res = await fetch(src);
     if (!res.ok) throw new Error(`${res.status}`);
     const html = await res.text();
     docEl.innerHTML = html;
@@ -126,7 +130,7 @@ function buildTreeDOM(nodes) {
 }
 
 async function loadTree() {
-  const res = await fetch('/api/tree');
+  const res = await fetch(window.__DOCS_STATIC__ ? './tree.json' : '/api/tree');
   const nodes = await res.json();
 
   // Index token counts for every file/dir, and total the whole playbook.
@@ -240,4 +244,5 @@ function connectSSE() {
 // Load the tree first so token counts are known before the doc meta renders.
 await loadTree();
 render();
-connectSSE();
+// SSE live-reload only exists on the local authoring server, not the static build.
+if (!window.__DOCS_STATIC__) connectSSE();

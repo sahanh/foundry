@@ -1,11 +1,12 @@
 {
-  "name": "engineering-playbook-viewer",
+  "name": "foundry-site",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Thin local viewer for the engineering-playbook Markdown docs.",
+  "description": "Foundry website — landing page + static docs viewer.",
   "scripts": {
-    "dev": "node server.mjs"
+    "dev": "node server.mjs",
+    "build": "node build.mjs"
   },
   "dependencies": {
     "gpt-tokenizer": "^2.9.0",

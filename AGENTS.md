@@ -1,5 +1,3 @@
-# CLAUDE.md
-
 Repo-wide working instructions for this project. Read alongside the guidelines themselves.
 
 ## Keeping the seams in sync
@@ -22,6 +20,15 @@ Each rule has exactly **one owning doc**. Any other doc may carry at most a **on
 link** to the owner — never a restatement. Anti-patterns live inside the rule they negate, not in
 separate anti-pattern lists. `CHANGELOG.md` and `concerns.md` are lookup-on-demand references —
 consult a specific entry when needed, never bulk-load them into a reading path.
+
+## The `site/` directory is not part of the standard
+
+`site/` holds the public **website** — the landing page, the copy that feeds it
+(`site/landing-copy.md`), and the build that renders these docs into a static viewer. It is **not
+part of the standard and not on the agent reading path**: nothing in the guidelines links into it,
+and no rule lives there. Don't read `site/` to understand or review a code change, and don't route
+it through [`review.md`](./review.md). The viewer re-renders the docs automatically, so there is no
+navigation/verification seam inside `site/` to keep in sync.
 
 ## Maintaining the Changelog
 
