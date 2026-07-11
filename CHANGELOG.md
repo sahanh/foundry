@@ -1,9 +1,19 @@
 # Changelog
 
-Notable changes to the engineering playbook. If a concept you remember is gone, look here for
+Notable changes to Foundry. If a concept you remember is gone, look here for
 what replaced it and how to migrate.
 
 ---
+
+## 2026-07-11 — "Engineering Playbook" renamed to Foundry
+
+The standard is now called **Foundry**. Every doc that used "the playbook" or "Engineering Playbook"
+as the project's name now says Foundry (or, where it reads better, "the standard"); the descriptor
+*engineering standard* is unchanged, and no rule changed meaning.
+
+Anyone with a link or reference to "Engineering Playbook" / "the playbook" as the product name should
+read it as Foundry. Entries below this one predate the rename and keep the former name as a dated
+record — start with [README.md](./README.md).
 
 ## 2026-07-11 — Public website added under `site/`; `viewer/` renamed, `landing-copy.md` moved
 

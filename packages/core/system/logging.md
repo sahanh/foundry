@@ -1,6 +1,6 @@
 # Logging
 
-Logging is a required subsystem. Every application built on this playbook must implement the logging adapter before any feature work begins. It is not optional and must not be deferred — without it, failures and business-use-case traces cannot be diagnosed in production.
+Logging is a required subsystem. Every application built on Foundry must implement the logging adapter before any feature work begins. It is not optional and must not be deferred — without it, failures and business-use-case traces cannot be diagnosed in production.
 
 The logging adapter lives in `src/system/logger/` and is accessed through `ctx.system.logger`.
 

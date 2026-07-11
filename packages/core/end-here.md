@@ -64,7 +64,7 @@ Verify companion to [start-here.md](./start-here.md). Run the sections matching 
 
 ## Atomicity → [atomicity.md](./atomicity.md)
 - [ ] Multi-write use case in one `ctx.transaction` owned by the outermost caller; non-DB side effects dispatched after commit, never inside — [atomicity.md](./atomicity.md#db-only-inside-effects-after-commit)
-- [ ] Genuinely synchronous — nothing waiting, sleeping, retrying, or surviving restarts (out of playbook scope) — [atomicity.md](./atomicity.md#what-a-transaction-cannot-span)
+- [ ] Genuinely synchronous — nothing waiting, sleeping, retrying, or surviving restarts (out of Foundry's scope) — [atomicity.md](./atomicity.md#what-a-transaction-cannot-span)
 
 ## AppContext → [app-context.md](./app-context.md)
 - [ ] Every service receives AppContext via constructor — [app-context.md](./app-context.md#constructor-injection)

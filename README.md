@@ -1,6 +1,6 @@
-# Engineering Playbook
+# Foundry
 
-This is the engineering standard for this project. It is not a reference to consult occasionally — it is the specification to follow when building any part of the codebase. If you are new to the project, read it before writing code.
+Foundry is the engineering standard for this project. It is not a reference to consult occasionally — it is the specification to follow when building any part of the codebase. If you are new to the project, read it before writing code.
 
 **Start with [code-placement.md](./code-placement.md)** — it defines the repository's shape (`apps/` + `packages/`) and the one rule for where any piece of code belongs. Everything else sits underneath it:
 
@@ -24,4 +24,4 @@ Repo-wide standards apply to every package and app, not just the domain core. Cr
 
 ## When in doubt
 
-The playbook is the answer. If the playbook does not cover a case, raise it — the gap should be documented, not silently decided.
+Foundry is the answer. If Foundry does not cover a case, raise it — the gap should be documented, not silently decided.

@@ -1,6 +1,6 @@
 # Review Protocol
 
-Self-driving instructions for a reviewer — person or sub-agent — checking changed code against the playbook. **Not** a flat checklist: **map, then route, then validate** — classify *what was touched* into a fixed taxonomy; the map tells you *which guidelines to open*; validate each touched area against only those.
+Self-driving instructions for a reviewer — person or sub-agent — checking changed code against the standard. **Not** a flat checklist: **map, then route, then validate** — classify *what was touched* into a fixed taxonomy; the map tells you *which guidelines to open*; validate each touched area against only those.
 
 The `start-here.md`s are the forward pass; this is the backward pass.
 

@@ -3,7 +3,7 @@
 **Maintainer-facing.** This file is not part of the agent reading path — an agent that hits a gap
 raises it (per the README's *When in doubt*); it does not read this file wholesale.
 
-Open gaps in the playbook. Per the README, gaps are **documented, not silently decided**. Each item
+Open gaps in Foundry. Per the README, gaps are **documented, not silently decided**. Each item
 carries a **status** — `open` (no coverage), `partial` (some coverage, named gap remains), or
 `softened` (risk acknowledged in a doc but not closed) — and an **anchor** to the doc(s) that own
 the decision. Resolved items live in git history and the changelog.

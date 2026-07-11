@@ -52,7 +52,7 @@ A transaction is all-or-nothing but effectively instantaneous — it holds locks
 
 - **Read-only use cases** — nothing to commit; wrapping adds overhead and false intent.
 - **Single-write use cases** — one write is already atomic; a boundary is ceremony.
-- **Long-running use cases** — anything that must wait on the outside world, sleep, retry, or survive a crash cannot be made atomic by one shared transaction. That kind of multi-step execution is **outside this playbook's current scope** — raise it (README → *When in doubt*) rather than stretching a transaction across the waits or silently splitting the use case across several commits.
+- **Long-running use cases** — anything that must wait on the outside world, sleep, retry, or survive a crash cannot be made atomic by one shared transaction. That kind of multi-step execution is **outside Foundry's current scope** — raise it (README → *When in doubt*) rather than stretching a transaction across the waits or silently splitting the use case across several commits.
 
 **Atomicity still applies per step:** within such a process, each discrete step's *own* writes get their own transaction — atomic per step, never across the whole process.
 

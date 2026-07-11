@@ -1,6 +1,6 @@
 # Error Handling
 
-The playbook's single strategy for failure: how a failure is **raised** in the domain, **presented**
+Foundry's single strategy for failure: how a failure is **raised** in the domain, **presented**
 at every edge, **observed** in logs, and **unwound** by a transaction. Every layer's error rule is an
 application of these principles, not a local invention.
 

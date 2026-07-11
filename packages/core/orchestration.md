@@ -84,7 +84,7 @@ A single-service use case grows a second-service concern — "create task" becom
 
 ## Reliability: Synchronous Coordination Only
 
-A synchronous coordination is reliable via its transaction boundary (Guideline 4). Coordination that must wait on the outside world, sleep, retry, or survive a crash **cannot** be wrapped in that boundary ([atomicity.md → What a Transaction Cannot Span](./atomicity.md#what-a-transaction-cannot-span)); reliable long-running multi-step work is **outside this playbook's current scope** — raise it (README → *When in doubt*), don't force an orchestration-plus-transaction.
+A synchronous coordination is reliable via its transaction boundary (Guideline 4). Coordination that must wait on the outside world, sleep, retry, or survive a crash **cannot** be wrapped in that boundary ([atomicity.md → What a Transaction Cannot Span](./atomicity.md#what-a-transaction-cannot-span)); reliable long-running multi-step work is **outside Foundry's current scope** — raise it (README → *When in doubt*), don't force an orchestration-plus-transaction.
 
 ## Relationship to Service-First
 
