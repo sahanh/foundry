@@ -30,8 +30,9 @@ Full `entityId('…')` convention: [identifiers.md](./identifiers.md).
 
 ## Schema Organization
 
-- Schemas live in dedicated per-entity `*.schema.ts` files inside the feature folder (e.g. `orders/order.schema.ts` **and** `orders/orderNotes.schema.ts`), never inline in service methods — for reuse, visible contracts, and easier change.
-- Standard types per entity: the stored entity shape, an input type (create/update), and an output type.
+- **What this governs: boundary/contract types** — the persisted-entity shape and its projections, and any type exported across a module boundary (a read-side/presentation shape counts). These live in the feature's dedicated `*.schema.ts` file(s) (e.g. `orders/order.schema.ts` **and** `orders/orderNotes.schema.ts`), **never inline in a service, orchestration, mapper, or any other non-schema module** — for reuse, visible contracts, and easier change. A *local implementation-only* type — a function's options bag, an internal intermediate — may stay inline; it is not a boundary type ([No types without validation](#schema-discipline)). **Sole exception:** an exported output DTO sealed by a module-private brand symbol stays with its only constructor — relocating it would break the single-constructor guarantee.
+- Standard types per entity: the stored entity shape, an input type (create/update), an output type, and any **presentation/read-side** shape a read edge serializes. The presentation shape lives in the same schema place and is **derived** from the base where they overlap (`.pick()/.partial()/.omit()`, see [Avoiding Duplication](#avoiding-duplication)), never a hand-written twin.
+- **Schema files graduate with the feature.** Start with one schema file (often mirroring the table); split into additional dedicated files — e.g. a presentation schema file — only on a real signal, exactly as a service graduates `{Entity}Service` → `{Entity}CollectionService` as logic grows ([service-first-architecture.md](./service-first-architecture.md#granularity-scales-with-scope), [logic-placement.md](./logic-placement.md)). The invariant is *one dedicated place, never inline* — not "one file forever."
 
 ## Avoiding Duplication
 

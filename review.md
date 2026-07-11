@@ -101,7 +101,7 @@ Run once across the whole diff:
 - **Authorization is enforced in the domain against `ctx.actor`, not only at the edge** → [identity-and-access.md](./packages/core/identity-and-access.md#authorization-is-a-domain-concern).
 - **The context asserts facts; no operation establishes its own preconditions** — factory invoked only in driving adapters and test setup → [app-context.md](./packages/core/app-context.md#the-context-is-a-statement-of-fact).
 - **Tenant isolation is structural, not per-query** (multi-tenant apps) — scoped seam by default; the only unscoped path is an explicit elevated context → [multi-tenancy.md](./packages/core/multi-tenancy.md#isolation-is-enforced-at-the-database-seam).
-- **Single source of truth; define once, derive the rest** — schemas infer types; boundaries reuse core schemas → [implementation-schemas.md](./packages/core/implementation-schemas.md).
+- **Single source of truth; define once, derive the rest** — schemas infer types; boundaries reuse core schemas; every boundary/contract type lives in its feature's schema file — none inline in a service, mapper, or handler (local implementation-only types excepted) → [implementation-schemas.md](./packages/core/implementation-schemas.md).
 - **Climb on a real signal, not in anticipation** — every extraction/promotion waits for the second signal → [logic-placement.md](./packages/core/logic-placement.md).
 - **Promotions are backfilled** — the old home delegates; every existing caller re-evaluated, none stranded → [logic-placement.md](./packages/core/logic-placement.md#the-backfill-obligation-the-revisit-list).
 - **All-or-nothing; side effects after commit** — one transaction boundary, effects dispatched post-commit → [atomicity.md](./packages/core/atomicity.md).

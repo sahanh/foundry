@@ -5,6 +5,26 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-11 — Schema placement scoped to boundary/contract types and gate-enforced
+
+The inline-schema rule in [implementation-schemas.md](./packages/core/implementation-schemas.md)
+§ *Schema Organization* was broadened beyond entity schemas and beyond the old wording *"never inline
+in service methods"*: it now governs **every boundary/contract type** — persisted-entity shapes and
+their projections, and any type exported across a module boundary (**presentation/read-side types
+included**) — which must live in the feature's `*.schema.ts` file(s), never inline in a service,
+orchestration, mapper, or any non-schema module. *Local implementation-only* types (options bags,
+intermediates) may stay inline. Added: presentation shapes are **derived** from the base
+(`.pick()/.partial()/.omit()`), schema files **graduate with the feature** like services do, and one
+exception — an exported DTO sealed by a module-private brand symbol stays with its only constructor.
+The rule is now gate-enforced: a placement box in [core/end-here.md](./packages/core/end-here.md) →
+*Schemas* and a cross-cutting lens clause in [review.md](./review.md) Step 4.
+
+Affects code that defines a presentation/read-side or other boundary type inline, or hand-writes a
+type that overlaps an existing schema. Read
+[implementation-schemas.md](./packages/core/implementation-schemas.md) § *Schema Organization* +
+§ *Avoiding Duplication*, and verify against [core/end-here.md](./packages/core/end-here.md) →
+*Schemas*.
+
 ## 2026-07-11 — "Engineering Playbook" renamed to Foundry
 
 The standard is now called **Foundry**. Every doc that used "the playbook" or "Engineering Playbook"

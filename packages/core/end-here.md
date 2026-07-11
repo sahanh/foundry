@@ -13,6 +13,7 @@ Verify companion to [start-here.md](./start-here.md). Run the sections matching 
 
 ## Schemas → [implementation-schemas.md](./implementation-schemas.md)
 - [ ] One source-of-truth schema per entity; types inferred, never hand-written — [implementation-schemas.md](./implementation-schemas.md#core-principle)
+- [ ] Every boundary/contract type (persisted shape/projection or cross-module export, presentation included) lives in the feature's schema file(s) — never inline in a service/orchestration/mapper/handler; a subset/variant is derived (pick/omit/partial), not a hand-written twin. Local implementation-only types (options bags, intermediates) may stay inline; sole exception, an exported DTO sealed by a module-private brand symbol co-located with its only constructor — [implementation-schemas.md](./implementation-schemas.md#schema-organization)
 - [ ] Input/variant schemas derived (pick/omit/partial), not duplicated — [implementation-schemas.md](./implementation-schemas.md#avoiding-duplication)
 - [ ] No `any`, non-genuine optionals, stringly-typed enum candidates — [implementation-schemas.md](./implementation-schemas.md#explicit-over-implicit)
 - [ ] DB-backed strings carry matching `.max()`; content rules as `.refine()` — [implementation-schemas.md](./implementation-schemas.md#mirror-storage-constraints)

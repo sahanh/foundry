@@ -40,7 +40,9 @@ Inside a single feature folder:
                     (see service-first-architecture.md)
   orchestrations/ - compose multiple services: sequencing and coordination, no single-entity business
                     rules (may own a cross-entity invariant) (see orchestration.md)
-  schemas/        - Zod schemas + inferred type exports (see implementation-schemas.md)
+  schemas/        - Zod schemas + inferred/derived type exports — entity, input, output, and
+                    presentation/read-side shapes; the one home for boundary/contract types, split
+                    into more files as the feature grows (see implementation-schemas.md)
   shared/
     validation.ts - shared business-rule guards reused by services/orchestrations; throw a domain
                     exception; may be exported as the feature's cross-feature contract — the one
