@@ -5,6 +5,27 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-07-18 — Method naming across the service → orchestration → facade seam
+
+Prompted by a consuming-project case study (an "Inbox" read model whose service and orchestration
+both exposed `listWaitingTasks` with different return shapes),
+[orchestration.md](./packages/core/orchestration.md) § *Naming* now owns method naming across the
+wrapping seam: **the name changes where the shape changes** — an orchestration that hydrates or
+assembles a read from a service it consumes must not reuse that method's name, while a pure
+pass-through (a facade forwarding an orchestration's result unchanged) keeps it. A companion consumer-naming rule
+landed in [service-first-architecture.md](./packages/core/service-first-architecture.md)
+§ *Consumer-First Design*: method names drop words their receiver already implies (and keep
+discriminators it doesn't). Gate-enforced
+via new/updated boxes in [core/end-here.md](./packages/core/end-here.md) → *Orchestrations* /
+*Services*.
+
+Affects code where an orchestration or facade method shares its name with a wrapped service method
+returning a different shape, or a method name restates its subject's invariant. Read
+[orchestration.md](./packages/core/orchestration.md) § *Naming* and
+[service-first-architecture.md](./packages/core/service-first-architecture.md)
+§ *Consumer-First Design*, and verify against [core/end-here.md](./packages/core/end-here.md) →
+*Orchestrations* / *Services*.
+
 ## 2026-07-11 — Schema placement scoped to boundary/contract types and gate-enforced
 
 The inline-schema rule in [implementation-schemas.md](./packages/core/implementation-schemas.md)

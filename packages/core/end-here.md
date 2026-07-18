@@ -21,7 +21,7 @@ Verify companion to [start-here.md](./start-here.md). Run the sections matching 
 
 ## Services → [service-first-architecture.md](./service-first-architecture.md)
 - [ ] Domain boundary confirmed with the user before implementing — [service-first-architecture.md](./service-first-architecture.md#4-decide-domain-boundaries-first)
-- [ ] Consumption designed first: usage pseudo-code, names judged consumer-side — [service-first-architecture.md](./service-first-architecture.md#3-consumer-first-design)
+- [ ] Consumption designed first: usage pseudo-code, names judged consumer-side, no words the receiver already implies — [service-first-architecture.md](./service-first-architecture.md#3-consumer-first-design)
 - [ ] One service accomplishes the use case — consumer touches ≤2–3 services, facade/orchestration beyond — [service-first-architecture.md](./service-first-architecture.md#5-service-decomposition)
 - [ ] Every injected dependency used across methods; no repeatedly-passed parameter that should be injected — [service-first-architecture.md](./service-first-architecture.md#validation-the-constructor-declares-the-scope)
 - [ ] Granularity fits scope — no premature split, not left coarse after growth — [service-first-architecture.md](./service-first-architecture.md#granularity-scales-with-scope)
@@ -49,6 +49,7 @@ Verify companion to [start-here.md](./start-here.md). Run the sections matching 
 - [ ] Triggered by altitude (coordinates 2+ services), not duration — [orchestration.md](./orchestration.md#when-an-orchestration-exists)
 - [ ] Cross-entity invariant = predicate over ≥2 owners' data (else stays a service/guard), gathered via owners' services, checked in-transaction, throwing the owner's exception — [orchestration.md](./orchestration.md#cross-entity-invariants)
 - [ ] On promotion from a service method, superseded method's direct callers re-evaluated — [orchestration.md](./orchestration.md#promotion-when-a-service-operation-becomes-an-orchestration)
+- [ ] Orchestration method's name differs from any consumed service read whose return shape differs (hydration/assembly); a pure pass-through (facade) keeps the name — [orchestration.md](./orchestration.md#naming)
 
 ## Placement & promotion → [logic-placement.md](./logic-placement.md)
 - [ ] Logic at the lowest rung that fits; no split before a real second signal — [logic-placement.md](./logic-placement.md#the-rungs)

@@ -86,3 +86,5 @@ Service names follow the service's responsibility. Decide the role before decidi
 | Sub-entity collection / bulk | `{Parent}{Child}CollectionService` | `TodoCommentCollectionService` |
 
 A collection service may use its single-entity counterpart internally for per-entity logic. See service-first-architecture.md for how to decide service roles and domain boundaries.
+
+Method naming across the service → orchestration/facade seam — the name changes where the shape changes — is owned by [orchestration.md → Naming](./orchestration.md#naming).

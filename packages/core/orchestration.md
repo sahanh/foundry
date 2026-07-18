@@ -72,6 +72,16 @@ The orchestration owns only the *relationship*: `plan.maxActiveRuns` and how a r
 
 `{Process}Orchestration` — named by the use case, never an entity. Folder `orchestrations/`, file `claim-task.orchestration.ts`, class `ClaimTaskOrchestration`. Same granularity ladder as services: group related use cases as methods on one orchestration (`TaskLifecycleOrchestration`: `claim()`, `complete()`, `resume()`); split on the second signal, not in anticipation.
 
+**The name changes where the shape changes.** When an orchestration method wraps a read on a service it consumes and the return type differs — it hydrates a foreign id into the owning feature's data or assembles a composite ([Cross-Feature Data Access](./working-with-databases.md#cross-feature-data-access)) — the two methods must not share a name: an identical name hides that the data changes shape exactly at the seam (**shape-hiding name**). The guard rail binds only that consuming pair — an orchestration and a service it never calls sharing a name is coincidence, not a smell. The service names the feature-local read; the orchestration names the finished public read. When they clash, naming each side in its own vocabulary — the feature's domain status (*waiting for human*) below, the consumer concept (*inbox*) above — resolves it naturally. A **pure pass-through keeps the name**: a facade forwarding an orchestration's result unchanged reuses it — a pass-through boundary is a seam wrapper, not a transformation.
+
+```ts
+TaskCollectionService.listWaitingForHumanTasks(): WaitingTask[]  // feature-local read — one waiting status among several; entries carry a foreign projectId
+InboxOrchestration.inboxTasks(): InboxEntry[]                    // hydrated — new shape, new name
+InboxFacade.inboxTasks(): InboxEntry[]                           // pass-through — same shape, same name
+```
+
+Not `InboxOrchestration.listWaitingForHumanTasks()` — same name across a shape change; not `inboxWaitingTasks()` — a method name drops words its receiver implies ([Consumer-First Design](./service-first-architecture.md#3-consumer-first-design)).
+
 ## Promotion: When a Service Operation Becomes an Orchestration
 
 A single-service use case grows a second-service concern — "create task" becomes "create task **and** send a notification":
@@ -97,6 +107,6 @@ A synchronous coordination is reliable via its transaction boundary (Guideline 4
 
 ## Anti-Patterns
 
-Each smell is defined at its rule: **fat orchestration** (Guideline 1), **sideways calls** (Guideline 2), **orchestration-by-duration** (When an Orchestration Exists), **stranded callers** (Promotion step 2).
+Each smell is defined at its rule: **fat orchestration** (Guideline 1), **sideways calls** (Guideline 2), **orchestration-by-duration** (When an Orchestration Exists), **stranded callers** (Promotion step 2), **shape-hiding name** (Naming).
 
 **Verify:** when done, check [end-here.md](./end-here.md) → Orchestrations.

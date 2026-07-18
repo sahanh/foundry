@@ -29,8 +29,9 @@ Services are instantiated with their domain entity — `new OrderService(order)`
 Before implementing, **write pseudo-code showing how a developer uses the services** — what they instantiate, call, and pass; check names communicate purpose, arguments feel natural.
 
 - **One service, one use case** — ideally one service accomplishes a use case start to finish; integrators (controller vs worker) may call different methods — on one service.
-- **Facade when needed** — internal complexity is fine; the consumer API stays simple. >2-3 services per use case → a facade; spans services → an [orchestration](./orchestration.md).
+- **Facade when needed** — internal complexity is fine; the consumer API stays simple. >2-3 services per use case → a facade; spans services → an [orchestration](./orchestration.md). Method names across the wrapper seam: [orchestration.md → Naming](./orchestration.md#naming).
 - **When NOT to extract** — extract only for consumer experience or genuine isolation, never for ceremony.
+- **Drop words the receiver implies** — `inboxTasks()`, never `inboxWaitingTasks()`: being in an inbox *means* waiting. The converse holds: keep a discriminator the receiver *doesn't* imply — `listWaitingForHumanTasks()` on a task read is not redundant when tasks can wait on several things. Redundancy is relative to the receiver: a method name states what the call adds, never the invariant its subject already carries.
 
 ### 4. Decide Domain Boundaries First
 
