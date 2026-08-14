@@ -13,7 +13,7 @@ Sections are numbered to match the `§` marginal numbers in the design.
 
 **Tagline:**
 
-> An engineering standard for TypeScript, built for autonomous software factories.
+> Built for software that scales, and the agents scaling it.
 
 ---
 
@@ -98,6 +98,13 @@ was never the framework's to hold.
 
 **Voice.** Descriptive, not promotional. Each claim states a rule and the reason it is a rule; no
 outcome is promised to the reader. First person in §1 and §4, where the opinion is the point.
+
+**The masthead names no category.** The tagline states the job, not the shelf — "engineering
+standard" and the language are both deliberately absent, because a category label reads smaller than
+the thing it labels. The two axes it does name are the point: the product scales, and so does the
+agent work building it. TypeScript is named once on the page, in §3, where it scopes a claim rather
+than being the claim; the `<title>` and the footnote carry the definitional line for search and for
+the reader who has already finished the page.
 
 **Ordering.** Setup (§2) sits right after Origin so the one action a reader can take is reachable
 before the long prose — the page earns attention with the backstory, then converts it immediately.
