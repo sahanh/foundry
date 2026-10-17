@@ -5,6 +5,18 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-10-17 — Two frontend CI rules: scrollbar styling and shared-component imports
+
+[setup/ci-verification.md](./setup/ci-verification.md) → *Web apps* gains **`WEB-02`** (scrollbar
+styling only in the shared styling files) and **`WEB-03`** (a shared component never imports a feature's
+components). The *Design-token sources* parameter is renamed **Shared styling files** (it now also
+scopes `WEB-02`), and a *Shared component folder* parameter is added. The matching slices leave
+[apps/web/end-here.md](./apps/web/end-here.md) → *Visual system* / *Component placement & promotion*.
+
+Affects web apps: add both checks and record them in `foundry-ci.md`, and rename the parameter there.
+Read [visual-system.md → Enforcement](./apps/web/visual-system.md#enforcement) and
+[component-placement.md → Ownership after promotion](./apps/web/component-placement.md#ownership-after-promotion).
+
 ## 2026-10-17 — Deterministic checks move to CI; `setup/` added
 
 New **[setup/](./setup/start-here.md)** section for one-time adoption work, starting with
