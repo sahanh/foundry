@@ -62,7 +62,8 @@ Lives at the adopting repo's root; the reviewer and every later agent read it. I
 | Server handler files | globs for route / command / tool / consumer handlers in server apps |
 | Extra feature-folder entries | none — each one added records a user-confirmed exception |
 | Tenancy | single-tenant (default) or multi-tenant; if multi: tenant column name (`tenantId`), tenant-exempt tables, unscoped-escape names (e.g. `db.unscoped()`) and the files allowed to call them |
-| Design-token sources | the files that define the visual system's tokens (web apps only) |
+| Shared styling files | the files that define the visual system's tokens and cross-app primitives (web apps only) |
+| Shared component folder | `apps/web/src/components/shared/` — its siblings under `components/` are feature folders (web apps only) |
 
 ---
 
@@ -259,12 +260,22 @@ Skip (`n/a — single-tenant`) unless the app is multi-tenant.
 
 ### Web apps
 
-Skip unless `apps/web` (or another client UI app) exists. The check depends on the styling system.
+Skip unless `apps/web` (or another client UI app) exists. The style checks (`WEB-01`, `WEB-02`) run in
+the style linter and depend on the styling system — usually Stylelint plus the styling system's lint
+plugin; `WEB-03` runs in the same dependency-graph tool as the import rules.
 
-- **WEB-01 — No raw colors.** Fails on a literal color outside the design-token sources: hex, `rgb()`,
+- **WEB-01 — No raw colors.** Fails on a literal color outside the shared styling files: hex, `rgb()`,
   `hsl()` or a named CSS color in styles, or an arbitrary color value in a utility class (Tailwind:
-  `bg-[#…]`). Usually Stylelint plus the styling system's lint plugin. Rule:
+  `bg-[#…]`). Rule:
   [visual-system.md → Semantic tokens over raw values](../apps/web/visual-system.md#semantic-tokens-over-raw-values).
+- **WEB-02 — Scrollbars come from the shared default.** Fails on scrollbar styling outside the shared
+  styling files: a `::-webkit-scrollbar*` selector, a `scrollbar-width` / `scrollbar-color` /
+  `scrollbar-gutter` declaration, or a utility class or arbitrary variant producing one (Tailwind:
+  `[&::-webkit-scrollbar]:…`, a scrollbar plugin's classes). Rule:
+  [visual-system.md → Enforcement](../apps/web/visual-system.md#enforcement).
+- **WEB-03 — Shared components never reach back into a feature.** Fails when a file in the shared
+  component folder imports from any feature component folder. Rule:
+  [component-placement.md → Ownership after promotion](../apps/web/component-placement.md#ownership-after-promotion).
 
 ---
 

@@ -2,7 +2,7 @@
 
 Verify companion to [start-here.md](./start-here.md), for a **frontend client UI** change. A box you cannot tick is a blocker.
 
-Deterministic rules (import direction, raw colors) are CI checks, not boxes — [setup/ci-verification.md](../../setup/ci-verification.md); without CI for them, [review.md](../../review.md) Step 0 checks them.
+Deterministic rules (import direction, raw colors, scrollbar styling, shared-component imports) are CI checks, not boxes — [setup/ci-verification.md](../../setup/ci-verification.md); without CI for them, [review.md](../../review.md) Step 0 checks them.
 
 ---
 
@@ -13,7 +13,7 @@ Deterministic rules (import direction, raw colors) are CI checks, not boxes — 
 - [ ] New components start under their owning feature (`src/components/<feature>/`), named with feature context — [component-placement.md](./component-placement.md#start-close-to-the-owning-feature)
 - [ ] A file until it isn't — a folder only once cohesive parts/modes appear — [component-placement.md](./component-placement.md#grouping-a-file-until-it-isnt)
 - [ ] Every climb waited for a second real signal **and explicit user confirmation**, never speculation — the same gate in [app-shell.md](./app-shell.md) and [visual-system.md](./visual-system.md) — [component-placement.md](./component-placement.md#promotion-to-shared--on-the-second-signal-with-confirmation)
-- [ ] Shared components feature-neutral (no `Contact`/`Company` leakage); entity adapters thin and local; call sites backfilled, no divergent copy — [component-placement.md](./component-placement.md#ownership-after-promotion)
+- [ ] Shared components feature-neutral — no entity (`Contact`/`Company`) named or assumed; entity adapters thin and local; call sites backfilled, no divergent copy — [component-placement.md](./component-placement.md#ownership-after-promotion)
 
 ## App shell & container → [app-shell.md](./app-shell.md)
 - [ ] App-level layout (navigation, auth controls, sidebar, width, padding) comes from the shared shell/container, not re-declared in a feature — [app-shell.md](./app-shell.md#what-the-shell-owns)
@@ -21,7 +21,7 @@ Deterministic rules (import direction, raw colors) are CI checks, not boxes — 
 - [ ] New layout needs met by extending the shared primitive, not forking (second variant passes the promotion gate) — [app-shell.md](./app-shell.md#extend-the-shared-layer-before-forking-it)
 
 ## Visual system → [visual-system.md](./visual-system.md)
-- [ ] Cross-app primitives (scrollbars, focus, surfaces) inherited from the shared styling surface (second variant passes the promotion gate) — [visual-system.md](./visual-system.md#shared-defaults-own-the-cross-app-primitives)
+- [ ] Cross-app primitives (focus, text rendering, surfaces) inherited from the shared styling surface (second variant passes the promotion gate) — [visual-system.md](./visual-system.md#shared-defaults-own-the-cross-app-primitives)
 - [ ] Semantic tokens / design-system values, not magic numbers — [visual-system.md](./visual-system.md#semantic-tokens-over-raw-values)
 
 ## UI scope → [ui-scope.md](./ui-scope.md)
