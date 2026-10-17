@@ -4,7 +4,7 @@ Infrastructure conventions for the database layer — column and migration mecha
 
 ## Table Definitions
 
-All Drizzle table definitions live in a single file at `src/system/db/` — the authoritative database contract (column types, constraints, defaults, relations). Drizzle table definitions (`src/system/db/`, database contract — what is stored and how) and Zod schemas (`src/<feature>/schemas/`, domain contract — business shapes and validation) are maintained separately: they overlap heavily but are never derived from each other; the service maps between them.
+All Drizzle table definitions live in a single file at `src/system/db/` — the authoritative database contract (column types, constraints, defaults, relations). Drizzle table definitions (`src/system/db/`, database contract — what is stored and how) and Zod schemas (`src/<feature>/schemas/`, domain contract — business shapes and validation) are maintained separately: they overlap heavily but are never derived from each other; the service maps between them. A service imports the table definitions directly to build its queries — they are the contract, not the adapter; the database *client* is reached only through `ctx.system.db`.
 
 **Table naming:** plural (`todos`, `orders`) — the deliberate exception to the domain layer's singular convention (tables are collections; plural is standard SQL). Domain class and schema names stay singular; only the table name is plural.
 

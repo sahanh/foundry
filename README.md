@@ -13,6 +13,8 @@ This file is the entry point to the standard. When an agent builds in a codebase
 
 Each level has two seams: a **`start-here.md`** to read *before* you build, and an **`end-here.md`** to verify *after*. When a change is complete, run the **[review protocol](./review.md)** — it maps what you touched, routes each area to the guideline that owns it, and validates against the matching `end-here`. It is mandatory — not a suggestion.
 
+The rules a tool can decide on its own — imports, naming, TypeScript, column definitions — belong in the adopting repo's CI, not in review. **Setting up a repo for Foundry, or its CI? Start at [setup/start-here.md](./setup/start-here.md).**
+
 One concern cuts across every level: **failure**. How an error is raised in the domain and presented at each edge is one strategy, in **[error-handling.md](./error-handling.md)** — a cross-cutting spine like this map itself; the per-layer docs apply it rather than re-decide it.
 
 Renamed or removed concepts are recorded in **[CHANGELOG.md](./CHANGELOG.md)** — a lookup-on-demand index, not reading material: when a concept you expected is missing or renamed, consult the single entry that names it (it points to the owning guideline); never read the file whole.

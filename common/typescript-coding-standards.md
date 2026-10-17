@@ -88,4 +88,4 @@ Inferring types from schemas, schema composition, and avoiding `any` are owned b
 
 ---
 
-**Verify:** the TypeScript sweep in the [review protocol](../review.md) (Step 4) covers this.
+**Verify:** CI rules `TS-01`–`TS-06` in [setup/ci-verification.md](../setup/ci-verification.md); without CI for them, the [review protocol](../review.md) Step 0 checks them.

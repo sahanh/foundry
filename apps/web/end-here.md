@@ -2,11 +2,12 @@
 
 Verify companion to [start-here.md](./start-here.md), for a **frontend client UI** change. A box you cannot tick is a blocker.
 
+Deterministic rules (import direction, raw colors) are CI checks, not boxes — [setup/ci-verification.md](../../setup/ci-verification.md); without CI for them, [review.md](../../review.md) Step 0 checks them.
+
 ---
 
 ## Placement — the UI holds no business rules → [start-here.md](./start-here.md)
 - [ ] Business decisions (validity, authorization, rule meaning) live in the core; UI only renders state and issues calls — no UI-only rule — [start-here.md](./start-here.md#the-one-macro-rule-the-ui-holds-no-business-rules)
-- [ ] Frontend calls into the system, never imported by the core — [start-here.md](./start-here.md)
 
 ## Component placement & promotion → [component-placement.md](./component-placement.md)
 - [ ] New components start under their owning feature (`src/components/<feature>/`), named with feature context — [component-placement.md](./component-placement.md#start-close-to-the-owning-feature)
@@ -21,7 +22,7 @@ Verify companion to [start-here.md](./start-here.md), for a **frontend client UI
 
 ## Visual system → [visual-system.md](./visual-system.md)
 - [ ] Cross-app primitives (scrollbars, focus, surfaces) inherited from the shared styling surface (second variant passes the promotion gate) — [visual-system.md](./visual-system.md#shared-defaults-own-the-cross-app-primitives)
-- [ ] Semantic tokens / design-system values, not raw colors or magic numbers — [visual-system.md](./visual-system.md#semantic-tokens-over-raw-values)
+- [ ] Semantic tokens / design-system values, not magic numbers — [visual-system.md](./visual-system.md#semantic-tokens-over-raw-values)
 
 ## UI scope → [ui-scope.md](./ui-scope.md)
 - [ ] Only the requested surface (plus the named pattern's essentials) — no smuggled dashboards, metrics, filters, extra controls — [ui-scope.md](./ui-scope.md#implement-the-named-patterns-essentials)

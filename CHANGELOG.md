@@ -5,6 +5,47 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-10-17 — Deterministic checks move to CI; `setup/` added
+
+New **[setup/](./setup/start-here.md)** section for one-time adoption work, starting with
+**[setup/ci-verification.md](./setup/ci-verification.md)**: a catalogue of every rule a tool can
+decide, each with a rule ID and the failure its check must catch, for an adopting repo to build into
+its CI and record in a `foundry-ci.md` manifest at its root. The review protocol no longer spends a
+reviewer on those rules: [review.md](./review.md) gains **Step 0** (read the manifest; CI-enforced rules
+are skipped, the rest are checked against the catalogue as a fallback), the Step 4 **TypeScript sweep
+is removed** (now `TS-01`–`TS-06`), and the deterministic boxes and half-boxes are removed from
+[core/end-here.md](./packages/core/end-here.md), [system/end-here.md](./packages/core/system/end-here.md),
+[apps/end-here.md](./apps/end-here.md), [apps/web/end-here.md](./apps/web/end-here.md) and
+[packages/end-here.md](./packages/end-here.md). Adapter checklists gain a box: an adapter's
+deterministic invariants get a CI check ([ci-verification.md → Extending](./setup/ci-verification.md#extending)).
+Apart from that box, no rule changed meaning — only where each is verified.
+
+Affects every adopting repo: until its CI enforces a rule, review checks that rule by hand. Read
+[setup/start-here.md](./setup/start-here.md) and [setup/ci-verification.md](./setup/ci-verification.md)
+to set up the checks; all rule IDs are new.
+
+## 2026-10-17 — File suffixes, schema file names, and cross-feature imports clarified
+
+Three places where the guidelines disagreed with each other are settled, so a CI check can encode them:
+
+- **Suffixes.** The `.exception.ts` suffix is gone from
+  [core/start-here.md → File Naming](./packages/core/start-here.md#file-naming); the exception file is
+  the fixed name `exceptions.ts`, as the feature tree always showed. `.schema.ts` joins the suffix list.
+- **Schema file example.** [implementation-schemas.md → Schema Organization](./packages/core/implementation-schemas.md#schema-organization)
+  showed `orders/orderNotes.schema.ts` (a plural folder, a camelCase name); it now shows
+  `order/schemas/order-note.schema.ts`.
+- **Cross-feature imports.** [working-with-databases.md](./packages/core/working-with-databases.md#cross-feature-data-access)
+  said the *only* legal cross-feature import was another feature's `shared/validation.ts`, while
+  orchestrations reach other features' services. [implementation-validation.md → Cross-Feature Guards](./packages/core/implementation-validation.md#cross-feature-guards)
+  now owns the full list: services and guards import only the owner's guard; the data path adds an
+  orchestration importing the owner's services and schemas, and schema files deriving from the
+  owner's schemas. [database.md → Table Definitions](./packages/core/system/database.md#table-definitions)
+  now says services import the table definitions directly; only the client goes through `ctx`.
+
+Affects code with `*.exception.ts` files, non-kebab or non-`.schema.ts` schema files, or cross-feature
+imports beyond these shapes. Read the sections above; the matching CI rules are `NAME-01`, `NAME-02`,
+`IMP-03` and `IMP-04` in [setup/ci-verification.md](./setup/ci-verification.md).
+
 ## 2026-07-18 — Method naming across the service → orchestration → facade seam
 
 Prompted by a consuming-project case study (an "Inbox" read model whose service and orchestration

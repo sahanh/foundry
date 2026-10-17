@@ -57,7 +57,7 @@ Where feature folders sit relative to `system/`, `apps/`, and other `packages/` 
 ## File Naming
 
 1. Use kebab-case for all file and folder names.
-2. Use the appropriate `.{suffix}.ts` extension: `.service.ts`, `.orchestration.ts`, `.exception.ts`, `.unit.ts`, `.integration.ts`.
+2. Use the appropriate `.{suffix}.ts` extension: `.service.ts`, `.orchestration.ts`, `.schema.ts`, `.unit.ts`, `.integration.ts`. Three files take fixed names instead: `exceptions.ts`, `shared/validation.ts`, `shared/utils.ts`.
 
 ### Singular vs plural
 
