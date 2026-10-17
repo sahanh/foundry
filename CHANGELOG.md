@@ -5,6 +5,21 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-10-17 — Tooling baseline and no floating promises
+
+[typescript-coding-standards.md](./common/typescript-coding-standards.md) gains two sections, for
+frontend and backend alike: **No Floating Promises** (every promise awaited, returned, or handled) and
+**Tooling Baseline** (`strict` on and type-checking clean; the language's recommended lint presets plus
+each framework's — for React, `react-hooks` and `jsx-a11y`; one formatter; a preset rule switched off
+only with a recorded reason). [setup/ci-verification.md](./setup/ci-verification.md) gains a
+*Baseline* section, **`BASE-01`–`BASE-05`**, and two parameters (*Formatter*, *Lint presets switched
+off*). The `end-here` footers that still pointed at the removed TypeScript sweep now point to CI.
+
+Affects every package and app: code with floating promises, non-strict configs, unformatted files, or
+lint-preset violations. Read [typescript-coding-standards.md → No Floating Promises](./common/typescript-coding-standards.md#no-floating-promises)
+and [→ Tooling Baseline](./common/typescript-coding-standards.md#tooling-baseline); add the
+`BASE-*` checks and record them in `foundry-ci.md`.
+
 ## 2026-10-17 — Two frontend CI rules: scrollbar styling and shared-component imports
 
 [setup/ci-verification.md](./setup/ci-verification.md) → *Web apps* gains **`WEB-02`** (scrollbar

@@ -69,7 +69,10 @@ layer must inherit the scoped `ctx.system.db`, never a raw client) all need writ
 
 `apps/web/` covers structure only. Data fetching, client state, forms/client-side validation
 (mirrored rules derived from the core's Zod schemas, not re-encoded), accessibility, and frontend
-testing have no convention yet — raise the specific gap when a feature needs one.
+testing have no convention yet — raise the specific gap when a feature needs one. The mechanical
+floor is set (`react-hooks`, `jsx-a11y` presets —
+[typescript-coding-standards.md → Tooling Baseline](./common/typescript-coding-standards.md#tooling-baseline));
+the conventions above it are not.
 
 **Anchor:** `apps/web/start-here.md`, `apps/web/end-here.md`.
 

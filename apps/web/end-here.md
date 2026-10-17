@@ -2,7 +2,7 @@
 
 Verify companion to [start-here.md](./start-here.md), for a **frontend client UI** change. A box you cannot tick is a blocker.
 
-Deterministic rules (import direction, raw colors, scrollbar styling, shared-component imports) are CI checks, not boxes — [setup/ci-verification.md](../../setup/ci-verification.md); without CI for them, [review.md](../../review.md) Step 0 checks them.
+Deterministic rules (import direction, raw colors, scrollbar styling, shared-component imports, framework lint presets) are CI checks, not boxes — [setup/ci-verification.md](../../setup/ci-verification.md); without CI for them, [review.md](../../review.md) Step 0 checks them.
 
 ---
 
@@ -30,4 +30,4 @@ Deterministic rules (import direction, raw colors, scrollbar styling, shared-com
 
 ---
 
-Cross-cutting TypeScript standards apply here too; the review protocol runs that sweep regardless.
+Cross-cutting TypeScript standards and the tooling baseline apply here too — enforced in CI ([setup/ci-verification.md](../../setup/ci-verification.md)).

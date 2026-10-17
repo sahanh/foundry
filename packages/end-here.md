@@ -21,4 +21,4 @@ Import direction is a CI check, not a box — [setup/ci-verification.md](../setu
 
 ---
 
-Cross-cutting TypeScript standards apply here too; the review protocol runs that sweep regardless of what you touched.
+Cross-cutting TypeScript standards and the tooling baseline apply here too — enforced in CI ([setup/ci-verification.md](../setup/ci-verification.md)).

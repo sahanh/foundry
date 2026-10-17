@@ -62,12 +62,37 @@ Lives at the adopting repo's root; the reviewer and every later agent read it. I
 | Server handler files | globs for route / command / tool / consumer handlers in server apps |
 | Extra feature-folder entries | none — each one added records a user-confirmed exception |
 | Tenancy | single-tenant (default) or multi-tenant; if multi: tenant column name (`tenantId`), tenant-exempt tables, unscoped-escape names (e.g. `db.unscoped()`) and the files allowed to call them |
+| Formatter | the project's one formatter (e.g. Prettier, Biome) |
+| Lint presets switched off | each preset rule turned off, with its reason — none by default |
 | Shared styling files | the files that define the visual system's tokens and cross-app primitives (web apps only) |
 | Shared component folder | `apps/web/src/components/shared/` — its siblings under `components/` are feature folders (web apps only) |
 
 ---
 
 ## Always
+
+### Baseline
+
+The floor every package and app meets, frontend and backend alike. Usually the type checker, ESLint
+with typescript-eslint, and the formatter's check mode.
+
+- **BASE-01 — Strict type-check.** Fails when a package or app compiles with `strict` (or a flag it
+  enables) turned off, or the type checker reports an error (e.g. `tsc --noEmit` per package). Rule:
+  [typescript-coding-standards.md → Tooling Baseline](../common/typescript-coding-standards.md#tooling-baseline).
+- **BASE-02 — Recommended lint presets.** Fails on a violation of ESLint's and typescript-eslint's
+  recommended presets (the type-aware set), except rules on the *Lint presets switched off* list. Rule:
+  [typescript-coding-standards.md → Tooling Baseline](../common/typescript-coding-standards.md#tooling-baseline).
+- **BASE-03 — Formatted.** Fails when a file differs from the formatter's output (`prettier --check`,
+  `biome format`). Rule:
+  [typescript-coding-standards.md → Tooling Baseline](../common/typescript-coding-standards.md#tooling-baseline).
+- **BASE-04 — No floating promises.** Fails on a promise that is neither awaited, returned, nor
+  explicitly handled, or passed where a non-promise is expected (typescript-eslint:
+  `no-floating-promises`, `no-misused-promises`). Rule:
+  [typescript-coding-standards.md → No Floating Promises](../common/typescript-coding-standards.md#no-floating-promises).
+- **BASE-05 — Framework presets.** Fails on a violation of the recommended lint preset of each
+  framework an app uses — React: `react-hooks` (rules of hooks, exhaustive deps) and `jsx-a11y` —
+  except rules on the *Lint presets switched off* list. `n/a` for an app whose frameworks ship none.
+  Rule: [typescript-coding-standards.md → Tooling Baseline](../common/typescript-coding-standards.md#tooling-baseline).
 
 ### Repo shape
 
