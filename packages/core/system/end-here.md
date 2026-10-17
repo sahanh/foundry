@@ -38,4 +38,4 @@ Deterministic rules (import direction, column definitions, migrations, tenant co
 
 ---
 
-Cross-cutting TypeScript standards apply here too; the review protocol runs that sweep regardless.
+Cross-cutting TypeScript standards and the tooling baseline apply here too — enforced in CI ([setup/ci-verification.md](../../../setup/ci-verification.md)).

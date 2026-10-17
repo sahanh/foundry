@@ -82,10 +82,38 @@ export const formatDate = (date: Date): string => { /* ... */ };
 export const formatDate = (date: Date) => { /* ... */ };
 ```
 
+## No Floating Promises
+
+Every promise is awaited, returned, or explicitly handled — never left floating. A floating promise
+drops its rejection, so a failure that should be raised vanishes ([error-handling.md](../error-handling.md#the-principles),
+principle 1); inside `ctx.transaction` an un-awaited write runs after the boundary has committed or
+rolled back, outside the all-or-nothing guarantee ([atomicity.md](../packages/core/atomicity.md)).
+
+```typescript
+// Avoid
+ctx.system.db.insert(tasks).values(row);
+
+// Good
+await ctx.system.db.insert(tasks).values(row);
+```
+
+## Tooling Baseline
+
+Every package and app meets the same floor, frontend and backend alike:
+
+- **Strict compilation.** `strict` is on, and every package and app type-checks clean. The rules
+  above (no `any`, no `!`) assume it.
+- **Recommended lint presets.** Code passes the language's recommended presets (ESLint's and
+  typescript-eslint's, type-aware) and the recommended preset of each framework in use — for React,
+  `react-hooks` and `jsx-a11y`. A preset rule is switched off only with a recorded reason, never
+  silently.
+- **One formatter.** Code is formatted by the project's single formatter; formatting is never a
+  review topic.
+
 ## Schema and Zod Conventions
 
 Inferring types from schemas, schema composition, and avoiding `any` are owned by [implementation-schemas.md](../packages/core/implementation-schemas.md).
 
 ---
 
-**Verify:** CI rules `TS-01`–`TS-06` in [setup/ci-verification.md](../setup/ci-verification.md); without CI for them, the [review protocol](../review.md) Step 0 checks them.
+**Verify:** CI rules `BASE-01`–`BASE-05` and `TS-01`–`TS-06` in [setup/ci-verification.md](../setup/ci-verification.md); without CI for them, the [review protocol](../review.md) Step 0 checks them.
