@@ -19,7 +19,7 @@ Feature A never reads or writes B's tables directly. How it goes through B depen
 - **From a service — a verdict.** When A's service must assert a rule B owns ("is this user active?"), it calls B's exported **cross-feature guard** from B's `shared/validation.ts` — reads only B's tables, throws B's exception, returns `void`. A's service never injects B's service (that breaks Service-First). See [implementation-validation.md → Cross-Feature Guards](./implementation-validation.md#cross-feature-guards).
 - **From an orchestration — data.** When B's *entity* must flow into the use case, it is multi-service by definition: an [orchestration](./orchestration.md) reaches the data through B's service and hands it onward or evaluates a **cross-entity invariant** over it — a predicate spanning A's and B's data that no single owner can check ([orchestration.md → Cross-Entity Invariants](./orchestration.md#cross-entity-invariants)). An orchestration owns no tables, so single-owner-per-table is never widened. The hydrated read takes its own name, never the service method's ([orchestration.md → Naming](./orchestration.md#naming)).
 
-The only legal cross-feature import for domain code is another feature's `shared/validation.ts`.
+Which of B's modules A may import at all — B's guard, and on the data path B's services and schemas, never B's tables — is owned by [implementation-validation.md → Cross-Feature Guards](./implementation-validation.md#cross-feature-guards).
 
 ## Tenant scope
 

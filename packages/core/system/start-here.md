@@ -18,7 +18,7 @@ system/
 **Required adapters** must be implemented before any feature work begins:
 - `logger/` — logging is mandatory in every application. See logging.md.
 
-Additional adapters are added as the application needs them — one subfolder per capability, named by capability, not vendor (`email/` not `sendgrid/` — rule owner: [code-placement.md → Building a driven adapter](../../../code-placement.md#building-a-driven-adapter)).
+Additional adapters are added as the application needs them — one subfolder per capability, named by capability, not vendor (`email/` not `sendgrid/` — rule owner: [code-placement.md → Building a driven adapter](../../../code-placement.md#building-a-driven-adapter)). An adapter that brings a deterministic invariant (its vendor's rules, a storage contract) adds a CI check for it — [ci-verification.md → Extending](../../../setup/ci-verification.md#extending).
 
 **Auth is not an adapter by default.** Authentication (verifying a credential) lives at the edge, in the app; authorization lives in the domain as guards reading `ctx.actor` (see [identity-and-access.md](../identity-and-access.md)). A capability-named credential-verification or policy adapter (`policy/`, never `clerk/`) belongs here **only on a real signal** — the domain itself must verify a credential, or authorization graduates into an external engine. Like any adapter it holds no rules; it plumbs the question outward.
 

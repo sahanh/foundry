@@ -4,11 +4,12 @@ Verify companion to [start-here.md](./start-here.md), for a **server-side drivin
 
 > **Frontend change?** `apps/web/` verifies against [apps/web/end-here.md](./web/end-here.md) instead.
 
+Deterministic rules (import direction, handler `try`, auth SDK placement) are CI checks, not boxes — [setup/ci-verification.md](../setup/ci-verification.md); without CI for them, [review.md](../review.md) Step 0 checks them.
+
 ---
 
 ## Placement → [code-placement.md](../code-placement.md)
 - [ ] Inbound entry point lives in `apps/` — not beside feature folders, not in `system/` — [code-placement.md](../code-placement.md#the-topology)
-- [ ] App imports the core (`@app/core`), never the reverse — [code-placement.md](../code-placement.md#layering-three-roles-one-direction)
 
 ## Handler / controller → [code-placement.md](../code-placement.md)
 - [ ] Handler thin: parse request → call service/orchestration → format response, no business rules — [transport-mapping.md](./transport-mapping.md)
@@ -17,7 +18,7 @@ Verify companion to [start-here.md](./start-here.md), for a **server-side drivin
 - [ ] MCP server: transport/bootstrap (server, session lifecycle, `AppContext` assembly) separate from per-tool handlers — [code-placement.md](../code-placement.md)
 
 ## Response & error mapping → [transport-mapping.md](./transport-mapping.md)
-- [ ] One shared error handler (no per-route `try/catch`); one envelope for validation failures (field-keyed) and domain exceptions (one message); `traceId` echoed on it — [transport-mapping.md](./transport-mapping.md#the-error-response-structure)
+- [ ] One shared error handler; one envelope for validation failures (field-keyed) and domain exceptions (one message); `traceId` echoed on it — [transport-mapping.md](./transport-mapping.md#the-error-response-structure)
 - [ ] Every anticipated failure a `4xx` — validation and domain exceptions both `422` (or a project-chosen 400/422 split), never `500` — [transport-mapping.md](./transport-mapping.md#mapping-outcomes-to-a-response-http)
 - [ ] `500` reserved for the unanticipated — logged with full context, generic body (no stack, attempted value, or other tenant's id) — [transport-mapping.md](./transport-mapping.md#mapping-outcomes-to-a-response-http)
 - [ ] Authentication failure = `401` decided at the edge, not a domain exception mapped downstream — [transport-mapping.md](./transport-mapping.md#mapping-outcomes-to-a-response-http)
@@ -34,7 +35,7 @@ Verify companion to [start-here.md](./start-here.md), for a **server-side drivin
 - [ ] Operation logged on entry; outcome with timing — [logging.md](../packages/core/system/logging.md#at-the-entry-point-controller--queue-consumer--scheduler)
 
 ## Authentication & actor → [identity-and-access.md](../packages/core/identity-and-access.md)
-- [ ] Credential (session/token/API key) verified at the edge; auth-provider SDK kept out of `@app/core` — [identity-and-access.md](../packages/core/identity-and-access.md#authentication-is-an-edge-concern)
+- [ ] Credential (session/token/API key) verified at the edge — [identity-and-access.md](../packages/core/identity-and-access.md#authentication-is-an-edge-concern)
 - [ ] Vendor-neutral `actor` resolved and set on `AppContext` before any service/orchestration runs — [identity-and-access.md](../packages/core/identity-and-access.md#the-actor--ctxactor)
 - [ ] Assembly read-only — verified claims resolved to an existing actor (and tenant), no writes on the binding path — [app-context.md](../packages/core/app-context.md#the-context-is-a-statement-of-fact)
 - [ ] Verified-but-unprovisioned identity rejected or routed to onboarding; provisioning confined to the dedicated identity-flow adapter (webhook/onboarding), no other handler creating a user — [identity-and-access.md](../packages/core/identity-and-access.md#identity-lifecycle--where-a-user-comes-from)

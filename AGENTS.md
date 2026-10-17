@@ -7,12 +7,17 @@ verification seams still reflect it — in the *same* change.** These are:
 
 - the relevant **`start-here.md`** (the forward pass — what to read before building at that level),
 - the relevant **`end-here.md`** (the verify companion — the checks for that level), and
-- the root **[`review.md`](./review.md)** protocol (its enumerated taxonomy and routing table).
+- the root **[`review.md`](./review.md)** protocol (its enumerated taxonomy and routing table), and
+- the **CI catalogue**, [`setup/ci-verification.md`](./setup/ci-verification.md) — when a tool can
+  decide the rule on its own (an import, a name, a column definition), its check lives there under a
+  rule ID, and the `end-here` boxes leave it out.
 
 If a rule moved, was renamed, or a new construct/level was introduced, a stale `end-here` box or an
 unrouted node in `review.md` will silently let non-conforming code pass review. So after editing a
 guideline, ask: does an `end-here` check need adding/updating/removing? Does `review.md`'s taxonomy
-or routing table need a new row or a repointed link? Fix them alongside the guideline, not later.
+or routing table need a new row or a repointed link? Is the rule (or a slice of it) deterministic —
+does a CI rule need adding, changing, or removing, and its `end-here` box trimming to match? Fix them
+alongside the guideline, not later.
 
 ## State once, link elsewhere
 
@@ -48,7 +53,9 @@ Newest entries at the top. Each entry has three parts:
    removal, name the *old* thing (the old file, folder, or term) so someone searching for it lands
    here.
 3. **Adherence pointer** — name who is affected (code written before this change), then link the
-   specific guideline docs **and sections** to read and check against.
+   specific guideline docs **and sections** to read and check against. When a CI rule was added,
+   changed, or removed, name its ID — adopters' CI checks follow the catalogue, and the ID tells them
+   which check to update.
 
 **The defining rule: point, don't re-teach.** The changelog does **not** prescribe migration steps,
 restate the rule, or explain how to fix code. The guidelines are the single source of truth — the

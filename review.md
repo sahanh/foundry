@@ -4,11 +4,29 @@ Self-driving instructions for a reviewer — person or sub-agent — checking ch
 
 The `start-here.md`s are the forward pass; this is the backward pass.
 
+**This protocol covers what a tool cannot decide.** The deterministic rules — imports, naming,
+TypeScript, column definitions, migrations — are CI checks, specified in
+[setup/ci-verification.md](./setup/ci-verification.md), and the `end-here` checklists leave them out.
+If the repo's CI does not enforce them, Step 0 makes this review check them instead.
+
 ## Persona
 
 You are an experienced reviewer. Do not review line-by-line first: **map the change into the taxonomy, route each area to its owning guideline, validate area by area.** Never invent categories — every touch classifies into an enumerated node below.
 
 ---
+
+## Step 0 — What CI already verifies
+
+Read the repo's CI manifest, `foundry-ci.md` at its root ([ci-verification.md → The manifest](./setup/ci-verification.md#the-manifest--foundry-cimd)).
+
+- **Run its local command** (or read the change's CI result). A failing check is a blocker; report it
+  and do not spend review on it until it passes.
+- **A rule the manifest marks `enforced` is CI's job** — never re-check it here.
+- **Every other applicable rule** in [ci-verification.md](./setup/ci-verification.md) — marked
+  `deferred`, missing from the manifest, or every rule when there is no manifest — joins this review:
+  check the diff against the rule's *Fails when* condition, and report a hit as a blocker under the
+  rule ID. Note in the report that the repo has no CI for these rules
+  ([setup/start-here.md](./setup/start-here.md)).
 
 ## Step 1 — Map
 
@@ -22,6 +40,7 @@ L1 — where in the repo?
   packages/core/            → the domain core                → L2a
   packages/<other>/         → graduated package (driven adapter)
   repo root / config        → cross-cutting
+  foundry-ci.md · CI config → CI verification
   site/                     → the website (landing + docs viewer) — OUT OF SCOPE; not the standard, skip it
 
 L2a — inside packages/core/
@@ -42,7 +61,7 @@ L2c — inside the frontend client UI (apps/web) — skip this whole branch unle
 L3 — inside a feature module
   services/*.service.ts             → service (or sub-feature service)
   orchestrations/*.orchestration.ts → orchestration
-  schemas/*.ts                      → schema
+  schemas/*.schema.ts               → schema
   shared/validation.ts              → shared validation guard (incl. authorization)
   exceptions.ts                     → domain exception
   __tests__/*                       → tests
@@ -71,6 +90,7 @@ Each mapped node routes to its guideline(s) and owning `end-here`:
 | db access in a service | [working-with-databases.md](./packages/core/working-with-databases.md), [atomicity.md](./packages/core/atomicity.md); multi-tenant app → [multi-tenancy.md](./packages/core/multi-tenancy.md) (no hand-written tenant filter) | [core/end-here.md](./packages/core/end-here.md) → Database / Atomicity |
 | tests | [testing.md](./packages/core/testing.md) | [core/end-here.md](./packages/core/end-here.md) → Testing |
 | graduated package | [code-placement.md](./code-placement.md) (building a driven adapter) | [packages/end-here.md](./packages/end-here.md) |
+| CI verification (manifest, CI config) | [setup/ci-verification.md](./setup/ci-verification.md) — each enforced rule's check rejects its *Fails when* condition and was proven to fail; parameters match the repo | — (the spec is the gate) |
 
 Service, orchestration, and shared-validation nodes also consult [logic-placement.md](./packages/core/logic-placement.md) for *which construct the logic belongs in and when to promote it*.
 
@@ -86,7 +106,6 @@ Validate each mapped node's changed area against the routed guideline + `end-her
 
 Run once across the whole diff:
 
-- **TypeScript** → [typescript-coding-standards.md](./common/typescript-coding-standards.md) — arrow functions for module-level defs, `type` over `interface`, no non-null assertions, explicit return types on exports, string-literal unions over enums.
 - **Logging** → [logging.md](./packages/core/system/logging.md) — `ctx.system.logger` at method entry / business events / side effects; errors logged with full context before re-throw; trace ID flowing throughout.
 - **Patterns** → [branching-logic.md](./packages/core/branching-logic.md) (incl. [Strategy escalation](./packages/core/branching-logic.md#escalation-when-the-decision-grows-into-a-family--extract-a-strategy)) — tangled policy that should be a named decision; substantial type-branching that should be a Strategy.
 
@@ -94,7 +113,7 @@ Run once across the whole diff:
 
 - **One home for every piece of code** — feature, driven adapter / `system/` primitive, or app; anything else needs explicit confirmation → [code-placement.md](./code-placement.md).
 - **Dependencies point one way** — driving → domain → driven, never reversed → [code-placement.md](./code-placement.md#layering-three-roles-one-direction).
-- **Cross-feature crossings have exactly two shapes** — an owner-exported `void` guard (verdict) or an orchestration (data); any other cross-feature import in domain code fails → [implementation-validation.md](./packages/core/implementation-validation.md#cross-feature-guards).
+- **Cross-feature crossings have exactly two shapes** — an owner-exported `void` guard (verdict) or the data path (an orchestration calling the owner's services; schemas deriving from the owner's schemas); any other cross-feature import in domain code fails → [implementation-validation.md](./packages/core/implementation-validation.md#cross-feature-guards).
 - **A cross-entity invariant is the one business rule an orchestration may own** — a predicate over ≥2 owners' data; a *single-entity* rule in an orchestration fails → [orchestration.md](./packages/core/orchestration.md#cross-entity-invariants).
 - **Business logic lives in the domain, integration-agnostic** — a rule existing *only* in a controller, adapter, or the UI fails → [code-placement.md](./code-placement.md#layering-three-roles-one-direction).
 - **Failures are raised, not returned; handled → `4xx` in one shape, never a `500`** → [error-handling.md](./error-handling.md).
@@ -108,4 +127,4 @@ Run once across the whole diff:
 
 ## Step 5 — Report
 
-Report per node: the guideline checked against, conformance, and any blockers (a box that could not be ticked). A blocker is a blocker, not a note.
+Report the Step 0 outcome first — CI result, and which rules this review checked because CI does not enforce them. Then per node: the guideline checked against, conformance, and any blockers (a box that could not be ticked, or a CI rule's failure condition hit). A blocker is a blocker, not a note.

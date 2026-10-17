@@ -56,7 +56,9 @@ What belongs there: **referential checks** (parent/owner exists); **uniqueness**
 
 ### Cross-Feature Guards
 
-A feature's `shared/validation.ts` is its **published contract**: the one thing another feature's domain code may import. When feature A must assert a rule B owns ("is this user active?"), B *exports* the guard and A calls it; nothing else of B's crosses — not tables, not services.
+A feature's `shared/validation.ts` is its **published contract**: the one thing another feature's services and guards may import. When feature A must assert a rule B owns ("is this user active?"), B *exports* the guard and A calls it; nothing else of B's crosses into them — not tables, not services.
+
+The only other crossings are the **data path**: A's [orchestration](./orchestration.md) may import B's services (and B's schemas, for their types), and A's schema files may derive from B's schemas — a hydrated read shape built on B's entity is derived, never a hand-written twin ([implementation-schemas.md](./implementation-schemas.md#avoiding-duplication)). B's tables never cross.
 
 Here the contract **tightens**: a within-feature guard may return the confirmed entity, but a **cross-feature guard returns `void`** — it reads only its owner's tables (through the passed `ctx`) and throws its owner's domain exception. The *verdict* crosses; the *data* does not. The `void` return is the enforcement — nothing can be smuggled through it; a signature returning an entity is the **guard-as-read-API** drift, visible in one line.
 
