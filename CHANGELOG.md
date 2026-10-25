@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-25 — Adopting repos pin Foundry; entries carry their commit
 
+**Commit:** [`ff0f215`](https://github.com/sahanh/foundry/commit/ff0f215c17a586ff80a0cb637ddf1cb131ef9907)
+
 New [setup/staying-in-sync.md](./setup/staying-in-sync.md): an adopting repo commits `foundry.lock` at
 its root, naming the Foundry commit its code was last reconciled to, and moves it only by reconciling
 the entries after it — by hand or with the new
@@ -25,6 +27,8 @@ Affects every adopting repo: create `foundry.lock` per
 ([ci-verification.md → The manifest](./setup/ci-verification.md#the-manifest--foundry-cimd)).
 
 ## 2026-10-25 — Testing driven by a test strategy, not by construct
+
+**Commit:** [`729ac01`](https://github.com/sahanh/foundry/commit/729ac01de711ce18544b59a7c436df7121adf072)
 
 [testing.md](./packages/core/testing.md) now starts from a **test strategy**, written per PRD before
 the code. Removed: the **What to Test Where** table, which fixed the level by construct ("guards get
