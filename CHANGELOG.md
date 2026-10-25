@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-25 — Setup installs every skill; reconciling keeps them current
 
+**Commit:** [`d69ef2e`](https://github.com/sahanh/foundry/commit/d69ef2ec503d0b846bb39e3fada2d91593e36c5e)
+
 [setup/agent-skills.md](./setup/agent-skills.md) is rewritten as instructions to the setting-up agent:
 install **every** skill in `skills/` as the repo's own, in each harness's skill directory, invocable by
 the user and the agent, and check it shows up. Reconciling now covers skills:
