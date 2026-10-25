@@ -63,7 +63,8 @@ Lives at the adopting repo's root; the reviewer and every later agent read it. I
 | Formatter | the project's one formatter (e.g. Prettier, Biome) |
 | Lint presets switched off | each preset rule turned off, with its reason — none by default |
 | Shared styling files | the files that define the visual system's tokens and cross-app primitives (web apps only) |
-| Shared component folder | `apps/web/src/components/shared/` — its siblings under `components/` are feature folders (web apps only) |
+| Generated UI primitives folder | `apps/web/src/components/ui/` — files a UI generator writes (shadcn/ui), exempt from `TS-07` (web apps only) |
+| Shared component folder | `apps/web/src/components/shared/` — its siblings under `components/`, other than the generated UI primitives folder, are feature folders (web apps only) |
 
 ---
 
@@ -174,6 +175,9 @@ Usually ESLint with typescript-eslint. Scope: all TypeScript in the repo.
   [typescript-coding-standards.md](../common/typescript-coding-standards.md#return-types-on-exported-functions).
 - **TS-06 — No `any`.** Fails on an explicit `any`. Rule:
   [implementation-schemas.md → Schema Discipline](../packages/core/implementation-schemas.md#schema-discipline).
+- **TS-07 — Named React imports.** Fails on a namespace import (`import * as React`) or a default
+  import of `react`, outside the generated UI primitives folder. `n/a` where no code uses React. Rule:
+  [typescript-coding-standards.md](../common/typescript-coding-standards.md#named-react-imports).
 
 ### Domain code
 

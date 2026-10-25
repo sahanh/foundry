@@ -9,6 +9,17 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-25 — React is imported by name
+
+New rule: React's hooks, helpers and types are imported by name, never through `import * as React` or
+the default export; generated UI primitives (shadcn/ui's `components/ui/`) are exempt. New CI rule
+**`TS-07`** and a *Generated UI primitives folder* parameter, which **`WEB-03`** no longer counts as a
+feature folder.
+
+Affects any React code written before this change, and `WEB-03` checks built before it. Read
+[typescript-coding-standards.md → Named React Imports](./common/typescript-coding-standards.md#named-react-imports)
+and [ci-verification.md → TypeScript](./setup/ci-verification.md#typescript) (`TS-07`).
+
 ## 2026-10-25 — Setup installs every skill; reconciling keeps them current
 
 **Commit:** [`d69ef2e`](https://github.com/sahanh/foundry/commit/d69ef2ec503d0b846bb39e3fada2d91593e36c5e)

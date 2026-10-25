@@ -82,6 +82,25 @@ export const formatDate = (date: Date): string => { /* ... */ };
 export const formatDate = (date: Date) => { /* ... */ };
 ```
 
+## Named React Imports
+
+Import React's hooks, helpers and types by name, never through a namespace import or the default
+export. One style keeps every component reading the same, rather than in whichever style the first
+template to touch the repo used.
+
+```typescript
+// Good
+import { useState, type ComponentProps } from 'react';
+
+// Avoid
+import * as React from 'react';
+import React from 'react';
+```
+
+**Exception — leave as-is:** generated UI primitives (shadcn/ui's `components/ui/`), which keep the
+generator's style so they can be re-added or updated without hand edits. Code you write never copies
+their style.
+
 ## No Floating Promises
 
 Every promise is awaited, returned, or explicitly handled — never left floating. A floating promise
@@ -116,4 +135,4 @@ Inferring types from schemas, schema composition, and avoiding `any` are owned b
 
 ---
 
-**Verify:** CI rules `BASE-01`–`BASE-05` and `TS-01`–`TS-06` in [setup/ci-verification.md](../setup/ci-verification.md); without CI for them, the [review protocol](../review.md) Step 0 checks them.
+**Verify:** CI rules `BASE-01`–`BASE-05` and `TS-01`–`TS-07` in [setup/ci-verification.md](../setup/ci-verification.md); without CI for them, the [review protocol](../review.md) Step 0 checks them.
