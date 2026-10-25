@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-25 — React is imported by name
 
+**Commit:** [`b18c510`](https://github.com/sahanh/foundry/commit/b18c510eeb911f576e037abfc70735dded7198fa)
+
 New rule: React's hooks, helpers and types are imported by name, never through `import * as React` or
 the default export; generated UI primitives (shadcn/ui's `components/ui/`) are exempt. New CI rule
 **`TS-07`** and a *Generated UI primitives folder* parameter, which **`WEB-03`** no longer counts as a
