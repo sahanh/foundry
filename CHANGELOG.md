@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-25 — The test-plan skill writes a PRD's test strategy
 
+**Commit:** [`c0379a0`](https://github.com/sahanh/foundry/commit/c0379a0f93008b3bab548c8bea8f05728289097c)
+
 New **[skills/test-plan](./skills/test-plan/SKILL.md)**, with a
 [strategy template](./skills/test-plan/strategy-template.md): writes a PRD's test strategy with the user,
 before the code, in [testing.md](./packages/core/testing.md#the-test-strategy)'s format.
