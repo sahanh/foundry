@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-25 — Tests reviewed against the test strategy; break-it evidence; installing skills
 
+**Commit:** [`2487bc0`](https://github.com/sahanh/foundry/commit/2487bc0d2defa957256bdcfea983c8d49946b9de)
+
 New **[skills/test-review](./skills/test-review/SKILL.md)**: the read-only procedure for verifying a
 change's tests against its PRD's test strategy, with a fixed [report](./skills/test-review/report-template.md).
 [review.md](./review.md) routes the tests node to it, and a map with a tests node must report that
