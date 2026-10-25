@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-25 — A second copy of a component is the extraction signal, in the same feature too
 
+**Commit:** [`e562d9a`](https://github.com/sahanh/foundry/commit/e562d9a908db3f95be6e1010c5862cbe10fff9c1)
+
 [component-placement.md](./apps/web/component-placement.md) → *Promotion to shared — on the second
 signal, with confirmation* is renamed *Extraction — on the second copy, with confirmation*. The signal is
 now a second copy of a component shape in the same feature or another, found by searching before writing
