@@ -1,0 +1,34 @@
+name: Changelog commit refs
+
+# An entry can't name the commit that adds it, so once it lands on main this writes its
+# **Commit:** line (scripts/changelog-refs.sh) and pushes that as a follow-up commit. A push made
+# with GITHUB_TOKEN starts no workflow, so the follow-up doesn't re-trigger this one.
+
+on:
+  push:
+    branches: [main]
+    paths: [CHANGELOG.md]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: changelog-refs
+  cancel-in-progress: false
+
+jobs:
+  refs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: scripts/changelog-refs.sh
+      - name: Commit the refs
+        run: |
+          git diff --quiet -- CHANGELOG.md && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Add changelog commit refs" -- CHANGELOG.md
+          git push
