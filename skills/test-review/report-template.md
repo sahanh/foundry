@@ -4,7 +4,8 @@ Base `<base-sha>` → head `<head-sha>`. PRD: <link>. Strategy: <path> | **none 
 core/end-here → Testing) | none needed: <why the change needs no new tests>.
 Harness read: <test AppContext builder file>, <adapter files>; defaults that matter: <e.g. "audience
 spy disabled unless enabled: true">.
-CI: <result>. Mutation: <score>, mutating <paths>; excludes <paths> — no evidence for rows there.
+CI: <result>. Mutation: <score>, mutating <paths>; excludes <paths> — no evidence for rows there |
+scheduled, not run on this change | none.
 Citations verified against `<head-sha>`.
 
 **Summary:** <N> rows covered · <N> stop short · <N> missing · <N> wrong level · <N> holes in the plan.

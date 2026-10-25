@@ -15,12 +15,30 @@ tool *cannot* decide stays with the [review protocol](../review.md) and the `end
 ## How it fits together
 
 - **The adopting repo's CI** runs every applicable check below on every pull request and blocks the
-  merge on a failure.
+  merge on a failure. The one exception is a strength check, which may run on a schedule
+  (*Scheduled strength checks* below).
 - **A manifest** in the adopting repo, `foundry-ci.md` at its root, records which rules are enforced
   and how (*The manifest* below). It is how a reviewer knows what not to re-check.
 - **The [review protocol](../review.md)** reads the manifest first: an enforced rule is CI's job; a rule
   not enforced (or no manifest at all) is checked by reading the diff against its failure condition
   here. That fallback keeps a repo without CI fully covered — just at a reviewer's cost.
+
+## Scheduled strength checks
+
+A **strength check** measures how strong the tests or the other checks are, rather than checking a
+rule against the code: mutation testing, or an automated re-proof that plants violations to show
+another check still catches them. Run over a whole codebase, one can cost far more per pull request
+than it catches. A repo may run its strength checks on a schedule instead, when it:
+
+- runs them at least weekly, and on demand (e.g. `workflow_dispatch`);
+- turns a failed scheduled run into a tracked issue automatically, opening one or updating the open
+  one;
+- records each one's cadence in the manifest, with the trade-off accepted: a drop in strength can sit
+  on the default branch until the next run.
+
+Nothing else qualifies: a check that decides a rule always runs on every pull request and blocks the
+merge. A scheduled check has not run on the change under review, so its last result is no evidence for
+it ([review.md → Step 0](../review.md#step-0--what-ci-already-verifies)).
 
 ## Setting it up
 
@@ -44,8 +62,9 @@ Lives at the adopting repo's root; the reviewer and every later agent read it. I
 - **Local command** — the one command from step 5.
 - **Parameters** — every value below, as set for this repo.
 - **Rules** — one row per rule ID: `enforced` / `n/a` / `deferred`, where the check lives (CI job or
-  config file), and how its failure was proven.
-- **Project rules** — `EXT-NN` checks the project added (*Extending* below).
+  config file), how its failure was proven, and its **cadence**: `per PR`, or `scheduled: <cron>` for a
+  strength check (*Scheduled strength checks* above).
+- **Project rules** — `EXT-NN` checks the project added (*Extending* below), with the same columns.
 
 ## Parameters
 
