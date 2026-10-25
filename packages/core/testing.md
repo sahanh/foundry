@@ -123,6 +123,8 @@ Not covered: the HTTP route (parses params into the orchestration's input; no lo
 - **From the behaviour:** break it — delete the guard, reword the message, throw the wrong error — and watch the test go red.
 - **From each assertion:** ask whether it could ever fail. An assertion nothing in the setup could violate proves nothing.
 
+**A guard row needs evidence, not a reading.** For every risk row about a lock, a conditional write, a uniqueness guard, a rollback or a refusal, the implementer breaks the guard, runs its test, watches it fail, and reverts — and records it in the PR: what was broken, and which test failed. A mutation score is no substitute: it is evidence only for the code it mutates, and never for a race or a rollback.
+
 Every test, at both levels:
 
 | Do | Not |
@@ -166,4 +168,4 @@ Both flavours live in the same `.integration.ts` file; signal intent with `descr
 
 ---
 
-**Verify:** when done, check [end-here.md](./end-here.md) → Testing.
+**Verify:** when done, check [end-here.md](./end-here.md) → Testing; a reviewer runs the [test-review](../../skills/test-review/SKILL.md) procedure.

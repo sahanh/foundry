@@ -92,7 +92,7 @@ Each mapped node routes to its guideline(s) and owning `end-here`:
 | pure helper | [logic-placement.md](./packages/core/logic-placement.md) (its rung), [branching-logic.md](./packages/core/branching-logic.md) (named decisions) | [core/end-here.md](./packages/core/end-here.md) → Placement & promotion |
 | shared validation / exceptions | [implementation-validation.md](./packages/core/implementation-validation.md); for an authorization guard also [identity-and-access.md](./packages/core/identity-and-access.md) | [core/end-here.md](./packages/core/end-here.md) → Validation & exceptions (+ Identity & Access) |
 | db access in a service | [working-with-databases.md](./packages/core/working-with-databases.md), [atomicity.md](./packages/core/atomicity.md); multi-tenant app → [multi-tenancy.md](./packages/core/multi-tenancy.md) (no hand-written tenant filter) | [core/end-here.md](./packages/core/end-here.md) → Database / Atomicity |
-| tests | [testing.md](./packages/core/testing.md) | [core/end-here.md](./packages/core/end-here.md) → Testing |
+| tests | [testing.md](./packages/core/testing.md), validated by running the [test-review](./skills/test-review/SKILL.md) procedure | [core/end-here.md](./packages/core/end-here.md) → Testing |
 | graduated package | [code-placement.md](./code-placement.md) (building a driven adapter) | [packages/end-here.md](./packages/end-here.md) |
 | CI verification (manifest, CI config) | [setup/ci-verification.md](./setup/ci-verification.md) — each enforced rule's check rejects its *Fails when* condition and was proven to fail; parameters match the repo | — (the spec is the gate) |
 
@@ -133,3 +133,5 @@ Run once across the whole diff:
 ## Step 5 — Report
 
 Report the Step 0 outcome first — CI result, and which rules this review checked because CI does not enforce them. Then per node: the guideline checked against, conformance, and any blockers (a box that could not be ticked, or a CI rule's failure condition hit). A blocker is a blocker, not a note.
+
+**A map with a tests node always reports a Tests section:** the [test-review report](./skills/test-review/report-template.md) — its tables filled, one line per strategy row and category question. A tests node with no such section is unreviewed.
