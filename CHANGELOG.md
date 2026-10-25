@@ -9,6 +9,19 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-25 — Strength checks may run on a schedule
+
+[ci-verification.md](./setup/ci-verification.md) names **strength checks** (mutation testing, automated
+re-proofs of other checks), which may run on a schedule instead of on every pull request, under
+conditions it sets. Every other check still runs on every pull request. The manifest's rule rows gain a
+**cadence**. [review.md → Step 0](./review.md#step-0--what-ci-already-verifies) and the
+**test-review** skill treat a scheduled check as not run on the change.
+
+Affects adopting repos that run mutation testing or automated gate re-proofs, and their installed
+`test-review` skill. Read
+[ci-verification.md → Scheduled strength checks](./setup/ci-verification.md#scheduled-strength-checks)
+and [→ The manifest](./setup/ci-verification.md#the-manifest--foundry-cimd).
+
 ## 2026-10-25 — A second copy of a component is the extraction signal, in the same feature too
 
 **Commit:** [`e562d9a`](https://github.com/sahanh/foundry/commit/e562d9a908db3f95be6e1010c5862cbe10fff9c1)

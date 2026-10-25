@@ -22,6 +22,9 @@ Read the repo's CI manifest, `foundry-ci.md` at its root ([ci-verification.md �
 - **Run its local command** (or read the change's CI result). A failing check is a blocker; report it
   and do not spend review on it until it passes.
 - **A rule the manifest marks `enforced` is CI's job** — never re-check it here.
+- **A check the manifest marks `scheduled`** has not run on this diff
+  ([ci-verification.md → Scheduled strength checks](./setup/ci-verification.md#scheduled-strength-checks)):
+  report it as not run, and never cite its last result as evidence for the change.
 - **Every other applicable rule** in [ci-verification.md](./setup/ci-verification.md) — marked
   `deferred`, missing from the manifest, or every rule when there is no manifest — joins this review:
   check the diff against the rule's *Fails when* condition, and report a hit as a blocker under the

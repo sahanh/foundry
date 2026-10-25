@@ -64,7 +64,9 @@ Filled in when installed:
     and review against it.
 - **CI:** read the change's CI result. A mutation score is evidence only for the files it mutates —
   read the mutation config for its exclusions — and never for a race or rollback row
-  ([testing.md](../../packages/core/testing.md#what-a-test-must-prove)).
+  ([testing.md](../../packages/core/testing.md#what-a-test-must-prove)). A mutation check the CI
+  manifest marks `scheduled` has not run on the change: it is evidence for no row
+  ([ci-verification.md](../../setup/ci-verification.md#scheduled-strength-checks)).
 - **The harness:** read the test `AppContext` builder and every adapter file it defaults. Note each
   adapter's default state — a spy disabled by default makes every "not sent" assertion through it
   vacuous. Name the files you read.
