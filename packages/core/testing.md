@@ -72,7 +72,7 @@ Each seam states its **contract** — the output shape and the invariants its co
   - **Layer map** — the path through the backend, known from Foundry's topology before the code exists: orchestration → services and pure seams → adapters → the effects left behind.
   - **Vendors** — the external adapters integration tests mock.
   - **Not covered** — only a layer with no behaviour of its own (*a route that parses params into the orchestration's input*), or an exception the user accepted, recorded as *accepted by <who>: <reason>*. Any other layer no row spans is a hole in the plan.
-- **Seams** — each one's signature, its contract, and the variation that justified it.
+- **Seams** — each one's inputs, its outputs, the contract its consumers rely on, and the variation that justified it. No signature: names and types are the implementer's call.
 - **Risks** — one row each: an ID, the risk, the owning level, why that level, and for an integration row the layers it **spans** and what it **mocks**. The IDs are for the plan and its review; tests never cite them.
 - **Decide first** — behaviour the PRD does not specify, raised with the user before the test can be written.
 
