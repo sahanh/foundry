@@ -9,6 +9,22 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-25 — Routine maintenance and Dependabot; `routine` in `foundry.lock`
+
+New **[setup/routine-maintenance.md](./setup/routine-maintenance.md)**: every adopting repo on GitHub
+runs Dependabot (alerts, security updates, and weekly version updates per ecosystem), and a developer
+runs a recurring maintenance pass with the new
+**[skills/routine-maintenance](./skills/routine-maintenance/SKILL.md)**. The pass merges Dependabot's
+PRs once they're proven on the local stack with a browser smoke test, or probes the production
+dependencies when there are none. It also checks Node, pnpm and TypeScript, the deployed server and
+its images, and whether deploys and backups are succeeding. `foundry.lock` gains a `routine` date,
+the last time a run finished ([staying-in-sync.md → The pin](./setup/staying-in-sync.md#the-pin--foundrylock)).
+
+Affects every adopting repo: add `.github/dependabot.yml` and turn on Dependabot's alerts and security
+updates ([routine-maintenance.md → Dependabot](./setup/routine-maintenance.md#dependabot)), then
+install `routine-maintenance` ([setup/agent-skills.md](./setup/agent-skills.md)), filling in its
+parameters. `routine` is written by the first finished run.
+
 ## 2026-10-25 — The test-plan skill writes a PRD's test strategy
 
 **Commit:** [`c0379a0`](https://github.com/sahanh/foundry/commit/c0379a0f93008b3bab548c8bea8f05728289097c)

@@ -12,7 +12,13 @@ A committed file at the adopting repo's root:
 # The Foundry commit this repo's code was last reconciled to.
 # Moved only by reconciling, in the change that does it (Foundry: setup/staying-in-sync.md).
 commit = <full 40-character sha>
+
+# The date routine maintenance last finished (Foundry: setup/routine-maintenance.md).
+routine = <YYYY-MM-DD>
 ```
+
+The rest of this doc is about `commit`. `routine` is owned by
+[routine-maintenance.md → The last run](./routine-maintenance.md#the-last-run--routine-in-foundrylock).
 
 - **What it says:** the code conforms to Foundry up to this commit — every
   [CHANGELOG](../CHANGELOG.md) entry at or before it is either followed or covered by a recorded
