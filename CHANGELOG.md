@@ -9,6 +9,18 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-25 — A second copy of a component is the extraction signal, in the same feature too
+
+[component-placement.md](./apps/web/component-placement.md) → *Promotion to shared — on the second
+signal, with confirmation* is renamed *Extraction — on the second copy, with confirmation*. The signal is
+now a second copy of a component shape in the same feature or another, found by searching before writing
+one; a same-feature copy extracts into the feature's folder. [review.md](./review.md) → *Step 1* searches
+outside the diff for a new frontend component's existing copy, and
+[apps/web/end-here.md](./apps/web/end-here.md) gains the matching box.
+
+Affects frontend components added before this change, and reviews of them. Read
+[component-placement.md → Extraction](./apps/web/component-placement.md#extraction--on-the-second-copy-with-confirmation).
+
 ## 2026-10-25 — React is imported by name
 
 **Commit:** [`b18c510`](https://github.com/sahanh/foundry/commit/b18c510eeb911f576e037abfc70735dded7198fa)

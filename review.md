@@ -30,7 +30,7 @@ Read the repo's CI manifest, `foundry-ci.md` at its root ([ci-verification.md �
 
 ## Step 1 — Map
 
-Explore the diff (not the whole repo). Produce a **table of contents of touched areas** — each with its taxonomy **level** and **file(s)**. Classify every touch into exactly one leaf node.
+Explore the diff (not the whole repo, bar the one search below). Produce a **table of contents of touched areas** — each with its taxonomy **level** and **file(s)**. Classify every touch into exactly one leaf node.
 
 **The taxonomy (the only options):**
 
@@ -71,6 +71,8 @@ L3 — inside a feature module
 **Changed logic adds a tests node.** Each touch still classifies into one leaf; a touch that changes logic — a service, orchestration, schema, shared validation, pure helper, or a worker job's handler — also adds **tests** to the map, whether or not the diff touched `__tests__/`: changed logic needs its owning tests.
 
 **A touch adding new code or a new file/folder:** first run [code-placement.md](./code-placement.md) Q1–Q3; a misplaced file fails review before any concern-doc check.
+
+**A new frontend component is the one place to look outside the diff:** search its owning feature and sibling feature folders for a component of the same shape. A diff never contains the first copy, so this is the only way to see a second one ([component-placement.md → Extraction](./apps/web/component-placement.md#extraction--on-the-second-copy-with-confirmation)).
 
 ## Step 2 — Route
 

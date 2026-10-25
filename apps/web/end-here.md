@@ -12,7 +12,8 @@ Deterministic rules (import direction, raw colors, scrollbar styling, shared-com
 ## Component placement & promotion → [component-placement.md](./component-placement.md)
 - [ ] New components start under their owning feature (`src/components/<feature>/`), named with feature context — [component-placement.md](./component-placement.md#start-close-to-the-owning-feature)
 - [ ] A file until it isn't — a folder only once cohesive parts/modes appear — [component-placement.md](./component-placement.md#grouping-a-file-until-it-isnt)
-- [ ] Every climb waited for a second real signal **and explicit user confirmation**, never speculation — the same gate in [app-shell.md](./app-shell.md) and [visual-system.md](./visual-system.md) — [component-placement.md](./component-placement.md#promotion-to-shared--on-the-second-signal-with-confirmation)
+- [ ] Every climb waited for a second real signal **and explicit user confirmation**, never speculation — the same gate in [app-shell.md](./app-shell.md) and [visual-system.md](./visual-system.md) — [component-placement.md](./component-placement.md#extraction--on-the-second-copy-with-confirmation)
+- [ ] No new component duplicates an existing one's shape in its feature or a sibling feature (searched outside the diff); a second copy was extracted with user confirmation instead — [component-placement.md](./component-placement.md#extraction--on-the-second-copy-with-confirmation)
 - [ ] Shared components feature-neutral — no entity (`Contact`/`Company`) named or assumed; entity adapters thin and local; call sites backfilled, no divergent copy — [component-placement.md](./component-placement.md#ownership-after-promotion)
 
 ## App shell & container → [app-shell.md](./app-shell.md)
