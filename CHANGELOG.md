@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-25 — Routine maintenance and Dependabot; `routine` in `foundry.lock`
 
+**Commit:** [`e21200e`](https://github.com/sahanh/foundry/commit/e21200ea0f61c8fabfb5c8ea8a97625f01b7381c)
+
 New **[setup/routine-maintenance.md](./setup/routine-maintenance.md)**: every adopting repo on GitHub
 runs Dependabot (alerts, security updates, and weekly version updates per ecosystem), and a developer
 runs a recurring maintenance pass with the new
