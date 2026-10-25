@@ -10,7 +10,7 @@ When a handler's branching policy has a simple outcome but internals that fan ou
 
 ## Apply As A Refactor, Not Upfront Design
 
-Write the handler inline first; extract when the branching has revealed itself, naming the policy from observed reality (why: speculation guesses cases, inputs, layer wrong). Both tiers — a Strategy too is extracted from a lived-in conditional, never designed upfront.
+Write the handler inline first; extract when the branching has revealed itself, naming the policy from observed reality (why: speculation guesses cases, inputs, layer wrong). Both tiers — a Strategy too is extracted from a lived-in conditional, never designed upfront. One exception: variation that already exists before the code does — cases the spec lists, a format someone else owns — lets the test strategy call for the pure helper upfront ([testing.md → Seams](./testing.md#seams--structuring-logic-so-unit-tests-carry-it)); "it might vary later" does not.
 
 Signals the policy has earned extraction:
 

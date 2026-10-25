@@ -4,7 +4,7 @@
 
 > **Zoom out first.** For where `packages/core` sits in the whole repo — alongside `apps/` and other `packages/` — and the rule for deciding *where any piece of code belongs*, read [code-placement.md](../../code-placement.md) before this. That doc covers the topology and placement criteria; this doc covers what lives *inside* the core.
 
-**The concern docs:** logic-placement (which construct logic lives in & when to promote it — consult when touching the service layer) · service-first-architecture (services) · implementation-schemas · identifiers · implementation-validation · orchestration · atomicity · working-with-databases · identity-and-access (the actor, identity lifecycle, authN at the edge, authZ in the domain) · multi-tenancy (tenant isolation — an edge-resolved scope enforced at the db seam; multi-tenant apps only) · app-context · testing. Reference: branching-logic (named decisions + the Strategy escalation tier). Driven infrastructure that lives inside the core is documented under [system/](./system/start-here.md). Repo-wide TypeScript coding standards (which apply to every package and app, not just the core) live in `common/` — see [typescript-coding-standards.md](../../common/typescript-coding-standards.md).
+**The concern docs:** logic-placement (which construct logic lives in & when to promote it — consult when touching the service layer) · service-first-architecture (services) · implementation-schemas · identifiers · implementation-validation · orchestration · atomicity · working-with-databases · identity-and-access (the actor, identity lifecycle, authN at the edge, authZ in the domain) · multi-tenancy (tenant isolation — an edge-resolved scope enforced at the db seam; multi-tenant apps only) · app-context · testing (the test strategy, written before building). Reference: branching-logic (named decisions + the Strategy escalation tier). Driven infrastructure that lives inside the core is documented under [system/](./system/start-here.md). Repo-wide TypeScript coding standards (which apply to every package and app, not just the core) live in `common/` — see [typescript-coding-standards.md](../../common/typescript-coding-standards.md).
 
 When implementation is complete, verify against [end-here.md](./end-here.md) — the mandatory verify companion to this file. Every box must be ticked for every feature before the work is considered done. You are usually routed there by the [review protocol](../../review.md), which maps what you touched.
 
@@ -24,6 +24,8 @@ Work backward from the core business value, not forward from "how do we create X
 4. **Keep peeling** until you reach the entry point (usually user-initiated creation).
 
 Each layer you uncover becomes a service scoped to that entity — see service-first-architecture.md for the service types.
+
+**Then plan the tests, before writing code:** the PRD's test strategy maps each use case's layers and risks to the level that owns them ([testing.md → The Test Strategy](./testing.md#the-test-strategy)). It can shape the design too — a rule whose cases already exist earns a pure seam up front.
 
 ## Feature Structure
 

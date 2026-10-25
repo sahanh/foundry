@@ -69,8 +69,16 @@ Deterministic rules (imports, naming, TypeScript, time/id/context hygiene) are C
 - [ ] Nothing establishes a fact the context asserts (no write making `ctx.actor`/`ctx.tenant` valid); missing preconditions throw, never repaired inline — [app-context.md](./app-context.md#the-context-is-a-statement-of-fact)
 
 ## Testing → [testing.md](./testing.md)
-- [ ] Integration tests use a test AppContext with real/in-memory DB; infra side effects (emails, jobs) asserted via spy adapters — [testing.md](./testing.md#integration-test-setup--appcontext)
-- [ ] Transactional use case tested all-or-nothing: forced mid-flow failure → no rows, no spy calls — [testing.md](./testing.md#integration-test-flavours)
+- [ ] A test strategy for the PRD exists and links it; each use case it covers has an entry point, layer map and vendors — [testing.md](./testing.md#what-the-strategy-contains)
+- [ ] Every category question is answered for every use case: rows, or an `n/a` whose behaviour is truly absent — [testing.md](./testing.md#what-the-strategy-contains)
+- [ ] Each risk names its owning level and why — [testing.md](./testing.md#choosing-the-level)
+- [ ] *Not covered* holds only behaviour-free layers or user-accepted exceptions — [testing.md](./testing.md#what-the-strategy-contains)
+- [ ] The tests cover every risk row at its level — one test may cover several rows, each still able to fail on its own; each integration test spans the layers its row names and mocks only the vendors it names — [testing.md](./testing.md#choosing-the-level)
+- [ ] No risk owned at two levels: integration does not re-run unit variants, and an overlap the strategy needs says why — [testing.md](./testing.md#choosing-the-level)
+- [ ] Breaking each behaviour turns its test red: every guard proven by an outcome that depends on it — [testing.md](./testing.md#what-a-test-must-prove)
+- [ ] Every assertion can fail: literal expected values, the precise failure, every claim in the test's name, negative assertions in a setup where the effect could happen, spies on the object the code uses — [testing.md](./testing.md#what-a-test-must-prove)
+- [ ] No internal structure pinned — [testing.md](./testing.md#what-a-test-must-prove)
+- [ ] Integration tests run on the test AppContext: production database engine, persisted `user` actors, internal queue running the real handler, only external vendors spied — [testing.md](./testing.md#the-test-appcontext)
 
 ---
 

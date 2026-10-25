@@ -5,6 +5,23 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-10-25 — Testing driven by a test strategy, not by construct
+
+[testing.md](./packages/core/testing.md) now starts from a **test strategy**, written per PRD before
+the code. Removed: the **What to Test Where** table, which fixed the level by construct ("guards get
+unit tests; services and orchestrations get integration tests"); the **in-memory database** option;
+the **spy queue**; and the integration-flavour rows for clock thresholds and polarity. **`TEST-01`**
+in [setup/ci-verification.md](./setup/ci-verification.md) no longer requires a level.
+[branching-logic.md](./packages/core/branching-logic.md) gains one exception to refactor-first
+extraction. [review.md](./review.md) gains a *pure helper* node and maps changed logic to tests;
+[core/end-here.md](./packages/core/end-here.md) → *Testing* is replaced.
+
+Affects tests written before this change, and work started without a test strategy. Read
+[testing.md → The Test Strategy](./packages/core/testing.md#the-test-strategy),
+[→ What a Test Must Prove](./packages/core/testing.md#what-a-test-must-prove) and
+[→ The Test AppContext](./packages/core/testing.md#the-test-appcontext); update the `TEST-01` check
+and move `foundry-ci.md`'s *Synced to* forward.
+
 ## 2026-10-17 — Tooling baseline and no floating promises
 
 [typescript-coding-standards.md](./common/typescript-coding-standards.md) gains two sections, for

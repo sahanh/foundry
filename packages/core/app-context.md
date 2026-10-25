@@ -68,7 +68,7 @@ It wraps `ctx.system.db.transaction`, deriving a context whose `system.db` *is* 
 
 ## The Clock — `ctx.system.clock`
 
-Time enters the domain only through `ctx.system.clock.now()` — never scattered `new Date()`. `now(): Date` is an **absolute instant**. Production defaults to `() => new Date()`; tests pin a fixed instant (why: assertable timestamps). Injected clock, not `vi.setSystemTime` (why: parallel-test safety).
+Time enters the domain only through `ctx.system.clock.now()` — never scattered `new Date()`. `now(): Date` is an **absolute instant**. Production defaults to `() => new Date()`; tests pin a fixed instant by default (why: assertable timestamps); a rule that depends on time passing between reads uses an advancing clock instead — [testing.md → The Test AppContext](./testing.md#the-test-appcontext). Injected clock, not `vi.setSystemTime` (why: parallel-test safety).
 
 **No timezone in the domain.** Timezone conversion is presentation, owned by the edge ([transport-mapping.md](../../apps/transport-mapping.md)).
 
@@ -103,7 +103,7 @@ Place a non-adapter foundational primitive by two questions:
 
 ## In Tests
 
-A test context supplies: test `system.db`; pinned `system.clock`; deterministic id-source; fixed `actor` (test `user` or explicit `anonymous`); fixed `tenant` (multi-tenant apps) for assertable cross-tenant isolation; spy `system.email`/`system.queue`. No service code changes between production and test. See [testing.md](./testing.md).
+A test context swaps adapters and fixes facts; no service code changes between production and test. What each part holds — database, actor, clock, id-source, tenant, queue, vendor spies — is owned by [testing.md → The Test AppContext](./testing.md#the-test-appcontext).
 
 ---
 
