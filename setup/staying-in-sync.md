@@ -46,4 +46,6 @@ copied into the repo and adapted. By hand, the steps are the same:
 3. **Decide** each with the user: conform now; defer, with the reason recorded; or deviate, with the
    decision recorded — wherever the repo records its decisions. A rule ID an entry names is a row in
    `foundry-ci.md` ([ci-verification.md → The manifest](./ci-verification.md#the-manifest--foundry-cimd)).
+   A skill an entry adds, changes or removes is installed, re-adapted or deleted in the repo
+   ([agent-skills.md → Keeping current](./agent-skills.md#keeping-current)).
 4. **Move the pin** to the newest commit up to which every entry is decided.

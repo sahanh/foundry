@@ -9,6 +9,19 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-25 — Setup installs every skill; reconciling keeps them current
+
+[setup/agent-skills.md](./setup/agent-skills.md) is rewritten as instructions to the setting-up agent:
+install **every** skill in `skills/` as the repo's own, in each harness's skill directory, invocable by
+the user and the agent, and check it shows up. Reconciling now covers skills:
+[staying-in-sync.md → Reconciling](./setup/staying-in-sync.md#reconciling) and
+[reconcile-foundry-changes](./skills/reconcile-foundry-changes/SKILL.md) install new skills, re-adapt
+changed ones and delete removed ones, and its `brief.sh` gains a *Skills* section listing them.
+
+Affects every adopting repo: install the skills it lacks per
+[agent-skills.md → You are installing them](./setup/agent-skills.md#you-are-installing-them), and
+re-install `reconcile-foundry-changes`.
+
 ## 2026-10-25 — Routine maintenance and Dependabot; `routine` in `foundry.lock`
 
 **Commit:** [`e21200e`](https://github.com/sahanh/foundry/commit/e21200ea0f61c8fabfb5c8ea8a97625f01b7381c)
