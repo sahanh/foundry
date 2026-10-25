@@ -25,7 +25,7 @@ Work backward from the core business value, not forward from "how do we create X
 
 Each layer you uncover becomes a service scoped to that entity — see service-first-architecture.md for the service types.
 
-**Then plan the tests, before writing code:** the feature's test strategy maps each use case's layers and risks to the level that owns them ([testing.md → The Test Strategy](./testing.md#the-test-strategy)). It can shape the design too — a rule whose cases already exist earns a pure seam up front.
+**Then plan the tests, before writing code:** the PRD's test strategy maps each use case's layers and risks to the level that owns them ([testing.md → The Test Strategy](./testing.md#the-test-strategy)). It can shape the design too — a rule whose cases already exist earns a pure seam up front.
 
 ## Feature Structure
 

@@ -63,11 +63,12 @@ L3 — inside a feature module
   orchestrations/*.orchestration.ts → orchestration
   schemas/*.schema.ts               → schema
   shared/validation.ts              → shared validation guard (incl. authorization)
+  shared/utils.ts                   → pure helper
   exceptions.ts                     → domain exception
   __tests__/*                       → tests
 ```
 
-**Changed logic maps the tests node too.** A touched service, orchestration, schema or shared validation also maps **tests**, whether or not the diff touched `__tests__/`: changed logic needs its owning tests.
+**Changed logic adds a tests node.** Each touch still classifies into one leaf; a touch that changes logic — a service, orchestration, schema, shared validation, pure helper, or a worker job's handler — also adds **tests** to the map, whether or not the diff touched `__tests__/`: changed logic needs its owning tests.
 
 **A touch adding new code or a new file/folder:** first run [code-placement.md](./code-placement.md) Q1–Q3; a misplaced file fails review before any concern-doc check.
 
@@ -88,6 +89,7 @@ Each mapped node routes to its guideline(s) and owning `end-here`:
 | feature service | [service-first-architecture.md](./packages/core/service-first-architecture.md), [implementation-validation.md](./packages/core/implementation-validation.md) | [core/end-here.md](./packages/core/end-here.md) → Services |
 | orchestration | [orchestration.md](./packages/core/orchestration.md), [atomicity.md](./packages/core/atomicity.md), [implementation-validation.md](./packages/core/implementation-validation.md) (cross-entity invariant) | [core/end-here.md](./packages/core/end-here.md) → Orchestrations |
 | schema | [implementation-schemas.md](./packages/core/implementation-schemas.md), [identifiers.md](./packages/core/identifiers.md) | [core/end-here.md](./packages/core/end-here.md) → Schemas |
+| pure helper | [logic-placement.md](./packages/core/logic-placement.md) (its rung), [branching-logic.md](./packages/core/branching-logic.md) (named decisions) | [core/end-here.md](./packages/core/end-here.md) → Placement & promotion |
 | shared validation / exceptions | [implementation-validation.md](./packages/core/implementation-validation.md); for an authorization guard also [identity-and-access.md](./packages/core/identity-and-access.md) | [core/end-here.md](./packages/core/end-here.md) → Validation & exceptions (+ Identity & Access) |
 | db access in a service | [working-with-databases.md](./packages/core/working-with-databases.md), [atomicity.md](./packages/core/atomicity.md); multi-tenant app → [multi-tenancy.md](./packages/core/multi-tenancy.md) (no hand-written tenant filter) | [core/end-here.md](./packages/core/end-here.md) → Database / Atomicity |
 | tests | [testing.md](./packages/core/testing.md) | [core/end-here.md](./packages/core/end-here.md) → Testing |
@@ -124,7 +126,7 @@ Run once across the whole diff:
 - **Tenant isolation is structural, not per-query** (multi-tenant apps) — scoped seam by default; the only unscoped path is an explicit elevated context → [multi-tenancy.md](./packages/core/multi-tenancy.md#isolation-is-enforced-at-the-database-seam).
 - **Single source of truth; define once, derive the rest** — schemas infer types; boundaries reuse core schemas; every boundary/contract type lives in its feature's schema file — none inline in a service, mapper, or handler (local implementation-only types excepted) → [implementation-schemas.md](./packages/core/implementation-schemas.md).
 - **Climb on a real signal, not in anticipation** — every extraction/promotion waits for the second signal; a pure seam the test strategy justifies with variation that already exists is that signal → [logic-placement.md](./packages/core/logic-placement.md), [testing.md → Seams](./packages/core/testing.md#seams--structuring-logic-so-unit-tests-carry-it).
-- **Every risk has one owning test, at the cheapest level that can observe it** — chosen by where the decision is made, never by the construct → [testing.md](./packages/core/testing.md#choosing-the-level).
+- **Every risk has one owning level, the cheapest that can observe it** — chosen by where the decision is made, never by the construct → [testing.md](./packages/core/testing.md#choosing-the-level).
 - **Promotions are backfilled** — the old home delegates; every existing caller re-evaluated, none stranded → [logic-placement.md](./packages/core/logic-placement.md#the-backfill-obligation-the-revisit-list).
 - **All-or-nothing; side effects after commit** — one transaction boundary, effects dispatched post-commit → [atomicity.md](./packages/core/atomicity.md).
 
