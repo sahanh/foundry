@@ -13,8 +13,9 @@ touches, agree a plan with the user, and only then change code. **You never edit
 The protocol this skill drives is [setup/staying-in-sync.md](../../setup/staying-in-sync.md): read it
 first. Paths to Foundry docs in this file are relative to the Foundry repository.
 
-**This copy is a starting point.** Copy the skill into the adopting repo and adapt it: where Foundry
-is cloned, where the repo records its decisions, how it ships a change.
+**This copy is a template.** Install it as the repo's own skill and adapt it: where Foundry is
+cloned, where the repo records its decisions, how it ships a change
+([setup/agent-skills.md](../../setup/agent-skills.md)).
 
 ## Inputs
 
@@ -55,7 +56,12 @@ Explore before asking the user anything.
 4. **Rule IDs.** For each ID the entry names, read its row in `foundry-ci.md` and the rule's entry in
    [setup/ci-verification.md](../../setup/ci-verification.md) at the target. A new or changed rule
    means a check to build or update, and proving that it bites.
-5. **Classify the entry:**
+5. **Skills.** The brief's *Skills* section lists every skill added, changed or removed since the
+   pin, and whether this repo has a copy. Each is part of reconciling its entry
+   ([setup/agent-skills.md → Keeping current](../../setup/agent-skills.md#keeping-current)): a new
+   skill is installed, a changed one re-copied and re-adapted with its filled-in parameters carried
+   over, a removed one deleted with its `AGENTS.md` line.
+6. **Classify the entry:**
    - **No impact.** Nothing in the repo is shaped by the old rule. Say what you searched.
    - **Needs change.** List the sites.
    - **Conflicts with a decision.** The repo already recorded a deviation or decision the change
@@ -63,7 +69,8 @@ Explore before asking the user anything.
 
 The **commits with no entry** and the **older entries edited** should change no rule. Skim each
 one. If it does change a rule, treat it like an entry, and tell the user the changelog missed it so
-they can raise it with Foundry. If a skill changed and this repo carries a copy, say so.
+they can raise it with Foundry. A skill change with no entry still goes through step 5, and the
+changelog missed it.
 
 ## Step 3. Plan with the user
 
@@ -91,11 +98,14 @@ together.
    ask the user where to put them.
 4. For each rule ID: build or update the check, prove it fails on a violation, and update its
    `foundry-ci.md` row ([ci-verification.md → Setting it up](../../setup/ci-verification.md#setting-it-up)).
-5. Run the repo's local verify command, then the [review protocol](../../review.md) on the change.
-6. **Move the pin in the same change**: `commit = <sha>`. Use the target, or for a partial reconcile,
+5. For each skill in the brief's *Skills* section: install, re-adapt or delete it in every harness
+   the repo uses, check each installed one is invocable, and update its `AGENTS.md` line
+   ([setup/agent-skills.md](../../setup/agent-skills.md#you-are-installing-them)).
+6. Run the repo's local verify command, then the [review protocol](../../review.md) on the change.
+7. **Move the pin in the same change**: `commit = <sha>`. Use the target, or for a partial reconcile,
    the commit of the newest entry up to which every entry is decided. The brief's last section names
    the target's full sha.
-7. Report each entry with its decision, the pin's old and new commit, and anything left for later.
+8. Report each entry with its decision, the pin's old and new commit, and anything left for later.
 
 ## Bootstrap: no `foundry.lock`
 

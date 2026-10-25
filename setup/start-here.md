@@ -16,9 +16,10 @@ repo has no `foundry-ci.md`, `foundry.lock` or `.github/dependabot.yml`.
 - **[routine-maintenance.md](./routine-maintenance.md)** — Dependabot, set up with the repo, and the
   recurring pass over dependencies, the runtime, the deployed server and backups, whose last run is
   the `routine` date in `foundry.lock`.
-- **[agent-skills.md](./agent-skills.md)** — installing Foundry's skills: they are templates, copied
-  into the repo's skill directory, their Foundry links repointed, their project parameters filled in,
-  and each one listed in the repo's `AGENTS.md`.
+- **[agent-skills.md](./agent-skills.md)** — installing Foundry's skills as the repo's own: they are
+  templates, so the setting-up agent copies every one into each harness's skill directory, repoints
+  its Foundry links, fills in its project parameters, checks it is invocable, and lists it in
+  `AGENTS.md` — and does the same for new and changed skills when reconciling.
 
 Setup is not finished once. A later change that picks or swaps an adapter, or adds a deterministic
 convention, extends the CI too — [ci-verification.md → Extending](./ci-verification.md#extending).

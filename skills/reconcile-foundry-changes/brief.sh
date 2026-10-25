@@ -166,6 +166,37 @@ while IFS= read -r heading; do
 done < <(headings "$tmp/target.md")
 ((edited)) || echo "None."
 
+# Skills are templates the repo installs as its own (setup/agent-skills.md), so every skill added,
+# changed or removed since the pin is work here — whether or not an entry names it.
+echo
+echo "## Skills"
+echo
+skills_at() { fg ls-tree -d --name-only "$1" skills/ 2>/dev/null | sed 's#^skills/##' || true; }
+skills_at "$pin" | sort >"$tmp/skills.pin"
+skills_at "$target" | sort >"$tmp/skills.target"
+fg diff --name-only "$pin" "$target" -- skills/ | cut -d/ -f2 | sort -u >"$tmp/skills.changed"
+installed() { # <skill>: where this repo has a copy
+  local d found=
+  for d in .claude/skills .agents/skills .codex/skills; do
+    [[ -f $d/$1/SKILL.md ]] && found="$found \`$d/$1\`"
+  done
+  echo "${found:- none found in .claude/skills, .agents/skills or .codex/skills}"
+}
+listed=0
+while IFS= read -r s; do
+  [[ -n $s ]] || continue
+  listed=$((listed + 1))
+  if ! grep -qxF "$s" "$tmp/skills.pin"; then
+    echo "- **$s** — new: install it (setup/agent-skills.md). Installed here:$(installed "$s")"
+  elif ! grep -qxF "$s" "$tmp/skills.target"; then
+    echo "- **$s** — removed: delete the installed copy and its AGENTS.md line. Installed here:$(installed "$s")"
+  else
+    echo "- **$s** — changed: re-copy and re-adapt, carrying over its filled-in parameters. Installed here:$(installed "$s")"
+    echo "    git -C \"$F\" diff ${pin:0:12} ${target:0:12} -- skills/$s"
+  fi
+done <"$tmp/skills.changed"
+((listed)) || echo "None."
+
 echo
 echo "## Moving the pin"
 echo

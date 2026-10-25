@@ -1,33 +1,56 @@
 # Agent Skills
 
-Foundry's [`skills/`](../skills/) folder holds **templates**, not installable skills. Each one is a
-procedure that applies the guidelines (a test review, a drift check, a PRD brief), written against
-Foundry's own paths. An adopting repo installs the ones it wants by copying and adapting them — until
-then, an agent can't invoke them, and the review protocol's routes to them have nothing to run.
+Foundry's [`skills/`](../skills/) folder holds **templates**, not working skills. Each is a procedure
+that applies the guidelines — planning tests, reviewing them, checking drift, reconciling Foundry
+changes — written against Foundry's own paths. Where it sits, no agent harness discovers it: nobody can
+invoke it, and the guideline steps that route to it have nothing to run. **Setting up a repo means
+installing every skill as the repo's own**, invocable both by the user (as a command) and by the agent
+(when a task matches the skill's description).
 
-## Installing a skill
+## You are installing them
 
-1. **Copy** the skill's folder — `SKILL.md` and every file beside it — into the skill directory of
-   each agent harness the repo uses (e.g. `.claude/skills/<name>/`, or the equivalent for another
-   harness).
-2. **Repoint the Foundry links.** A skill links to the guidelines by relative path
-   (`../../packages/core/testing.md`), and every one of those breaks once copied. Point each at the
-   Foundry the repo follows: its GitHub URL on `main`, or the repo's own command for reading Foundry
-   (e.g. `git -C "$FOUNDRY_DIR" show origin/main:<path>`). Links between the skill's own files stay
-   relative.
-3. **Fill in its *Project parameters*.** A skill that needs project facts — where PRDs live, which file
+When you set up a repo for Foundry — or reconcile one and find a skill new, changed or removed
+([Keeping current](#keeping-current)) — do this yourself, for every skill in Foundry's `skills/` at the
+commit the repo follows. Install all of them unless the user declines one; ask once, listing them with
+their one-line descriptions and recommending all.
+
+For each skill:
+
+1. **Find the harness's project skill directory.** Every agent harness the repo uses — check which
+   (`.claude/`, `AGENTS.md` instructions, the user) — discovers skills in its own place: Claude Code in
+   `.claude/skills/<name>/SKILL.md`; another harness wherever its documentation says project skills
+   live. Install into each one. A skill the repo installs once, in a directory no harness reads, is
+   still not installed.
+2. **Copy the whole folder** — `SKILL.md` and every file beside it (templates, scripts) — keeping the
+   folder name equal to the skill's `name`. Keep a script's executable bit.
+3. **Keep the frontmatter.** The `name` is how the user invokes it; the `description` is how the agent
+   recognises when to use it. Change neither, except to fit the harness's frontmatter format.
+4. **Repoint the Foundry links.** A skill links to the guidelines by relative path
+   (`../../packages/core/testing.md`), and every one breaks once copied. Point each at the Foundry the
+   repo follows: its GitHub URL on `main`, or the repo's own command for reading Foundry (e.g.
+   `git -C "$FOUNDRY_DIR" show origin/main:<path>`). Links between the skill's own files stay relative.
+5. **Fill in its *Project parameters*.** A skill that needs project facts — where PRDs live, which file
    builds the test `AppContext`, where CI results are read — declares them in a table near its top.
-   Read each value from the repo, and ask the user for any the code cannot answer. A skill with no such
-   table needs only step 2.
-4. **List it in the repo's `AGENTS.md`** (or the harness's equivalent, which agents load on every
-   session): one line per installed skill — its name, and what to use it for. Agents use the skills
-   they are told about at the start; they rarely go looking for one.
+   Read each value from the repo; ask the user only for what the code cannot answer.
+6. **Check it is invocable.** Confirm the harness lists it (Claude Code: it appears among the available
+   skills and as `/<name>`). A skill that doesn't show up is not installed.
+7. **List it in the repo's `AGENTS.md`** (or the file the harness loads on every session): one line per
+   skill — its name and what to use it for. Agents use the skills they are told about at the start;
+   they rarely go looking for one.
 
-Adapt only the parameters and links. A skill's procedure is Foundry's: a project that needs a
-different procedure writes its own skill under its own name.
+**Adapt only the frontmatter format, the links and the parameters.** The procedure is Foundry's: a
+project that needs a different procedure writes its own skill under its own name.
 
 ## Keeping current
 
-A [CHANGELOG](../CHANGELOG.md) entry names every skill it changes. When an entry after the repo's pin
-([staying-in-sync.md](./staying-in-sync.md)) names an installed skill, re-copying it and re-applying
-steps 2 and 3 is part of reconciling that entry.
+Every skill change is a [CHANGELOG](../CHANGELOG.md) entry naming the skill, and reconciling the
+entries after the repo's pin ([staying-in-sync.md](./staying-in-sync.md#reconciling)) includes the
+installed skills:
+
+- **A new skill** — install it, as above.
+- **A changed skill** — re-copy it, then re-apply steps 3–6, carrying over the parameter values
+  already filled in.
+- **A removed skill** — delete the installed copy and its `AGENTS.md` line.
+
+The reconcile brief lists all three
+([reconcile-foundry-changes](../skills/reconcile-foundry-changes/SKILL.md)).
