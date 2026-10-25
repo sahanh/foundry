@@ -5,6 +5,30 @@ what replaced it and how to migrate.
 
 ---
 
+## 2026-10-25 — Testing driven by a test strategy, not by construct
+
+[testing.md](./packages/core/testing.md) is rewritten around a **test strategy**, written before the
+code to `docs/test-strategy/<feature>.md`: each use case's layer map, every risk category walked, and
+each risk owned once at the cheapest level that can observe it. Removed: the **What to Test Where**
+table, which fixed the level by construct ("guards get unit tests; services and orchestrations get
+integration tests"); the **in-memory database** option; the **spy queue** (an internal job now runs its
+real handler); the integration-flavour rows for clock thresholds and polarity (now strategy
+categories). New: *Seams*, *What a Test Must Prove*, and *The Test AppContext* (persisted actor,
+production database engine, tripwire databases allowed). **`TEST-01`** in
+[setup/ci-verification.md](./setup/ci-verification.md) no longer requires a level: any test file
+importing the unit satisfies it. [branching-logic.md](./packages/core/branching-logic.md) allows a
+seam upfront when the strategy shows variation that already exists. The seams follow:
+[core/start-here.md](./packages/core/start-here.md) plans tests in *Designing a Feature*,
+[core/end-here.md](./packages/core/end-here.md) → *Testing* is replaced, and [review.md](./review.md)
+maps changed logic to the tests node.
+
+Affects tests written before this change: integration tests on an in-memory database, a stubbed
+database or a non-persisted actor; queued jobs asserted only on a spy; a rule's cases repeated at both
+levels; and features with no test strategy. Read [testing.md → The Test Strategy](./packages/core/testing.md#the-test-strategy),
+[→ What a Test Must Prove](./packages/core/testing.md#what-a-test-must-prove) and
+[→ The Test AppContext](./packages/core/testing.md#the-test-appcontext); update the `TEST-01` check
+and move `foundry-ci.md`'s *Synced to* forward.
+
 ## 2026-10-17 — Tooling baseline and no floating promises
 
 [typescript-coding-standards.md](./common/typescript-coding-standards.md) gains two sections, for

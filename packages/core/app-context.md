@@ -103,7 +103,7 @@ Place a non-adapter foundational primitive by two questions:
 
 ## In Tests
 
-A test context supplies: test `system.db`; pinned `system.clock`; deterministic id-source; fixed `actor` (test `user` or explicit `anonymous`); fixed `tenant` (multi-tenant apps) for assertable cross-tenant isolation; spy `system.email`/`system.queue`. No service code changes between production and test. See [testing.md](./testing.md).
+A test context swaps adapters and fixes facts; no service code changes between production and test. What each part holds — database, actor, clock, id-source, tenant, queue, vendor spies — is owned by [testing.md → The Test AppContext](./testing.md#the-test-appcontext).
 
 ---
 

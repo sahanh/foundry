@@ -78,6 +78,7 @@ the conventions above it are not.
 
 ## Smaller items
 
-- **Test coverage & lifecycle** — `open`. Controller/e2e tests are deferred with nothing tracking
-  when "later" arrives; test-DB lifecycle (migrate/reset between runs) is unspecified. Verify
-  against `testing.md`.
+- **Test coverage & lifecycle** — `open`. `testing.md` fixes the test database's engine and a known
+  empty state per test, but not the migrate/reset mechanics; a driving-adapter layer a test strategy
+  records as *Not covered* has no convention for when it earns its own tests. Verify against
+  `testing.md`.

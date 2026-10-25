@@ -67,6 +67,8 @@ L3 — inside a feature module
   __tests__/*                       → tests
 ```
 
+**Changed logic maps the tests node too.** A touched service, orchestration, schema or shared validation also maps **tests**, whether or not the diff touched `__tests__/`: changed logic needs its owning tests.
+
 **A touch adding new code or a new file/folder:** first run [code-placement.md](./code-placement.md) Q1–Q3; a misplaced file fails review before any concern-doc check.
 
 ## Step 2 — Route
@@ -121,7 +123,8 @@ Run once across the whole diff:
 - **The context asserts facts; no operation establishes its own preconditions** — factory invoked only in driving adapters and test setup → [app-context.md](./packages/core/app-context.md#the-context-is-a-statement-of-fact).
 - **Tenant isolation is structural, not per-query** (multi-tenant apps) — scoped seam by default; the only unscoped path is an explicit elevated context → [multi-tenancy.md](./packages/core/multi-tenancy.md#isolation-is-enforced-at-the-database-seam).
 - **Single source of truth; define once, derive the rest** — schemas infer types; boundaries reuse core schemas; every boundary/contract type lives in its feature's schema file — none inline in a service, mapper, or handler (local implementation-only types excepted) → [implementation-schemas.md](./packages/core/implementation-schemas.md).
-- **Climb on a real signal, not in anticipation** — every extraction/promotion waits for the second signal → [logic-placement.md](./packages/core/logic-placement.md).
+- **Climb on a real signal, not in anticipation** — every extraction/promotion waits for the second signal; a pure seam the test strategy justifies with variation that already exists is that signal → [logic-placement.md](./packages/core/logic-placement.md), [testing.md → Seams](./packages/core/testing.md#seams--structuring-logic-so-unit-tests-carry-it).
+- **Every risk has one owning test, at the cheapest level that can observe it** — chosen by where the decision is made, never by the construct → [testing.md](./packages/core/testing.md#choosing-the-level).
 - **Promotions are backfilled** — the old home delegates; every existing caller re-evaluated, none stranded → [logic-placement.md](./packages/core/logic-placement.md#the-backfill-obligation-the-revisit-list).
 - **All-or-nothing; side effects after commit** — one transaction boundary, effects dispatched post-commit → [atomicity.md](./packages/core/atomicity.md).
 

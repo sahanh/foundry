@@ -156,7 +156,7 @@ Usually a file-structure linter (ls-lint, eslint-plugin-check-file).
   [orchestration.md → Naming](../packages/core/orchestration.md#naming).
 - **NAME-04 — Test files.** Fails when a test in the core lives outside a feature's `__tests__/`, or a
   file there is not `*.unit.ts` / `*.integration.ts` (no `*.test.ts`, `*.spec.ts`). Rule:
-  [testing.md → What to Test Where](../packages/core/testing.md#what-to-test-where).
+  [testing.md → The Two Levels](../packages/core/testing.md#the-two-levels).
 
 ### TypeScript
 
@@ -221,9 +221,10 @@ stated.
 - **APP-01 — No per-handler error handling.** Fails on a `try` statement in a server handler file;
   failures propagate to the one shared error handler. Rule:
   [transport-mapping.md → Mapping outcomes](../apps/transport-mapping.md#mapping-outcomes-to-a-response-http).
-- **TEST-01 — Every domain unit has its test.** Fails when a `*.service.ts` or `*.orchestration.ts` is
-  not imported directly by any `*.integration.ts`, or a `shared/validation.ts` is not imported directly
-  by any `*.unit.ts`. Rule: [testing.md → What to Test Where](../packages/core/testing.md#what-to-test-where).
+- **TEST-01 — Every domain unit has a test.** Fails when a `*.service.ts`, `*.orchestration.ts` or
+  `shared/validation.ts` is not imported directly by any test file (`*.unit.ts` or `*.integration.ts`).
+  Which level, or which combination, is the test strategy's call, never CI's. Rule:
+  [testing.md](../packages/core/testing.md#the-test-strategy).
 
 ---
 

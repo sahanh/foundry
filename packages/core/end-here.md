@@ -69,8 +69,11 @@ Deterministic rules (imports, naming, TypeScript, time/id/context hygiene) are C
 - [ ] Nothing establishes a fact the context asserts (no write making `ctx.actor`/`ctx.tenant` valid); missing preconditions throw, never repaired inline — [app-context.md](./app-context.md#the-context-is-a-statement-of-fact)
 
 ## Testing → [testing.md](./testing.md)
-- [ ] Integration tests use a test AppContext with real/in-memory DB; infra side effects (emails, jobs) asserted via spy adapters — [testing.md](./testing.md#integration-test-setup--appcontext)
-- [ ] Transactional use case tested all-or-nothing: forced mid-flow failure → no rows, no spy calls — [testing.md](./testing.md#integration-test-flavours)
+- [ ] A test strategy covers the change: each use case's entry point, layer map and vendors, every category walked (rows or a reasoned `n/a`), each risk with its owning level — [testing.md](./testing.md#what-the-strategy-contains)
+- [ ] Every risk row has a test at its level; each integration test spans the layers its row names and mocks only the vendors it names — [testing.md](./testing.md#choosing-the-level)
+- [ ] No risk owned twice: integration does not re-run unit variants, and a duplicate the strategy needs says why — [testing.md](./testing.md#choosing-the-level)
+- [ ] Every test fails when its behaviour breaks: literal expectations, the precise failure, every claim in its name asserted, a guard proven by an outcome that depends on it, no internal structure pinned — [testing.md](./testing.md#what-a-test-must-prove)
+- [ ] Integration tests run on the test AppContext: production database engine, persisted actor, internal queue running the real handler, only external vendors spied — [testing.md](./testing.md#the-test-appcontext)
 
 ---
 
