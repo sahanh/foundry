@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-25 — Strength checks may run on a schedule
 
+**Commit:** [`29e808d`](https://github.com/sahanh/foundry/commit/29e808dc9d0a44c25123f1b816eb8553c631ee96)
+
 [ci-verification.md](./setup/ci-verification.md) names **strength checks** (mutation testing, automated
 re-proofs of other checks), which may run on a schedule instead of on every pull request, under
 conditions it sets. Every other check still runs on every pull request. The manifest's rule rows gain a
