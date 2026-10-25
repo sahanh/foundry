@@ -17,7 +17,7 @@ The rules a tool can decide on its own — imports, naming, TypeScript, column d
 
 One concern cuts across every level: **failure**. How an error is raised in the domain and presented at each edge is one strategy, in **[error-handling.md](./error-handling.md)** — a cross-cutting spine like this map itself; the per-layer docs apply it rather than re-decide it.
 
-Renamed or removed concepts are recorded in **[CHANGELOG.md](./CHANGELOG.md)** — a lookup-on-demand index, not reading material: when a concept you expected is missing or renamed, consult the single entry that names it (it points to the owning guideline); never read the file whole.
+Renamed or removed concepts are recorded in **[CHANGELOG.md](./CHANGELOG.md)** — a lookup-on-demand index, not reading material: when a concept you expected is missing or renamed, consult the single entry that names it (it points to the owning guideline); never read the file whole. Each entry names the commit that made it, and an adopting repo pins the commit it last reconciled to ([setup/staying-in-sync.md](./setup/staying-in-sync.md)).
 
 ## Conventions
 

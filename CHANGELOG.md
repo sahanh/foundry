@@ -3,7 +3,26 @@
 Notable changes to Foundry. If a concept you remember is gone, look here for
 what replaced it and how to migrate.
 
+Each entry's **Commit:** is the commit on `main` that made it — what an adopting repo's pin names
+([setup/staying-in-sync.md](./setup/staying-in-sync.md)). Entries older than
+*2026-07-09 — Handled failures must be logged* predate commit refs.
+
 ---
+
+## 2026-10-25 — Adopting repos pin Foundry; entries carry their commit
+
+New [setup/staying-in-sync.md](./setup/staying-in-sync.md): an adopting repo commits `foundry.lock` at
+its root, naming the Foundry commit its code was last reconciled to, and moves it only by reconciling
+the entries after it — by hand or with the new
+[reconcile-foundry-changes](./skills/reconcile-foundry-changes/SKILL.md) skill, which adopters copy and
+adapt. Each entry now carries a **Commit:** line, the commit on `main` that made it; CI writes it after
+merge, and the ten entries before this one are backfilled. The `foundry-ci.md` manifest's
+**Synced to** line is removed: the pin replaces it.
+
+Affects every adopting repo: create `foundry.lock` per
+[staying-in-sync.md → The pin](./setup/staying-in-sync.md#the-pin--foundrylock) — a repo with a
+*Synced to* line starts from that entry's commit — and drop *Synced to* from `foundry-ci.md`
+([ci-verification.md → The manifest](./setup/ci-verification.md#the-manifest--foundry-cimd)).
 
 ## 2026-10-25 — Testing driven by a test strategy, not by construct
 
@@ -24,6 +43,8 @@ and move `foundry-ci.md`'s *Synced to* forward.
 
 ## 2026-10-17 — Tooling baseline and no floating promises
 
+**Commit:** [`aaf29f4`](https://github.com/sahanh/foundry/commit/aaf29f4249da7f351bd9cf513c43caded95afc97)
+
 [typescript-coding-standards.md](./common/typescript-coding-standards.md) gains two sections, for
 frontend and backend alike: **No Floating Promises** (every promise awaited, returned, or handled) and
 **Tooling Baseline** (`strict` on and type-checking clean; the language's recommended lint presets plus
@@ -39,6 +60,8 @@ and [→ Tooling Baseline](./common/typescript-coding-standards.md#tooling-basel
 
 ## 2026-10-17 — Two frontend CI rules: scrollbar styling and shared-component imports
 
+**Commit:** [`cc4a3a5`](https://github.com/sahanh/foundry/commit/cc4a3a51eca6eb73b58fa039390fdf408ea7eebb)
+
 [setup/ci-verification.md](./setup/ci-verification.md) → *Web apps* gains **`WEB-02`** (scrollbar
 styling only in the shared styling files) and **`WEB-03`** (a shared component never imports a feature's
 components). The *Design-token sources* parameter is renamed **Shared styling files** (it now also
@@ -50,6 +73,8 @@ Read [visual-system.md → Enforcement](./apps/web/visual-system.md#enforcement)
 [component-placement.md → Ownership after promotion](./apps/web/component-placement.md#ownership-after-promotion).
 
 ## 2026-10-17 — Deterministic checks move to CI; `setup/` added
+
+**Commit:** [`a746f0b`](https://github.com/sahanh/foundry/commit/a746f0b0f8005eabe1ff626698a964379a519e4b)
 
 New **[setup/](./setup/start-here.md)** section for one-time adoption work, starting with
 **[setup/ci-verification.md](./setup/ci-verification.md)**: a catalogue of every rule a tool can
@@ -69,6 +94,8 @@ Affects every adopting repo: until its CI enforces a rule, review checks that ru
 to set up the checks; all rule IDs are new.
 
 ## 2026-10-17 — File suffixes, schema file names, and cross-feature imports clarified
+
+**Commit:** [`a746f0b`](https://github.com/sahanh/foundry/commit/a746f0b0f8005eabe1ff626698a964379a519e4b)
 
 Three places where the guidelines disagreed with each other are settled, so a CI check can encode them:
 
@@ -92,6 +119,8 @@ imports beyond these shapes. Read the sections above; the matching CI rules are 
 
 ## 2026-07-18 — Method naming across the service → orchestration → facade seam
 
+**Commit:** [`6a4965f`](https://github.com/sahanh/foundry/commit/6a4965f9df31966865df528abbb1a3b50c01072d)
+
 Prompted by a consuming-project case study (an "Inbox" read model whose service and orchestration
 both exposed `listWaitingTasks` with different return shapes),
 [orchestration.md](./packages/core/orchestration.md) § *Naming* now owns method naming across the
@@ -113,6 +142,8 @@ returning a different shape, or a method name restates its subject's invariant. 
 
 ## 2026-07-11 — Schema placement scoped to boundary/contract types and gate-enforced
 
+**Commit:** [`df30c01`](https://github.com/sahanh/foundry/commit/df30c01863e93e97162b0e20c3f3d72ec7787378)
+
 The inline-schema rule in [implementation-schemas.md](./packages/core/implementation-schemas.md)
 § *Schema Organization* was broadened beyond entity schemas and beyond the old wording *"never inline
 in service methods"*: it now governs **every boundary/contract type** — persisted-entity shapes and
@@ -133,6 +164,8 @@ type that overlaps an existing schema. Read
 
 ## 2026-07-11 — "Engineering Playbook" renamed to Foundry
 
+**Commit:** [`6a0333f`](https://github.com/sahanh/foundry/commit/6a0333f49601594b10a1abda5ddc38eca3f928aa)
+
 The standard is now called **Foundry**. Every doc that used "the playbook" or "Engineering Playbook"
 as the project's name now says Foundry (or, where it reads better, "the standard"); the descriptor
 *engineering standard* is unchanged, and no rule changed meaning.
@@ -142,6 +175,8 @@ read it as Foundry. Entries below this one predate the rename and keep the forme
 record — start with [README.md](./README.md).
 
 ## 2026-07-11 — Public website added under `site/`; `viewer/` renamed, `landing-copy.md` moved
+
+**Commit:** [`f22a975`](https://github.com/sahanh/foundry/commit/f22a975e8b3314c14e19931bbda3927150b8efb6)
 
 The local Markdown viewer at `viewer/` is now **`site/`**, which additionally holds the public
 landing page and a static build of the docs viewer (published to GitHub Pages). `landing-copy.md`
@@ -153,6 +188,8 @@ reading path. Anyone looking for `viewer/` or root `landing-copy.md` finds them 
 
 ## 2026-07-09 — named-decisions.md renamed to branching-logic.md
 
+**Commit:** [`ffb5318`](https://github.com/sahanh/foundry/commit/ffb531892370c76bc4a4fbec8e391414e952554a)
+
 `packages/core/named-decisions.md` is now
 [branching-logic.md](./packages/core/branching-logic.md) — with the Strategy pattern merged in, the
 doc covers the whole branching ladder (inline → named decision → Strategy), not just the first tier.
@@ -160,6 +197,8 @@ No rule changed; section headings are unchanged. Anyone linking to `named-decisi
 older `implementation-strategy-pattern.md`) should repoint to the new file.
 
 ## 2026-07-09 — Handled failures must be logged; reads are authorized too
+
+**Commit:** [`5d71c63`](https://github.com/sahanh/foundry/commit/5d71c63f4961e3e737430008453daa5750d30711)
 
 Two rules added after an A/B build evaluation surfaced silent gaps: a **handled failure (`4xx`) is
 logged at `warn` with its failure code** — never silent — and **authorization covers reads**

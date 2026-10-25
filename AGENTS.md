@@ -57,6 +57,12 @@ Newest entries at the top. Each entry has three parts:
    changed, or removed, name its ID — adopters' CI checks follow the catalogue, and the ID tells them
    which check to update.
 
+**The commit ref is not yours to write.** After merge, CI
+([`scripts/changelog-refs.sh`](./scripts/changelog-refs.sh)) adds a `**Commit:**` line under each new
+heading, naming the commit on `main` that introduced it — the value an adopting repo pins
+([setup/staying-in-sync.md](./setup/staying-in-sync.md)). The script finds that commit by the heading's
+exact text, so a heading is unique and never reworded once merged.
+
 **The defining rule: point, don't re-teach.** The changelog does **not** prescribe migration steps,
 restate the rule, or explain how to fix code. The guidelines are the single source of truth — the
 entry says only *what changed* and *which sections to read* to confirm you adhere. Anyone who needs

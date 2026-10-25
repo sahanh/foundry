@@ -41,8 +41,6 @@ tool *cannot* decide stays with the [review protocol](../review.md) and the `end
 
 Lives at the adopting repo's root; the reviewer and every later agent read it. It holds:
 
-- **Synced to** — the newest [CHANGELOG](../CHANGELOG.md) entry the checks reflect (date + title).
-  Entries after it may name rule IDs whose checks need updating.
 - **Local command** — the one command from step 5.
 - **Parameters** — every value below, as set for this repo.
 - **Rules** — one row per rule ID: `enforced` / `n/a` / `deferred`, where the check lives (CI job or
@@ -322,5 +320,6 @@ The same goes for picking an adapter: the *Per adapter* rules are written for th
 choosing or swapping one (a different ORM, a different store) means re-reading those rules and
 rebuilding their checks for it.
 
-**Keeping current.** When a [CHANGELOG](../CHANGELOG.md) entry newer than the manifest's *Synced to*
-names a rule ID, update that check, then move *Synced to* forward.
+**Keeping current.** When a [CHANGELOG](../CHANGELOG.md) entry after the repo's pin
+([staying-in-sync.md](./staying-in-sync.md)) names a rule ID, updating that check and its manifest row
+is part of reconciling the entry.
