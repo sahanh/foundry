@@ -123,7 +123,7 @@ Not covered: the HTTP route (parses params into the orchestration's input; no lo
 - **From the behaviour:** break it — delete the guard, reword the message, throw the wrong error — and watch the test go red.
 - **From each assertion:** ask whether it could ever fail. An assertion nothing in the setup could violate proves nothing.
 
-**A guard row needs evidence, not a reading.** For every risk row about a lock, a conditional write, a uniqueness guard, a rollback or a refusal, the implementer breaks the guard, runs its test, watches it fail, and reverts — and records it in the PR: what was broken, and which test failed. A mutation score is no substitute: it is evidence only for the code it mutates, and never for a race or a rollback.
+**A guard row needs evidence, not a reading.** For every risk row about a lock, a conditional write, a uniqueness guard, a rollback or a refusal, the implementer breaks the guard, runs its test, watches it fail, and reverts — and records it in the PR. A valid record shows three things: the test passed first; the change still built and disabled only that protection (*drop the `FOR UPDATE`; make the conditional `UPDATE` unconditional; remove the rollback; skip the refusal check*); and the test failed **at the assertion for that risk**, not at setup or compilation. One break may evidence several rows only when it shows each one's assertion failing. A mutation score is no substitute: it is evidence only for the code it mutates, and never for a race or a rollback.
 
 Every test, at both levels:
 

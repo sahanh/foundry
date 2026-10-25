@@ -1,13 +1,14 @@
 ## Test review: <PR #n or branch> — <title>
 
 Base `<base-sha>` → head `<head-sha>`. PRD: <link>. Strategy: <path> | **none — derived** (fails
-core/end-here → Testing).
+core/end-here → Testing) | none needed: <why the change needs no new tests>.
 Harness read: <test AppContext builder file>, <adapter files>; defaults that matter: <e.g. "audience
 spy disabled unless enabled: true">.
 CI: <result>. Mutation: <score>, mutating <paths>; excludes <paths> — no evidence for rows there.
 Citations verified against `<head-sha>`.
 
 **Summary:** <N> rows covered · <N> stop short · <N> missing · <N> wrong level · <N> holes in the plan.
+Guard evidence: <N> evidenced · <N> weak · <N> none.
 
 ### 1. Strategy rows
 
@@ -23,7 +24,7 @@ Citations verified against `<head-sha>`.
 
 *Not covered:* <each entry> → ✅ behaviour-free · ✅ accepted by <who> · ❌ hides behaviour (#<n>).
 
-### 3. Tests no row explains
+### 3. New or changed tests no row explains
 
 | Test (file:line › title) | Level | Reading | Gap |
 |---|---|---|---|
@@ -37,9 +38,9 @@ Citations verified against `<head-sha>`.
 
 ### 5. Guard evidence
 
-| Row | Guard | PR's break-it record | Re-checked by reviewer | Verdict |
+| Row | Guard | Coverage | PR's break-it record | Evidence |
 |---|---|---|---|---|
-| <ID> | <lock / conditional write / uniqueness / rollback / refusal> | <what was broken → which test failed> \| none | yes: failed as expected · no | ✅ · 🟡 no evidence |
+| <ID> | <lock / conditional write / uniqueness / rollback / refusal> | ✅ · 🟡 · ❌ (from table 1) | <baseline passed; what was disabled; which assertion failed> \| none | ✅ evidenced · 🟡 weak · ❌ none |
 
 ---
 
