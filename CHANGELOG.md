@@ -9,6 +9,17 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-25 — The test-plan skill writes a PRD's test strategy
+
+New **[skills/test-plan](./skills/test-plan/SKILL.md)**, with a
+[strategy template](./skills/test-plan/strategy-template.md): writes a PRD's test strategy with the user,
+before the code, in [testing.md](./packages/core/testing.md#the-test-strategy)'s format.
+[testing.md](./packages/core/testing.md#the-test-strategy) and
+[core/start-here.md](./packages/core/start-here.md) → *Designing a Feature* link to it. No rule changed.
+
+Affects adopting repos that install Foundry's skills: install `test-plan` per
+[setup/agent-skills.md](./setup/agent-skills.md).
+
 ## 2026-10-25 — Tests reviewed against the test strategy; break-it evidence; installing skills
 
 **Commit:** [`2487bc0`](https://github.com/sahanh/foundry/commit/2487bc0d2defa957256bdcfea983c8d49946b9de)

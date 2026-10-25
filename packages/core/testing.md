@@ -22,7 +22,7 @@ Running the suites is infrastructure, not strategy: the adopting repo's CI runs 
 
 ## The Test Strategy
 
-Every PRD that changes behaviour gets a test strategy, written before the code. **A PRD here is any bounded request that carries a change's context** — a product spec, an issue, a bug report, a refactor proposal. The strategy lives in the adopting repo at `docs/test-strategy/<prd-slug>.md` and opens by linking its PRD. A change that needs no new tests (a dependency bump) needs no strategy.
+Every PRD that changes behaviour gets a test strategy, written before the code. **A PRD here is any bounded request that carries a change's context** — a product spec, an issue, a bug report, a refactor proposal. The strategy lives in the adopting repo at `docs/test-strategy/<prd-slug>.md` and opens by linking its PRD. A change that needs no new tests (a dependency bump) needs no strategy. The [test-plan](../../skills/test-plan/SKILL.md) skill writes one with the user.
 
 It is a **plan, not a checklist of test cases**: it names risks, the level that owns each and, for integration, the layers to span — never files or code. The combination of unit and integration tests the implementer writes must cover it; one test may cover several rows. Tests do not reference it; a reviewer maps tests to it by reading them.
 
