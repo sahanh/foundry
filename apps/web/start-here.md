@@ -22,7 +22,7 @@ The frontend is exactly as thin as a controller: it renders state and turns user
 Work from the requested surface inward, reusing shared layers before inventing local ones:
 
 1. **Scope the surface** from the request — the essentials of the named pattern, no adjacent surfaces ([ui-scope.md](./ui-scope.md)).
-2. **Place components close to the owning feature**, named with feature context; keep the first implementation local ([component-placement.md](./component-placement.md)).
+2. **Place components close to the owning feature**, named with feature context; keep the first implementation local. First check that no component in the feature or its siblings already does the job — a second copy is the signal to extract, with confirmation ([component-placement.md](./component-placement.md#extraction--on-the-second-copy-with-confirmation)).
 3. **Compose inside the shared shell and container** — don't reinvent app-level layout ([app-shell.md](./app-shell.md)).
 4. **Inherit the visual system** — reach for semantic tokens and the shared default before any local style ([visual-system.md](./visual-system.md)).
 
