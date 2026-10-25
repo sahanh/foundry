@@ -9,6 +9,22 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-25 — Tests reviewed against the test strategy; break-it evidence; installing skills
+
+New **[skills/test-review](./skills/test-review/SKILL.md)**: the read-only procedure for verifying a
+change's tests against its PRD's test strategy, with a fixed [report](./skills/test-review/report-template.md).
+[review.md](./review.md) routes the tests node to it, and a map with a tests node must report that
+table. [testing.md → What a Test Must Prove](./packages/core/testing.md#what-a-test-must-prove) adds
+**break-it evidence** for guard rows, recorded in the PR, and says a mutation score is no substitute;
+[core/end-here.md](./packages/core/end-here.md) → *Testing* gains the matching box. New
+**[setup/agent-skills.md](./setup/agent-skills.md)**: `skills/` holds templates an adopting repo
+copies and adapts.
+
+Affects PRs that touch a lock, conditional write, uniqueness guard, rollback or refusal; every review
+with a tests node; and every adopting repo, which must install `test-review` for the tests node to
+run. Read [testing.md → What a Test Must Prove](./packages/core/testing.md#what-a-test-must-prove),
+[skills/test-review](./skills/test-review/SKILL.md) and [setup/agent-skills.md](./setup/agent-skills.md).
+
 ## 2026-10-25 — Adopting repos pin Foundry; entries carry their commit
 
 **Commit:** [`ff0f215`](https://github.com/sahanh/foundry/commit/ff0f215c17a586ff80a0cb637ddf1cb131ef9907)

@@ -39,7 +39,9 @@ navigation/verification seam inside `site/` to keep in sync.
 
 **Every change that adds, changes, or removes a guideline** — any convention, rule, or structure
 someone must follow — updates [`CHANGELOG.md`](./CHANGELOG.md) in the *same* change. This is not
-optional. (Trivial edits that change no rule — typo and formatting fixes — are exempt.)
+optional. (Trivial edits that change no rule — typo and formatting fixes — are exempt.) A change to a
+skill under `skills/` gets an entry too, naming the skill: adopting repos hold adapted copies and
+re-adapt from the entry ([setup/agent-skills.md](./setup/agent-skills.md)).
 
 The changelog exists for one reason: so that someone whose work predates a change can discover their
 code may no longer conform, and find where to look. It is a **signpost, not a tutorial**.
