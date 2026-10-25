@@ -12,7 +12,8 @@ this file is the procedure that produces one. The strategy is later checked agai
 [test-review](../test-review/SKILL.md).
 
 **You plan; you don't build.** Never write tests, code or fixtures. Name risks, levels, layers and
-seams — never files, functions or types: those are the implementer's call.
+seams. Never propose new files, function names, signatures or types: those are the implementer's
+call. Naming the existing code a use case enters through, or an existing test you cite, is fine.
 
 ## Project parameters
 
@@ -28,8 +29,9 @@ Filled in when installed:
 
 ## How to work
 
-- **Ask questions of the PRD, not of your memory.** Every risk you plan cites the PRD sentence, or the
-  existing code or test, that it comes from — or is marked as an open point for the user.
+- **Ask questions of the PRD, not of your memory.** Every risk you plan records its source in
+  the risk table — the PRD section, the existing code or test it comes from, or *settled with
+  <who>* — or is marked as an open point for the user.
 - **One file per read** when reading existing code and tests, so references stay accurate.
 - **Propose, then settle.** Draft the whole strategy, show it, and settle the open points with the
   user before writing the file. Ask each question with a recommended answer.
@@ -54,7 +56,8 @@ Filled in when installed:
 - **The existing code** the PRD touches: the features, services and orchestrations it extends, and
   the adapters it will reach. This gives each use case its layer map before the new code exists.
 - **The existing tests** of that code: what each already owns. A risk an existing test owns is
-  cited, not planned again.
+  cited, not planned again: it keeps a row, with that test in the row's *Existing test* column, so a
+  category answer can point at it by ID and no duplicate test is written.
 - **The test harness:** how the test `AppContext` is built, which adapters it fakes, what its defaults
   are ([testing.md → The Test AppContext](../../packages/core/testing.md#the-test-appcontext)). A
   harness that cannot do what a row needs — a queue that never runs its handler, an in-memory
@@ -95,8 +98,10 @@ Behaviour the PRD leaves unspecified goes to **Decide first**, never into an ass
   made — in code, in the database, or between layers
   ([testing.md → Choosing the level](../../packages/core/testing.md#choosing-the-level)). For each
   integration row, the layers it spans and what it mocks.
-- **Never at two levels.** Unit variants are not re-run at integration; a wiring row uses one
-  representative input.
+- **One level per risk.** Unit variants are not re-run at integration; a wiring row uses one
+  representative input. The one exception — an assertion both levels genuinely need, such as a value
+  that is both a function's output and a stored unique key — is allowed with its reason written in
+  the row ([testing.md → Choosing the level](../../packages/core/testing.md#choosing-the-level)).
 - **Seams:** propose one only where the variation already exists — cases the PRD lists, a format
   someone else owns, a published table — never for "it might vary later"
   ([testing.md → Seams](../../packages/core/testing.md#seams--structuring-logic-so-unit-tests-carry-it)).
@@ -122,7 +127,7 @@ Revise until the user agrees. Don't write the file before then.
 
 Write `<strategies folder>/<prd-slug>.md` from [strategy-template.md](strategy-template.md):
 
-- the PRD linked on the first line;
+- the PRD linked in the *Source* line under the title;
 - every use case, every category answered, every risk with its level and reason;
 - the user's decisions recorded where they apply (*accepted by <who>: <reason>*; a Decide-first item
   with its answer).
