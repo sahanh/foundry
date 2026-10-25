@@ -76,7 +76,7 @@ Each seam states its **contract** — the output shape and the invariants its co
 - **Risks** — one row each: an ID, the risk, the owning level, why that level, and for an integration row the layers it **spans** and what it **mocks**. The IDs are for the plan and its review; tests never cite them.
 - **Decide first** — behaviour the PRD does not specify, raised with the user before the test can be written.
 
-**Plan in two passes.** First walk the PRD's own rules and branches, one by one. Then put every question below to every use case — they are the minimum a plan answers, not the whole of it. Each question gets its rows or a one-line `n/a` with the reason (*n/a: only the owner ever writes this row*); a question skipped in silence is a hole in the plan.
+**Plan in two passes.** First walk the PRD's own rules and branches, one by one. Then put every question below to every use case — they are the minimum a plan answers, not the whole of it. Each question gets its rows or a one-line `n/a` with the reason. `n/a` means the behaviour the question asks about is absent from the use case (*Concurrency — n/a: the use case only reads*); a rule that exists but is unspecified goes to *Decide first* instead. A question skipped in silence is a hole in the plan.
 
 | Category | The question, for every use case |
 |---|---|
@@ -87,7 +87,7 @@ Each seam states its **contract** — the output shape and the invariants its co
 | **Permissions** | For every actor type: is it allowed, or refused? Does a refused write leave nothing written? Are reads scoped to what the actor may see ([identity-and-access.md](./identity-and-access.md#authorization-is-a-domain-concern))? |
 | **Side effects** | For every effect: is it asserted both sent and not sent? An internal job dispatched **and** run, its effect checked; a vendor call on its spy. |
 | **Atomicity** | For every transactional path: does a forced mid-flow failure leave no rows and no effects? On success, does each effect fire exactly once, after commit — proven by an ordering check, never a sleep ([atomicity.md](./atomicity.md))? |
-| **Concurrency** | For every read, then decide, then write: what if two requests run it at once — whether or not the PRD mentions races? Plan a test that makes the two overlap deterministically and asserts an outcome that would be wrong without the guard (*two redemptions of a single-use coupon: exactly one succeeds*). |
+| **Concurrency** | For every read, then decide, then write, and every write a uniqueness guard protects: what if two requests run it at once — whether or not the PRD mentions races? Plan a test that makes the two overlap deterministically and asserts an outcome that would be wrong without the guard (*two redemptions of a single-use coupon: exactly one succeeds*). |
 | **Failure modes** | For every effect after a commit: what if it fails (*the order committed; enqueueing the receipt failed*)? For every loop or run: what if one step fails? For every input: what if it arrives twice? Unspecified behaviour goes to *Decide first*. |
 | **Data shape** | Does the logic depend on the data's shape? Then plan realistic data: gaps in ids for paging, whitespace and collation variants for a unique index, the largest realistic batch. |
 | **Wiring** | Which integration rows span the use case's layer map, entry point to effects? A layer no row spans goes under *Not covered* — and only if it qualifies there. |
@@ -148,7 +148,7 @@ Every service receives an `AppContext` through its constructor ([app-context.md]
 
 **Atomicity mechanics** ([atomicity.md](./atomicity.md)): force the mid-flow failure inside the boundary (e.g. the second service throws) → assert no rows, no vendor calls, no job dispatched; on success, assert each effect fired exactly once, after the commit.
 
-**Concurrency mechanics:** make the overlap deterministic, never timed — for a lock, hold the first transaction open and wait until the database reports the second blocked; for a conditional write or unique constraint, start both operations from the same read and let both write. Holding a transaction open here is test synchronisation; production transactions still never wait ([atomicity.md](./atomicity.md#what-a-transaction-cannot-span)).
+**Concurrency mechanics:** make the overlap deterministic, never timed — for a lock, hold the first transaction open and wait until the database reports the second blocked; for a conditional write, start both operations from the same read and let both write; for an insert a unique constraint guards, start both inserts together and let both try to commit — exactly one succeeds. Holding a transaction open here is test synchronisation; production transactions still never wait ([atomicity.md](./atomicity.md#what-a-transaction-cannot-span)).
 
 ## Integration Test Flavours
 

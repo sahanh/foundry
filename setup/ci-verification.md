@@ -223,7 +223,8 @@ stated.
   [transport-mapping.md → Mapping outcomes](../apps/transport-mapping.md#mapping-outcomes-to-a-response-http).
 - **TEST-01 — Every domain unit has a test.** Fails when a `*.service.ts`, `*.orchestration.ts` or
   `shared/validation.ts` is not imported directly by any test file (`*.unit.ts` or `*.integration.ts`).
-  Which level, or which combination, is the test strategy's call, never CI's. Rule:
+  Which level, or which combination, is the test strategy's call, never CI's. Pure helpers
+  (`shared/utils.ts`) are left to the test strategy and review, since many are trivial. Rule:
   [testing.md](../packages/core/testing.md#the-test-strategy).
 
 ---
