@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — implement verifies each commit once
 
+**Commit:** [`25defdf`](https://github.com/sahanh/foundry/commit/25defdfcbfcd3a297052db59c2861e5c78148718)
+
 **implement**'s reviewer no longer runs the local gates: it reads the builder's recorded result for the
 PR's head commit, and CI's. A commit with a recorded passing run isn't verified again; a new commit is.
 Nothing else runs in a worktree while its gates run. A new *Stack-wide checks* parameter runs checks too
