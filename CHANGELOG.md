@@ -9,6 +9,15 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-30 — The pipeline is described as three streams
+
+[setup/agent-skills.md → The pipeline](./setup/agent-skills.md#the-pipeline) now presents the skills as
+three user-run streams — define (`elaborate-feature`, `capture-fix`), build (`implement`), land (`land-prs`,
+after the user's review) — handed over by labels and orchestrated by the user. No skill changes.
+
+Affects adopting repos whose `AGENTS.md` describes the pipeline: point it to the streams. Read
+[setup/agent-skills.md → The pipeline](./setup/agent-skills.md#the-pipeline).
+
 ## 2026-10-29 — New land-prs skill; implement labels finished PRs and starts a preview
 
 **Commit:** [`f80d006`](https://github.com/sahanh/foundry/commit/f80d0066a8a38f939c24f4be30b9d7d0268efd3a)
