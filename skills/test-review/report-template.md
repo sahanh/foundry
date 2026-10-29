@@ -41,7 +41,7 @@ Guard evidence: <N> evidenced · <N> weak · <N> none.
 
 | Row | Guard | Coverage | PR's break-it record | Evidence |
 |---|---|---|---|---|
-| <ID> | <lock / conditional write / uniqueness / rollback / refusal> | ✅ · 🟡 · ❌ (from table 1) | <baseline passed; what was disabled; which assertion failed> \| none | ✅ evidenced · 🟡 weak · ❌ none |
+| <ID> | <lock / conditional write / uniqueness / rollback / refusal> | ✅ · 🟡 · ❌ (from table 1) | <passed with the protection; what was absent; which assertion failed without it> \| none | ✅ evidenced · 🟡 weak · ❌ none |
 
 ---
 
