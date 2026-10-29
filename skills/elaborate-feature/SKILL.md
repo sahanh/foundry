@@ -28,9 +28,8 @@ Filled in when installed:
 | Test strategies live in | `docs/test-strategy/` |
 | Domain vocabulary and decisions | *e.g. `GLOSSARY.md` and `docs/adr/`, as `docs/agents/domain.md` names them* |
 
-It runs two skills Foundry doesn't own, `grilling` and `domain-modeling`; the repo installs them
-([setup/agent-skills.md → Companion skills](../../setup/agent-skills.md#companion-skills)). Either one
-missing: stop and say so.
+It runs [grilling](../grilling/SKILL.md) and [domain-modeling](../domain-modeling/SKILL.md), which
+Foundry ships from upstream ([setup/agent-skills.md → Skills from upstream](../../setup/agent-skills.md#skills-from-upstream)).
 
 ## How to work
 
