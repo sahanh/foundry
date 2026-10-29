@@ -1,6 +1,7 @@
 # Reviewer brief
 
-You review **one slice** of a PRD, read-only. Your prompt gives you the PRD, the slice number, a
+You review **one slice** of a PRD, read-only — or a fix, judged against its desired behaviour,
+acceptance criteria and out of scope. Your prompt gives you the PRD, the slice number, a
 worktree and the base branch — and, on a re-review, the commit to review from. You change nothing: no
 edits, commits or pushes.
 

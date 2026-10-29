@@ -45,13 +45,18 @@ project that needs a different procedure writes its own skill under its own name
 
 ## The pipeline
 
-Two skills take a feature from an idea to a stack of pull requests; the others run inside them.
+Three skills take work from an idea, or a problem found along the way, to reviewed pull requests; the
+others run inside them.
 
-1. **`/elaborate-feature`** (user-only) — the goal, the grilling, the PRD, its test strategy (`test-plan`)
-   and its slices, published with the plan committed on a branch.
-2. **`/implement-prd <PRD>`** — the plan PR, then one PR per slice built with `tdd` and reviewed for
-   conformance (`review.md`) and correctness; then `test-review` once over the whole stack. It stops at a
-   ready stack: landing it is the user's.
+1. **`/elaborate-feature`** (user-only) — new behaviour: the goal, the grilling, the PRD, its test
+   strategy (`test-plan`) and its slices, published with the plan committed on a branch.
+2. **`/capture-fix`** — a contained change to something that already exists (a bug, an implementation
+   gap, a test fix), found while working: offered by the agent, run only on the user's yes, filed as a
+   self-contained issue that is ready to build or lists what a human must finalise.
+3. **`/implement <issue>`** — a ready PRD or fix, refusing one that isn't: for a PRD the plan PR, then one
+   PR per slice; for a fix one PR, its test plan written from the issue. Each PR is built with `tdd` and
+   reviewed for conformance (`review.md`) and correctness; then `test-review` once over all of it. It
+   stops at ready PRs: landing them is the user's.
 
 `test-plan`, `tdd` and `test-review` stay usable on their own.
 

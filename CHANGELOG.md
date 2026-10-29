@@ -9,6 +9,23 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — implement-prd becomes implement, for PRDs and fixes; new capture-fix skill
+
+**implement-prd** is renamed **implement** ([skills/implement/](./skills/implement/SKILL.md)). It takes a
+ready issue of either kind — a PRD from `elaborate-feature`, or a finalised fix from the new
+**capture-fix** — checks it is ready first, and refuses one that isn't, naming what's missing and the
+command that completes it. A fix becomes one PR, its test plan written unattended from the issue.
+
+New skill, **capture-fix** ([skills/capture-fix/](./skills/capture-fix/SKILL.md)): a bug, implementation
+gap or test fix found while working is filed as a self-contained issue, labelled ready or marked for a
+human to finalise, after the agent asks "Shall I invoke /capture-fix?". **tdd**, **implement** and
+**elaborate-feature** offer it rather than fixing on the side, and
+[setup/agent-skills.md → The pipeline](./setup/agent-skills.md#the-pipeline) names it.
+
+Affects adopting repos that installed `implement-prd`: install `implement` in its place, carrying its
+parameters over (*PRDs live in* is now *Issues live in*; add *Fix labels*), and update its `AGENTS.md`
+line. Install `capture-fix`, and re-copy `tdd` and `elaborate-feature`.
+
 ## 2026-10-29 — implement-prd: only high and medium correctness findings block
 
 **Commit:** [`1dd3ed2`](https://github.com/sahanh/foundry/commit/1dd3ed20704a7bd37471bde46bf8754e3a94e92b)
@@ -19,7 +36,7 @@ don't block and are listed on the slice PR, so the fix loop ends. The whole-stac
 both reviews clean and CI green on every slice.
 
 Affects adopting repos that installed `implement-prd`: re-copy it. Read
-[skills/implement-prd/SKILL.md → Stage 3](./skills/implement-prd/SKILL.md#stage-3-build-each-slice).
+[skills/implement-prd/SKILL.md → Stage 3](./skills/implement/SKILL.md#stage-3-build-each-slice).
 
 ## 2026-10-29 — domain-modeling follows the repo's own ADR rules
 
@@ -55,7 +72,7 @@ and the stack targets, the default branch unless the repo integrates elsewhere (
 Everything they said of "the default branch" now says the base branch.
 
 Affects adopting repos that installed either skill: fill in *Base branch*. Read
-[skills/implement-prd/SKILL.md → Project parameters](./skills/implement-prd/SKILL.md#project-parameters).
+[skills/implement-prd/SKILL.md → Project parameters](./skills/implement/SKILL.md#project-parameters).
 
 ## 2026-10-29 — Pipeline skills: landing marks the strategy, slice scope, stack catch-up
 
@@ -73,13 +90,13 @@ companions in `AGENTS.md`.
 
 Affects adopting repos that installed these skills: re-copy `implement-prd`, `tdd` and
 `elaborate-feature`, filling in *Merge method*. Read
-[skills/implement-prd/pr-templates.md → Landing](./skills/implement-prd/pr-templates.md#landing).
+[skills/implement-prd/pr-templates.md → Landing](./skills/implement/pr-templates.md#landing).
 
 ## 2026-10-29 — New implement-prd skill: a PRD built as a PR stack
 
 **Commit:** [`deefd20`](https://github.com/sahanh/foundry/commit/deefd2048701d1c942a0d2d30533ed0931da4280)
 
-New skill, **implement-prd** ([skills/implement-prd/](./skills/implement-prd/SKILL.md)): it builds a PRD
+New skill, **implement-prd** ([skills/implement-prd/](./skills/implement/SKILL.md)): it builds a PRD
 published by `elaborate-feature` as a stack of pull requests — the plan PR, then one PR per slice built
 by a subagent with `tdd`, each reviewed for conformance (`review.md`, tests excepted) and correctness;
 then `test-review` once over the whole stack. It gathers judgment calls and strategy changes on the plan

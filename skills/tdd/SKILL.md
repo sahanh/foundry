@@ -102,6 +102,9 @@ silent.
 - **What the product should do.** Behaviour the PRD leaves unspecified: choose what the PRD's intent
   best supports, build it, and record it as a judgment call — what was unspecified, what you chose,
   and why.
+- **Something outside your rows that needs a fix** — a bug, a gap or a weak test in code the change
+  doesn't own: don't fix it on the side. Offer [capture-fix](../capture-fix/SKILL.md) to the user; when
+  no one is there to ask, list it under *fixes found* in your report.
 - **A guard row you cannot build at its level** — the overlap can't be forced, the rollback can't be
   provoked: never settle for a weaker test in silence. Record it as a judgment call marked **weakened
   guard**, saying what the test now proves and what it no longer does.
@@ -122,6 +125,8 @@ strategy changes:
 judgment calls:
   [weakened guard] <ID>: <what the test proves now, and what it no longer does>
   <what the PRD left open> → <what you chose> — <why>
+fixes found:
+  <what needs fixing, where, and how it showed> | none
 ```
 
 Committing, pushing and opening a pull request belong to whoever launched you; do them only when

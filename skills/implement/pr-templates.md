@@ -1,5 +1,7 @@
 # PR templates
 
+A fix is one PR: its *Goal* is the issue's desired behaviour, and it closes the issue.
+
 ## Plan PR
 
 Title: `<PRD title>: plan (#<PRD>)`
