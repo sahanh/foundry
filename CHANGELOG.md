@@ -9,6 +9,20 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — New elaborate-feature skill: from an idea to a published PRD
+
+New user-only skill, **elaborate-feature** ([skills/elaborate-feature/](./skills/elaborate-feature/SKILL.md)):
+it takes the user's goal in their words, grills the idea, drafts the PRD, writes its test strategy with
+`test-plan`, cuts tracer-bullet slices that each own strategy rows, and publishes the PRD with the docs
+committed on the worktree branch. It runs two **companion skills** from Matt Pocock's repo, `grilling`
+and `domain-modeling`, which [setup/agent-skills.md → Companion skills](./setup/agent-skills.md#companion-skills)
+now covers, pinned at `59db609`; it replaces upstream's `to-spec` and `to-tickets` in this flow. The same
+doc now lets a skill's frontmatter make it user-only (`disable-model-invocation: true`), kept on install.
+
+Affects adopting repos: install the skill and its companions, and keep user-only frontmatter on every
+installed skill. Read [setup/agent-skills.md](./setup/agent-skills.md#you-are-installing-them) step 3
+and [→ Companion skills](./setup/agent-skills.md#companion-skills).
+
 ## 2026-10-29 — New tdd skill: build a test strategy test-first
 
 **Commit:** [`a446eed`](https://github.com/sahanh/foundry/commit/a446eedb84bb73ee04cf4c35300ac56916b72ca4)
