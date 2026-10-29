@@ -67,7 +67,7 @@ Part of #<PRD>, slice <N> of <M>: <covers>. Based on #<PR below>.
 
 ## Verification
 
-Review: <rounds of conformance and correctness review, e.g. 2 rounds, clean> · Low correctness findings, not fixed: <each, one line> | none · Gates: <command> green · UI evidence: <links> | n/a
+Review: <rounds of conformance and correctness review, e.g. 2 rounds, clean> · Low correctness findings, not fixed: <each, one line> | none · Gates: <command> green at <commit> · UI evidence: <links> | n/a
 ```
 
 The top slice's PR also carries `Closes #<PRD>`.
