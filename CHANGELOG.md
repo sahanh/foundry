@@ -9,6 +9,16 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — The pipeline's tracker labels are listed
+
+[setup/agent-skills.md → Tracker labels](./setup/agent-skills.md#tracker-labels) lists the issue labels
+the pipeline hands work over with — `ready-for-agent`, `needs-triage` and `fix` — what each means, and
+which skill applies and reads it; setup creates them in the tracker.
+
+Affects adopting repos that installed `capture-fix` or `implement`: make sure the three labels exist, or
+map them in the skills' *Fix labels* parameter. Read
+[setup/agent-skills.md → Tracker labels](./setup/agent-skills.md#tracker-labels).
+
 ## 2026-10-29 — implement-prd becomes implement, for PRDs and fixes; new capture-fix skill
 
 **Commit:** [`355995a`](https://github.com/sahanh/foundry/commit/355995a5a1562fda01b3b4182f321bb30898ef56)
