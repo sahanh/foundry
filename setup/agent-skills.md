@@ -46,7 +46,7 @@ project that needs a different procedure writes its own skill under its own name
 
 ## The pipeline
 
-Three skills take work from an idea, or a problem found along the way, to reviewed pull requests; the
+Four skills take work from an idea, or a problem found along the way, to landed pull requests; the
 others run inside them.
 
 1. **`/elaborate-feature`** (user-only) — new behaviour: the goal, the grilling, the PRD, its test
@@ -57,21 +57,26 @@ others run inside them.
 3. **`/implement <issue>`** — a ready PRD or fix, refusing one that isn't: for a PRD the plan PR, then one
    PR per slice; for a fix one PR, its test plan written from the issue. Each PR is built with `tdd` and
    reviewed for conformance (`review.md`) and correctness; then `test-review` once over all of it. It
-   stops at ready PRs: landing them is the user's.
+   stops at PRs labelled ready to land, with a preview of the app running for the user to try.
+4. **`/land-prs [PR] [branch]`** (user-only) — the ready PRs, or a named one and its stack: one plan the
+   user approves, then bottom-up merges into the base branch, stopping on red, one deploy at the end,
+   the production branch only when named; then the issues closed and the branches, worktrees and
+   previews cleaned up.
 
 `test-plan`, `tdd` and `test-review` stay usable on their own.
 
 ### Tracker labels
 
-The pipeline hands work over through issue labels. **Create each one in the repo's tracker when you
-install the skills**, or map it to an existing label with the same meaning; the names are the skills'
-*Fix labels* parameter (`capture-fix`, `implement`), so they match it.
+The pipeline hands work over through labels. **Create each one in the repo's tracker when you install
+the skills**, or map it to an existing label with the same meaning; the names are the skills' label
+parameters (`capture-fix`, `implement`, `land-prs`), so they match them.
 
 | Label | Means | Applied by | Read by |
 |---|---|---|---|
 | `ready-for-agent` | fully specified: an agent can build it | `elaborate-feature` (every PRD it publishes), `capture-fix` (a fix with no open questions or after finalising) | `implement` — the queue of ready work |
 | `needs-triage` | a human must settle its open questions first | `capture-fix` (a fix with a *Needs a human to finalise* section) | `/capture-fix #<n>`, which finalises it; `implement` refuses it |
 | `fix` | the kind: a bug, implementation gap or test fix in something that already exists | `capture-fix` (every issue it files) | `implement`, which builds it as one PR; `label:fix label:ready-for-agent` is the fix queue |
+| `ready-to-land` | on a **pull request**: the work behind it is finished — reviewed, CI-green, its tests reviewed | `implement` (every PR, once nothing in the stack is blocked); a person, on a PR they made | `land-prs`, which lands only these; it removes the label from a PR it holds |
 
 ## Skills from upstream
 

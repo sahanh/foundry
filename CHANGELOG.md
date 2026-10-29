@@ -9,6 +9,22 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — New land-prs skill; implement labels finished PRs and starts a preview
+
+New user-only skill, **land-prs** ([skills/land-prs/](./skills/land-prs/SKILL.md)): it lands the PRs
+labelled `ready-to-land`, or a named one and its stack, after one approval — bottom-up into the base
+branch, stopping on red, one deploy at the end, the production branch only when named (promoting, or
+cherry-picking when the base holds other work) — then closes the issues and cleans up branches,
+worktrees and previews. **implement** now labels every PR `ready-to-land` at its finish, starts a
+**preview** of the app for the user to try (a new *Preview* parameter) and records it on the PR for
+land-prs to stop; its *Fix labels* parameter is now *Labels*, and its PR template's *Landing* points to
+land-prs. [setup/agent-skills.md](./setup/agent-skills.md#tracker-labels) adds the `ready-to-land` label
+and a fourth pipeline step.
+
+Affects adopting repos: install `land-prs` and fill in its parameters; re-copy `implement`, filling in
+*Preview* and carrying *Fix labels* over as *Labels*; create the `ready-to-land` label. Read
+[setup/agent-skills.md → The pipeline](./setup/agent-skills.md#the-pipeline).
+
 ## 2026-10-29 — CI may run only the formatter on a docs-only change
 
 **Commit:** [`2b3bfce`](https://github.com/sahanh/foundry/commit/2b3bfce2d30b74e9d1b3e832f98b67cb697d8002)
