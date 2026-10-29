@@ -1,14 +1,14 @@
 ---
 name: elaborate-feature
 argument-hint: "[the idea, or an issue to start from]"
-description: Turn a feature idea into a published PRD with its test strategy, with the user, in a Foundry codebase. Takes the user's goal in their own words, grills the idea until every decision is settled (Matt Pocock's grilling and domain-modeling skills, which record the glossary and ADRs), drafts the PRD, writes its test strategy with test-plan, cuts the work into tracer-bullet slices that each own strategy rows, settles everything in one approval round, then commits the docs on the worktree branch and publishes the PRD for implement-prd. Plans only — never writes code or tests.
+description: Turn a feature idea into a published PRD with its test strategy, with the user, in a Foundry codebase. Takes the user's goal in their own words, grills the idea until every decision is settled (Matt Pocock's grilling and domain-modeling skills, which record the glossary and ADRs), drafts the PRD, writes its test strategy with test-plan, cuts the work into tracer-bullet slices that each own strategy rows, settles everything in one approval round, then commits the docs on the worktree branch and publishes the PRD for implement. Plans only — never writes code or tests.
 disable-model-invocation: true
 ---
 
 # Elaborate feature
 
 You take an idea from the user to a **published PRD**: their goal, the decisions the grilling settled,
-the use cases, the test strategy and the slices `implement-prd` will build. Every rule the strategy
+the use cases, the test strategy and the slices `implement` will build. Every rule the strategy
 follows is owned by [testing.md](../../packages/core/testing.md) and applied by
 [test-plan](../test-plan/SKILL.md); this file is the procedure around it.
 
@@ -22,7 +22,7 @@ Filled in when installed:
 
 | Parameter | Value |
 |---|---|
-| PRDs live in | *issues on the tracker, e.g. GitHub issues in `<owner>/<repo>`; `docs/agents/issue-tracker.md` gives the commands. implement-prd needs an issue* |
+| PRDs live in | *issues on the tracker, e.g. GitHub issues in `<owner>/<repo>`; `docs/agents/issue-tracker.md` gives the commands. implement needs an issue* |
 | Base branch | *the branch work is cut from and PRs target: the default branch, unless the repo integrates elsewhere (e.g. `develop`)* |
 | Label on a published PRD | *e.g. `ready-for-agent`; or none* |
 | Test strategies live in | `docs/test-strategy/` |
@@ -39,6 +39,8 @@ Foundry ships from upstream ([setup/agent-skills.md → Skills from upstream](..
   full set. Never pad a section to look thorough.
 - **State once.** The use cases hold the detail. The slices point at use cases and strategy rows; the
   decisions point at ADRs and glossary terms. Nothing is written twice.
+- **A fix found along the way** — a bug, a gap or a weak test in what already exists — isn't part of
+  this PRD. Offer [capture-fix](../capture-fix/SKILL.md) for it, and carry on.
 - **Keep it in one session.** The grilling, the PRD, the strategy and the slices build on the same
   thinking; don't clear or compact between them.
 
@@ -132,5 +134,5 @@ strategy decision into the strategy (*settled with <who>*), a changed goal in th
 3. **Point the strategy's Source line at the published PRD.**
 4. **Commit** the glossary, the ADRs and the strategy on the worktree branch, and push it.
 
-Then give the user the PRD's link and the branch, and the next step: `/implement-prd <PRD>`. Stop
-there; opening the plan PR is `implement-prd`'s job.
+Then give the user the PRD's link and the branch, and the next step: `/implement <PRD>`. Stop
+there; opening the plan PR is `implement`'s job.

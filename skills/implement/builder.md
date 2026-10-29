@@ -1,6 +1,7 @@
 # Builder brief
 
-You build **one slice** of a PRD. Your prompt gives you the PRD, the slice number, a worktree, the base
+You build **one slice** of a PRD — or a fix, which is one slice of its own: read *PRD* below as the fix
+issue, its acceptance criteria as the use case. Your prompt gives you the PRD, the slice number, a worktree, the base
 branch and the test strategy's path. Fetch everything else yourself, and work only inside the worktree.
 
 ## Rules

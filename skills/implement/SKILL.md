@@ -1,19 +1,26 @@
 ---
-name: implement-prd
-argument-hint: "[PRD issue or URL]"
-description: Build a published PRD as a stack of pull requests in a Foundry codebase — the plan PR at the bottom, one PR per slice above it. Orchestrates one builder subagent per slice (test-first, with the tdd skill) and two reviews of each slice's PR (review.md with the slice's use cases, and a correctness review), watches CI, gathers every judgment call into the plan PR, then runs test-review once over the whole stack against the PRD's test strategy and routes its findings back to the slices. Ends at a reviewed, CI-green stack for the user to merge. Use when the user asks to implement or build a named PRD — an issue number or link that elaborate-feature published. Never merges.
+name: implement
+argument-hint: "[PRD or fix issue]"
+description: Build a ready issue in a Foundry codebase — a PRD published by elaborate-feature, or a finalised fix filed by capture-fix — as reviewed, CI-green pull requests. Checks the issue is ready first and refuses one that isn't, naming what's missing and the command that completes it. A PRD becomes a stack (the plan PR at the bottom, one PR per slice above it); a fix becomes one PR, its test plan written from the issue. Orchestrates one builder subagent per slice (test-first, with the tdd skill) and two reviews of each slice's PR (review.md with the slice's use cases, and a correctness review), watches CI, gathers every judgment call into the plan PR, then runs test-review once over the whole stack against the PRD's test strategy and routes its findings back to the slices. Ends at a reviewed, CI-green stack for the user to merge. Use when the user asks to implement, build or fix a named issue (a number or link). Never merges.
 ---
 
-# Implement PRD
+# Implement
 
-You build one PRD as a **stack of pull requests**, and you are its **orchestrator**: you read the PRD,
+You build one ready issue as **pull requests**, and you are their **orchestrator**: you read the issue,
 create the branches and worktrees, launch a builder and the reviews for each slice, open the PRs, watch
 CI, and keep the plan PR's record of what was decided. Subagents build and review; they never push,
 open PRs or touch the tracker. You never build or review in your own context.
 
-The PRD comes from [elaborate-feature](../elaborate-feature/SKILL.md): its goal, use cases, slice table
-and the branch that holds its plan. The rules the code and tests follow are Foundry's; the briefs point
-the subagents at them.
+An issue comes in one of two kinds:
+
+- **A PRD**, from [elaborate-feature](../elaborate-feature/SKILL.md): its goal, use cases, slice table and
+  the branch that holds its plan. It becomes a stack.
+- **A fix**, from [capture-fix](../capture-fix/SKILL.md): a contained change to something that already
+  exists, with its context, current and desired behaviour, acceptance criteria and evidence. It becomes
+  one PR. Wherever this skill and its briefs say *PRD*, a fix reads as one: its desired behaviour is the
+  goal, its acceptance criteria its use case, and it is a single slice.
+
+The rules the code and tests follow are Foundry's; the briefs point the subagents at them.
 
 ## Project parameters
 
@@ -22,7 +29,8 @@ Filled in when installed:
 
 | Parameter | Value |
 |---|---|
-| PRDs live in | *issues on the tracker, e.g. GitHub issues in `<owner>/<repo>`; `docs/agents/issue-tracker.md` gives the commands. The pipeline needs an issue: its number names the PRs, and the top PR closes it* |
+| Issues live in | *issues on the tracker, e.g. GitHub issues in `<owner>/<repo>`; `docs/agents/issue-tracker.md` gives the commands. Its number names the PRs, and the top PR closes it* |
+| Fix labels | *as capture-fix sets them: the kind `fix`; ready `ready-for-agent`; needs a human `needs-triage`* |
 | Test strategies live in | `docs/test-strategy/` |
 | Local gates | *the local command in `foundry-ci.md`, e.g. `pnpm verify:checks`* |
 | Required CI checks | *the check names a PR must show green* |
@@ -37,15 +45,32 @@ Filled in when installed:
 
 - **Never merge, and never push to the base branch.** Only the PRD's branches reach the remote. The
   user lands the stack.
-- **One PRD per run.**
+- **One issue per run.**
 - **Token-minimal delegation.** A subagent's prompt holds only pointers: its brief's path, the PRD, the
   slice, the worktree, the base branch, the strategy's path. It reads everything else itself. The one
   thing you paste is what exists nowhere else: review findings to fix.
 - **Record as you go.** The plan PR's description is the live record — update it after every slice.
 
-## Stage 0. Inputs
+## Stage 0. Is it ready?
 
-Read the PRD in full, comments included. From it take:
+Read the issue in full, comments included, and decide its kind: a **fix** carries the fix label; a
+**PRD** carries the *Branch* and *Test strategy* lines elaborate-feature writes. Then check it is ready.
+**Refuse** anything that isn't — build nothing, and tell the user what is missing and the command that
+completes it:
+
+> #418 isn't ready to implement: it still has 1 open question under *Needs a human to finalise*
+> (empty list or 404?). Finalise it with `/capture-fix #418`, then run `/implement #418` again.
+
+- **A fix is ready** when it carries the ready label and not the needs-a-human one, has no *Needs a
+  human to finalise* section, and has its kind, context, current and desired behaviour, testable
+  acceptance criteria and out of scope ([capture-fix](../capture-fix/SKILL.md)). Otherwise:
+  `/capture-fix #<issue>`.
+- **A PRD is ready** when it has the parts below and its slice table is buildable. Otherwise:
+  `/elaborate-feature`.
+- **Neither kind:** refuse, and point to `/capture-fix` for a contained change to something that exists,
+  or `/elaborate-feature` for new behaviour.
+
+**A PRD:** from it take:
 
 - **the goal** — the user's statement, verbatim;
 - **the branch** that holds the plan (its *Branch* line) — fetch it; missing on the remote: stop;
@@ -57,6 +82,15 @@ Read the PRD in full, comments included. From it take:
 table, no cycle. A gap is a planning fault: stop and say so — the fix is in elaborate-feature, not
 here. No slice table: the whole PRD is one slice.
 
+**A fix** has no plan yet; write it before building:
+
+1. **Branch** from the base branch, named for the fix, in a worktree.
+2. **Run [test-plan](../test-plan/SKILL.md) on the issue, unattended.** Its rows come from the acceptance
+   criteria, plus one for a test that fails on today's behaviour — the reproduction. Where test-plan
+   would settle a question with the user, decide it from the issue's desired behaviour and out of scope,
+   and record it as a judgment call. Write the strategy, link it to the issue, and commit it.
+3. The fix is **one slice** owning every row: continue at Stage 1's *One slice*, on this branch.
+
 ## Stage 1. Order the stack
 
 Order the slices so every slice sits above its blockers; ties keep the table's order. That order is
@@ -64,8 +98,8 @@ the stack: **the plan branch, then slice 1, slice 2…**, each slice's PR based 
 below it. A slice's branch is `<plan branch>-s<N>-<slug>`.
 
 **One slice:** no separate plan PR. The slice is built on the plan branch itself, in a worktree on it
-(reuse elaborate-feature's if it is still checked out). Its one PR, titled `<PRD title> (#<PRD>)`,
-carries the plan and the code, its description both templates' sections.
+(reuse elaborate-feature's if it is still checked out). Its one PR, titled `<issue title> (#<issue>)`,
+carries the plan and the code, its description both templates' sections, and closes the issue.
 
 ## Stage 2. The plan PR
 
@@ -81,7 +115,7 @@ parallel, each in its own worktree. For each:
 1. **Worktree** — branch from the highest branch below it in the stack whose builder has reported,
    then the worktree setup.
 2. **Build** — launch a builder per [builder.md](builder.md):
-   > Read `<repo>/<skills dir>/implement-prd/builder.md` and execute it. PRD: <ref>. Slice: <N>.
+   > Read `<repo>/<skills dir>/implement/builder.md` and execute it. PRD: <ref>. Slice: <N>.
    > Worktree: `<path>`. Base: `<branch>`. Strategy: `<path>`.
 3. **Catch up** — before every push, merge the branch directly beneath it, at its current tip, and
    rerun the local gates. That brings in a slice built alongside it and any fix carried up from below.
@@ -92,7 +126,7 @@ parallel, each in its own worktree. For each:
    reviews read.
 5. **Review** — two reviews of the PR, launched together:
    - **Conformance and use cases**, per [reviewer.md](reviewer.md):
-     > Read `<repo>/<skills dir>/implement-prd/reviewer.md` and execute it. PRD: <ref>. Slice: <N>.
+     > Read `<repo>/<skills dir>/implement/reviewer.md` and execute it. PRD: <ref>. Slice: <N>.
      > Worktree: `<path>`. Base: `<branch>`. [Re-review: delta since `<sha>`.]
    - **Correctness**, by the repo's correctness review on the PR, report-only — the builder makes the
      fixes, with their tests.
@@ -148,3 +182,5 @@ rounds: report them rather than looping. Put the final report's summary on the p
    calls (weakened guards first) and strategy changes, or a pointer to the plan PR; the test-review
    verdict; anything blocked and why. Landing is theirs, bottom-up
    ([pr-templates.md → Landing](pr-templates.md#landing)).
+4. **Fixes found** — every one the builders reported, listed for the user with the question
+   [capture-fix](../capture-fix/SKILL.md) asks: *Shall I invoke `/capture-fix` for these?*
