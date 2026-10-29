@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-30 — The pipeline is described as three streams
 
+**Commit:** [`3e10e6b`](https://github.com/sahanh/foundry/commit/3e10e6bd6973d9559928aa11d67635dc5acebf2e)
+
 [setup/agent-skills.md → The pipeline](./setup/agent-skills.md#the-pipeline) now presents the skills as
 three user-run streams — define (`elaborate-feature`, `capture-fix`), build (`implement`), land (`land-prs`,
 after the user's review) — handed over by labels and orchestrated by the user. No skill changes.
