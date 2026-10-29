@@ -37,9 +37,10 @@ A slice sits above every slice before it; only *Blocked by* is a real dependency
 
 <the stack-level test-review's summary and verdict>
 
-## Landing
+## Preview
 
-<how this stack lands>
+<the link> · worktree `<path>` · started: <each process, container, port and exposed address, with how
+to stop it> — or none
 ```
 
 ## Slice PR
@@ -74,16 +75,5 @@ The top slice's PR also carries `Closes #<PRD>`.
 
 ## Landing
 
-The plan PR's *Landing* section tells whoever merges the stack, by the repo's merge method:
-
-- **Bottom-up:** the plan PR first, then each slice in stack order. Each PR is reviewed against the one
-  below it, so it merges only after that one.
-- **After each merge,** retarget the next PR to the base branch (GitHub does it when the merged
-  branch is deleted).
-- **Merge commits** keep the stack intact: each PR, once the one below has merged, shows only its own
-  commits. **Squash** rewrites the merged PR's commits, so the PR above re-shows them and usually
-  conflicts: after each squash, rebase the next PR onto the base branch, push it, and let CI pass
-  before merging it.
-- **Before merging the top PR,** add the line [testing.md](../../packages/core/testing.md#the-test-strategy)
-  asks for at the strategy's top, naming the top PR. The top PR closes the PRD.
-- **Once it has landed,** the plan branch's worktree and the stack's branches can go.
+The stack lands with [land-prs](../land-prs/SKILL.md): bottom-up, each PR re-checked live, the
+strategy's *Merged in* line committed before the top PR, the preview stopped afterwards.

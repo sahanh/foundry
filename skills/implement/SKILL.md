@@ -30,7 +30,7 @@ Filled in when installed:
 | Parameter | Value |
 |---|---|
 | Issues live in | *issues on the tracker, e.g. GitHub issues in `<owner>/<repo>`; `docs/agents/issue-tracker.md` gives the commands. Its number names the PRs, and the top PR closes it* |
-| Fix labels | *as capture-fix sets them: the kind `fix`; ready `ready-for-agent`; needs a human `needs-triage`* |
+| Labels | *as capture-fix sets them: the kind `fix`, ready `ready-for-agent`, needs a human `needs-triage`; and `ready-to-land`, which this skill puts on finished PRs* |
 | Test strategies live in | `docs/test-strategy/` |
 | Local gates | *the local command in `foundry-ci.md`, e.g. `pnpm verify:checks`* |
 | Stack-wide checks | *checks too slow for every commit, run once on the top of the stack before the tests are reviewed (e.g. a gate re-proof); or none* |
@@ -38,6 +38,7 @@ Filled in when installed:
 | Worktree setup | *what a fresh worktree needs: e.g. `pnpm install --frozen-lockfile`, `.env` copied from the main checkout* |
 | Correctness review | *the bug review each slice PR gets, report-only: e.g. Claude Code's `code-review` skill, `code-review <PR> high`, in a Sonnet subagent at high effort; or none* |
 | UI evidence | *for a slice that changes the UI: how to run the app and capture it (e.g. the repo's run skill and a screenshot); or none* |
+| Preview | *how to run the app from a worktree for the user to try: the start command on free ports, the check that it's up, how to expose it to the user (e.g. the host's `expose-service` skill) and how to stop it; or none* |
 | Base branch | *the branch PRs target: the default branch, unless the repo integrates elsewhere (e.g. `develop`)* |
 | Merge method | *how the repo merges PRs: merge commits, or squash* |
 | Subagent model | *e.g. inherit* |
@@ -183,12 +184,18 @@ rounds: report them rather than looping. Put the final report's summary on the p
 
 ## Stage 6. Finish
 
-1. Mark every PR in the stack **ready for review**.
-2. Clean up: remove every worktree and local slice branch you created, stop anything you started.
-   A worktree on the plan branch that elaborate-feature left stays until the stack lands.
-3. Report to the user: the goal; the stack, bottom to top, each PR's link and status; the judgment
-   calls (weakened guards first) and strategy changes, or a pointer to the plan PR; the test-review
-   verdict; anything blocked and why. Landing is theirs, bottom-up
-   ([pr-templates.md → Landing](pr-templates.md#landing)).
-4. **Fixes found** — every one the builders reported, listed for the user with the question
+1. **Ready to land** — when nothing in the stack is blocked: mark every PR **ready for review** and
+   label it `ready-to-land`. A blocked slice leaves every PR unlabelled; they stay drafts.
+2. **Preview** — unless the repo has none: in a worktree on the top branch (the single PR's, for a
+   fix), start the app on free ports, wait until it's up, and expose it to the user. Record under the
+   plan PR's (or single PR's) *Preview*: the link, the worktree, and everything started — processes,
+   containers, ports, the exposed address — with how to stop each. That record is what
+   [land-prs](../land-prs/SKILL.md) stops once the work lands.
+3. **Clean up:** remove every other worktree and local slice branch you created, and stop anything
+   else you started. A worktree on the plan branch that elaborate-feature left stays until the stack
+   lands.
+4. **Report** to the user: the goal; the preview's link; the stack, bottom to top, each PR's link and
+   status; the judgment calls (weakened guards first) and strategy changes, or a pointer to the plan
+   PR; the test-review verdict; anything blocked and why. Landing is theirs, with `/land-prs`.
+5. **Fixes found** — every one the builders reported, listed for the user with the question
    [capture-fix](../capture-fix/SKILL.md) asks: *Shall I invoke `/capture-fix` for these?*
