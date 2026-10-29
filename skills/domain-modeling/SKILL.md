@@ -19,9 +19,11 @@ Filled in when installed:
 |---|---|
 | Glossary | *e.g. `GLOSSARY.md` at the root, or `GLOSSARY-MAP.md` for several contexts* |
 | ADRs | *e.g. `docs/adr/NNNN-<slug>.md`* |
+| ADR format | *[ADR-FORMAT.md](ADR-FORMAT.md), or the repo's own ADR rules where it has them (e.g. `docs/decisions/README.md`)* |
 | Writing an ADR | *e.g. offer it; write it only with the owner's OK* |
 
-Where the rest of this file says `GLOSSARY.md` or `docs/adr/`, it means the locations above.
+Where the rest of this file says `GLOSSARY.md` or `docs/adr/`, it means the locations above, and
+[ADR-FORMAT.md](ADR-FORMAT.md) gives way to the repo's own ADR rules when it has them.
 
 ## File structure
 
