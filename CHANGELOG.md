@@ -9,6 +9,14 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — domain-modeling follows the repo's own ADR rules
+
+**domain-modeling** gains an *ADR format* parameter: a repo with its own rules for writing ADRs (their
+numbering, template and index) names them, and they replace the skill's `ADR-FORMAT.md`.
+
+Affects adopting repos that installed `domain-modeling` and keep their own ADR rules: fill in *ADR
+format*. Read [skills/domain-modeling/SKILL.md → Project parameters](./skills/domain-modeling/SKILL.md#project-parameters).
+
 ## 2026-10-29 — grilling and domain-modeling ship with Foundry
 
 **Commit:** [`dd79217`](https://github.com/sahanh/foundry/commit/dd792177735ff5a7e4e608181affee0a0f95dc40)
