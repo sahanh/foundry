@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — CI may run only the formatter on a docs-only change
 
+**Commit:** [`2b3bfce`](https://github.com/sahanh/foundry/commit/2b3bfce2d30b74e9d1b3e832f98b67cb697d8002)
+
 [setup/ci-verification.md → Docs-only changes](./setup/ci-verification.md#docs-only-changes) is a
 second exception to "every check on every pull request": a change touching only a declared docs set
 runs only the formatter, with the required check still reporting. The manifest records the set and its
