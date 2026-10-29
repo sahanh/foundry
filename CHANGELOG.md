@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — New implement-prd skill: a PRD built as a PR stack
 
+**Commit:** [`deefd20`](https://github.com/sahanh/foundry/commit/deefd2048701d1c942a0d2d30533ed0931da4280)
+
 New skill, **implement-prd** ([skills/implement-prd/](./skills/implement-prd/SKILL.md)): it builds a PRD
 published by `elaborate-feature` as a stack of pull requests — the plan PR, then one PR per slice built
 by a subagent with `tdd`, each reviewed for conformance (`review.md`, tests excepted) and correctness;
