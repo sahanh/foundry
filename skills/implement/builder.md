@@ -33,16 +33,17 @@ again with what each fix changed.
 
 ## 3. Gates
 
-Run the repo's local gates (`foundry-ci.md`'s local command) until green. Don't hand back red. If the
-slice changes the UI and the repo gives a way to capture it, capture each screen the slice's use cases
-name, and list the files.
+Run the repo's local gates (`foundry-ci.md`'s local command) until green, on your final commit. Don't
+hand back red. Nothing else runs in the worktree while they do — no dev server or preview writing into
+it. If the slice changes the UI and the repo gives a way to capture it, capture each screen the slice's
+use cases name afterwards, and list the files.
 
 ## 4. Report
 
 ```
 slice: <N> <title>
 status: done | blocked: <one line>
-gates: <command> — green | <what failed>
+gates: <command> — green at <commit sha> | <what failed>
 <tdd's report: rows, guard evidence, strategy changes, judgment calls>
 ui evidence: <files, with what each shows> | n/a
 notes: <for the orchestrator: new dependencies, migrations, environment variables, anything it must know>

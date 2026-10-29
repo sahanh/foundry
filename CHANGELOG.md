@@ -9,6 +9,16 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — implement verifies each commit once
+
+**implement**'s reviewer no longer runs the local gates: it reads the builder's recorded result for the
+PR's head commit, and CI's. A commit with a recorded passing run isn't verified again; a new commit is.
+Nothing else runs in a worktree while its gates run. A new *Stack-wide checks* parameter runs checks too
+slow for every commit once, on the top of the stack.
+
+Affects adopting repos that installed `implement`: re-copy it, and move any slow check out of *Local
+gates* into *Stack-wide checks*. Read [skills/implement/SKILL.md → Invariants](./skills/implement/SKILL.md#invariants).
+
 ## 2026-10-29 — The pipeline's tracker labels are listed
 
 **Commit:** [`07ec583`](https://github.com/sahanh/foundry/commit/07ec583b9e1e592997df1a3136f20b9f7b075308)

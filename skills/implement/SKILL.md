@@ -33,6 +33,7 @@ Filled in when installed:
 | Fix labels | *as capture-fix sets them: the kind `fix`; ready `ready-for-agent`; needs a human `needs-triage`* |
 | Test strategies live in | `docs/test-strategy/` |
 | Local gates | *the local command in `foundry-ci.md`, e.g. `pnpm verify:checks`* |
+| Stack-wide checks | *checks too slow for every commit, run once on the top of the stack before the tests are reviewed (e.g. a gate re-proof); or none* |
 | Required CI checks | *the check names a PR must show green* |
 | Worktree setup | *what a fresh worktree needs: e.g. `pnpm install --frozen-lockfile`, `.env` copied from the main checkout* |
 | Correctness review | *the bug review each slice PR gets, report-only: e.g. Claude Code's `code-review` skill, `code-review <PR> high`, in a Sonnet subagent at high effort; or none* |
@@ -50,6 +51,11 @@ Filled in when installed:
   slice, the worktree, the base branch, the strategy's path. It reads everything else itself. The one
   thing you paste is what exists nowhere else: review findings to fix.
 - **Record as you go.** The plan PR's description is the live record — update it after every slice.
+- **Verify each commit once.** A recorded passing run of the local gates on a commit is its evidence:
+  no reviewer and no later step runs them again on that commit. A new commit — a fix, a catch-up merge —
+  is verified again.
+- **One run per worktree.** Nothing else runs in a worktree while its gates run: no dev server or
+  preview writing into it, no second agent's checks.
 
 ## Stage 0. Is it ready?
 
@@ -161,7 +167,9 @@ merge it into the plan branch, then up.
 
 ## Stage 5. Review the tests across the stack
 
-When every slice's PR is open, both its reviews are clean (Stage 3, step 5) and its CI is green, launch one agent, in the top slice's
+When every slice's PR is open, both its reviews are clean (Stage 3, step 5) and its CI is green, run
+the repo's stack-wide checks once, in the top slice's worktree; a failure goes to the slice it belongs
+to as a fix round. Then launch one agent, in the top slice's
 worktree, to run [test-review](../test-review/SKILL.md) on the **whole stack**:
 
 > Run the test-review skill on the current branch against base ref `<base branch>` — the whole
