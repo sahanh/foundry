@@ -23,6 +23,7 @@ Filled in when installed:
 | Parameter | Value |
 |---|---|
 | PRDs live in | *issues on the tracker, e.g. GitHub issues in `<owner>/<repo>`; `docs/agents/issue-tracker.md` gives the commands. implement-prd needs an issue* |
+| Base branch | *the branch work is cut from and PRs target: the default branch, unless the repo integrates elsewhere (e.g. `develop`)* |
 | Label on a published PRD | *e.g. `ready-for-agent`; or none* |
 | Test strategies live in | `docs/test-strategy/` |
 | Domain vocabulary and decisions | *e.g. `GLOSSARY.md` and `docs/adr/`, as `docs/agents/domain.md` names them* |
@@ -45,7 +46,7 @@ missing: stop and say so.
 ## Stage 0. A worktree
 
 The grilling writes the glossary and ADRs as decisions settle, so work in a **worktree** on its own
-branch, named after the feature, before the first question. Already in one: use it. Everything this
+branch, named after the feature and cut from the base branch, before the first question. Already in one: use it. Everything this
 skill writes is committed there and ships in the PRD's plan PR.
 
 ## Stage 1. The goal
