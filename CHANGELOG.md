@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — implement-prd: only high and medium correctness findings block
 
+**Commit:** [`1dd3ed2`](https://github.com/sahanh/foundry/commit/1dd3ed20704a7bd37471bde46bf8754e3a94e92b)
+
 **implement-prd** defines a clean slice review: no conformance blockers and no high or medium findings
 from the correctness review, rated by the orchestrator where the review doesn't rate them. Low findings
 don't block and are listed on the slice PR, so the fix loop ends. The whole-stack test-review waits for
