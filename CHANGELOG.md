@@ -9,6 +9,19 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — New implement-prd skill: a PRD built as a PR stack
+
+New skill, **implement-prd** ([skills/implement-prd/](./skills/implement-prd/SKILL.md)): it builds a PRD
+published by `elaborate-feature` as a stack of pull requests — the plan PR, then one PR per slice built
+by a subagent with `tdd`, each reviewed for conformance (`review.md`, tests excepted) and correctness;
+then `test-review` once over the whole stack. It gathers judgment calls and strategy changes on the plan
+PR and stops at a ready stack. [setup/agent-skills.md → The pipeline](./setup/agent-skills.md#the-pipeline)
+now names the two entry skills and their order.
+
+Affects adopting repos: install the skill and fill in its parameters (local gates, required CI checks,
+correctness review, worktree setup, UI evidence). Read
+[setup/agent-skills.md → The pipeline](./setup/agent-skills.md#the-pipeline).
+
 ## 2026-10-29 — New elaborate-feature skill: from an idea to a published PRD
 
 **Commit:** [`424ff5c`](https://github.com/sahanh/foundry/commit/424ff5c49c720baacaad49f8825bc5079aaaf6ab)

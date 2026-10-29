@@ -25,7 +25,7 @@ Work backward from the core business value, not forward from "how do we create X
 
 Each layer you uncover becomes a service scoped to that entity — see service-first-architecture.md for the service types.
 
-**Then plan the tests, before writing code:** the PRD's test strategy maps each use case's layers and risks to the level that owns them ([testing.md → The Test Strategy](./testing.md#the-test-strategy); the [test-plan](../../skills/test-plan/SKILL.md) skill writes it with the user, and [elaborate-feature](../../skills/elaborate-feature/SKILL.md) runs it while writing the PRD). It can shape the design too — a rule whose cases already exist earns a pure seam up front. The [tdd](../../skills/tdd/SKILL.md) skill then builds it test-first, one row at a time.
+**Then plan the tests, before writing code:** the PRD's test strategy maps each use case's layers and risks to the level that owns them ([testing.md → The Test Strategy](./testing.md#the-test-strategy); the [test-plan](../../skills/test-plan/SKILL.md) skill writes it with the user, and [elaborate-feature](../../skills/elaborate-feature/SKILL.md) runs it while writing the PRD). It can shape the design too — a rule whose cases already exist earns a pure seam up front. The [tdd](../../skills/tdd/SKILL.md) skill then builds it test-first, one row at a time; [implement-prd](../../skills/implement-prd/SKILL.md) runs it slice by slice as a PR stack.
 
 ## Feature Structure
 
