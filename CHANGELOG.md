@@ -9,6 +9,19 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — CI may run only the formatter on a docs-only change
+
+[setup/ci-verification.md → Docs-only changes](./setup/ci-verification.md#docs-only-changes) is a
+second exception to "every check on every pull request": a change touching only a declared docs set
+runs only the formatter, with the required check still reporting. The manifest records the set and its
+exclusions (files code, tests or checks read). New rule **CI-01** (conditional): the docs-only set is
+honest.
+
+Affects adopting repos that want the docs-only path: build it and CI-01, and record the set in the
+manifest; repos that don't record CI-01 as `n/a`. Read
+[setup/ci-verification.md → Docs-only changes](./setup/ci-verification.md#docs-only-changes) and
+[→ Docs-only CI path](./setup/ci-verification.md#docs-only-ci-path).
+
 ## 2026-10-29 — implement verifies each commit once
 
 **Commit:** [`25defdf`](https://github.com/sahanh/foundry/commit/25defdfcbfcd3a297052db59c2861e5c78148718)
