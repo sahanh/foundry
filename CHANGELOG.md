@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — The pipeline's tracker labels are listed
 
+**Commit:** [`07ec583`](https://github.com/sahanh/foundry/commit/07ec583b9e1e592997df1a3136f20b9f7b075308)
+
 [setup/agent-skills.md → Tracker labels](./setup/agent-skills.md#tracker-labels) lists the issue labels
 the pipeline hands work over with — `ready-for-agent`, `needs-triage` and `fix` — what each means, and
 which skill applies and reads it; setup creates them in the tracker.
