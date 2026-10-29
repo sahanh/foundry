@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — Pipeline skills: landing marks the strategy, slice scope, stack catch-up
 
+**Commit:** [`063efb6`](https://github.com/sahanh/foundry/commit/063efb6b40a28c821f1af896bc4d1d106fc5f4e3)
+
 After a review of the pipeline, **implement-prd** no longer marks the strategy *Merged in* ahead of time
 (a marked strategy reads as an earlier PRD's to test-review); the merger adds it before the top PR lands,
 by the repo's new *Merge method* parameter. Its stack catches up before every push, carries fixes and a
