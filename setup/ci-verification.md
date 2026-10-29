@@ -15,8 +15,8 @@ tool *cannot* decide stays with the [review protocol](../review.md) and the `end
 ## How it fits together
 
 - **The adopting repo's CI** runs every applicable check below on every pull request and blocks the
-  merge on a failure. The one exception is a strength check, which may run on a schedule
-  (*Scheduled strength checks* below).
+  merge on a failure. Two exceptions: a strength check may run on a schedule (*Scheduled strength
+  checks* below), and a docs-only change runs only the formatter (*Docs-only changes* below).
 - **A manifest** in the adopting repo, `foundry-ci.md` at its root, records which rules are enforced
   and how (*The manifest* below). It is how a reviewer knows what not to re-check.
 - **The [review protocol](../review.md)** reads the manifest first: an enforced rule is CI's job; a rule
@@ -39,6 +39,26 @@ than it catches. A repo may run its strength checks on a schedule instead, when 
 Nothing else qualifies: a check that decides a rule always runs on every pull request and blocks the
 merge. A scheduled check has not run on the change under review, so its last result is no evidence for
 it ([review.md → Step 0](../review.md#step-0--what-ci-already-verifies)).
+
+## Docs-only changes
+
+A change that touches only documentation can change the result of no check but the formatter's, so a
+repo may run only the formatter on it, when:
+
+- **The required check still reports.** The skip is decided inside the workflow, by a first job that
+  classifies the change; the suite's jobs are skipped and the check the merge requires passes, naming
+  the reason. A trigger-level path filter (`paths-ignore`) skips the whole workflow, the required
+  check never appears, and the change can't merge.
+- **"Docs" is a declared set.** The manifest records it: Markdown (or the repo's docs globs) minus every
+  file that code, a test or a check reads — a prompt template the app loads, a file a check parses, the
+  manifest itself. A change that touches anything outside the set runs everything.
+- **The set stays honest:** `CI-01` below.
+- **The formatter still runs** on a docs-only change, so a badly formatted document never lands and
+  fails the next change's check instead.
+- **A push is judged the same way,** over the range it pushes: a range mixing docs and anything else
+  runs everything.
+
+Before a docs-only pull request, the formatter's check is the only local run it needs.
 
 ## Setting it up
 
@@ -65,6 +85,8 @@ Lives at the adopting repo's root; the reviewer and every later agent read it. I
   config file), how its failure was proven, and its **cadence**: `per PR`, or `scheduled: <cron>` for a
   strength check (*Scheduled strength checks* above).
 - **Project rules** — `EXT-NN` checks the project added (*Extending* below), with the same columns.
+- **Docs-only set** — when the repo uses *Docs-only changes*: the docs globs, and every excluded file
+  with what reads it.
 
 ## Parameters
 
@@ -305,6 +327,14 @@ Skip (`n/a — single-tenant`) unless the app is multi-tenant.
 - **TEN-03 — The unscoped escape is called only where sanctioned.** Fails when an unscoped-escape
   name is called outside the files allowed to call it. Rule:
   [multi-tenancy.md → The one unscoped path](../packages/core/multi-tenancy.md#the-one-unscoped-path).
+
+### Docs-only CI path
+
+Skip (`n/a — no docs-only path`) unless CI uses *Docs-only changes* above.
+
+- **CI-01 — The docs-only set is honest.** Fails when a file outside the docs-only set — code, a test,
+  a script, a workflow, a config — names a path or glob inside it: a file that something reads must be
+  excluded from the set. Rule: *Docs-only changes* above.
 
 ### Web apps
 
