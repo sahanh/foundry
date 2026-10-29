@@ -33,7 +33,8 @@ For each skill:
    `git -C "$FOUNDRY_DIR" show origin/main:<path>`). Links between the skill's own files stay relative.
 5. **Fill in its *Project parameters*.** A skill that needs project facts — where PRDs live, which file
    builds the test `AppContext`, where CI results are read — declares them in a table near its top.
-   Read each value from the repo; ask the user only for what the code cannot answer.
+   Read each value from the repo; ask the user only for what the code cannot answer. The pipeline's
+   labels also need creating in the tracker ([Tracker labels](#tracker-labels)).
 6. **Check it is invocable.** Confirm the harness lists it (Claude Code: it appears among the available
    skills and as `/<name>`). A skill that doesn't show up is not installed.
 7. **List it in the repo's `AGENTS.md`** (or the file the harness loads on every session): one line per
@@ -59,6 +60,18 @@ others run inside them.
    stops at ready PRs: landing them is the user's.
 
 `test-plan`, `tdd` and `test-review` stay usable on their own.
+
+### Tracker labels
+
+The pipeline hands work over through issue labels. **Create each one in the repo's tracker when you
+install the skills**, or map it to an existing label with the same meaning; the names are the skills'
+*Fix labels* parameter (`capture-fix`, `implement`), so they match it.
+
+| Label | Means | Applied by | Read by |
+|---|---|---|---|
+| `ready-for-agent` | fully specified: an agent can build it | `elaborate-feature` (every PRD it publishes), `capture-fix` (a fix with no open questions or after finalising) | `implement` — the queue of ready work |
+| `needs-triage` | a human must settle its open questions first | `capture-fix` (a fix with a *Needs a human to finalise* section) | `/capture-fix #<n>`, which finalises it; `implement` refuses it |
+| `fix` | the kind: a bug, implementation gap or test fix in something that already exists | `capture-fix` (every issue it files) | `implement`, which builds it as one PR; `label:fix label:ready-for-agent` is the fix queue |
 
 ## Skills from upstream
 
