@@ -55,24 +55,16 @@ Two skills take a feature from an idea to a stack of pull requests; the others r
 
 `test-plan`, `tdd` and `test-review` stay usable on their own.
 
-## Companion skills
+## Skills from upstream
 
-`elaborate-feature` runs two skills Foundry doesn't own: **`grilling`** and **`domain-modeling`**, from
-Matt Pocock's [skills](https://github.com/mattpocock/skills) (MIT), at commit
-[`59db609`](https://github.com/mattpocock/skills/tree/59db609eb1e18aaf59b63284d0e52255aff0c63c). Install
-both as the repo's own, alongside Foundry's:
-
-- **Copy each folder as published** from `skills/productivity/grilling/` and
-  `skills/engineering/domain-modeling/` at that commit, with a copy of the upstream repo's root
-  `LICENSE` in each.
-- **List them in `AGENTS.md`** beside Foundry's skills (step 7 above).
-- **Adapt only `domain-modeling`'s file layout** to where the repo keeps its glossary and ADRs, and note
-  that difference in the repo's records. Change nothing else, so a later upstream commit can be copied
-  over the same way.
-- **Upstream's `grill-with-docs`**, which runs the same two skills, may be installed beside them; it
-  stays usable on its own. Its `to-spec` and `to-tickets` are what `elaborate-feature` replaces.
-
-A Foundry changelog entry names the commit whenever it moves.
+Two skills Foundry ships are Matt Pocock's, copied from his [skills](https://github.com/mattpocock/skills)
+repo (MIT) at commit [`59db609`](https://github.com/mattpocock/skills/tree/59db609eb1e18aaf59b63284d0e52255aff0c63c):
+[`grilling`](../skills/grilling/SKILL.md) and [`domain-modeling`](../skills/domain-modeling/SKILL.md),
+which `elaborate-feature` runs. Each folder carries the upstream `LICENSE` and a line naming its source.
+They install like every other skill; only `domain-modeling` has parameters (where the repo keeps its
+glossary and ADRs). Foundry moves them to a newer upstream commit in a change of its own, with a
+changelog entry, so an adopting repo never fetches them from upstream itself. Upstream's
+`grill-with-docs`, `to-spec` and `to-tickets` are not part of Foundry: `elaborate-feature` does their job.
 
 ## Keeping current
 

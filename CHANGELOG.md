@@ -9,6 +9,19 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — grilling and domain-modeling ship with Foundry
+
+Matt Pocock's **grilling** and **domain-modeling** skills, which `elaborate-feature` runs, are now
+Foundry skills ([skills/grilling/](./skills/grilling/SKILL.md), [skills/domain-modeling/](./skills/domain-modeling/SKILL.md)),
+copied at upstream `59db609` with its licence; `domain-modeling` gains parameters for where the glossary
+and ADRs live. [setup/agent-skills.md](./setup/agent-skills.md)'s *Companion skills* section, which had
+each repo copy them from upstream, is replaced by *Skills from upstream*.
+
+Affects adopting repos that installed them from upstream, or installed upstream's `grill-with-docs`,
+`to-spec` or `to-tickets`: install Foundry's copies in their place, carrying over the glossary and ADR
+locations, and remove the upstream-only ones. Read
+[setup/agent-skills.md → Skills from upstream](./setup/agent-skills.md#skills-from-upstream).
+
 ## 2026-10-29 — Pipeline skills target a base branch
 
 **Commit:** [`6e7fd52`](https://github.com/sahanh/foundry/commit/6e7fd52e13912464831b147b060e52a1f2496251)
