@@ -46,22 +46,35 @@ project that needs a different procedure writes its own skill under its own name
 
 ## The pipeline
 
-Four skills take work from an idea, or a problem found along the way, to landed pull requests; the
-others run inside them.
+Work moves through **three streams**, each started by the user. Labels hand work from one to the next,
+so each runs on its own schedule — several issues defined, then built one by one, then a batch landed
+once reviewed. Nothing moves work between streams on its own: the user orchestrates.
 
-1. **`/elaborate-feature`** (user-only) — new behaviour: the goal, the grilling, the PRD, its test
-   strategy (`test-plan`) and its slices, published with the plan committed on a branch.
-2. **`/capture-fix`** — a contained change to something that already exists (a bug, an implementation
-   gap, a test fix), found while working: offered by the agent, run only on the user's yes, filed as a
-   self-contained issue that is ready to build or lists what a human must finalise.
-3. **`/implement <issue>`** — a ready PRD or fix, refusing one that isn't: for a PRD the plan PR, then one
-   PR per slice; for a fix one PR, its test plan written from the issue. Each PR is built with `tdd` and
-   reviewed for conformance (`review.md`) and correctness; then `test-review` once over all of it. It
-   stops at PRs labelled ready to land, with a preview of the app running for the user to try.
-4. **`/land-prs [PR] [branch]`** (user-only) — the ready PRs, or a named one and its stack: one plan the
-   user approves, then bottom-up merges into the base branch, stopping on red, one deploy at the end,
-   the production branch only when named; then the issues closed and the branches, worktrees and
-   previews cleaned up.
+```
+1 Define                          2 Build                                3 Land
+/elaborate-feature ─► PRD ─┐                                             the user reviews the PRs
+                           ├─ ready-for-agent ─► /implement <issue> ─►   and tries the preview, then
+/capture-fix ──────► fix ──┘                     PRs: ready-to-land      /land-prs [PR] [branch]
+        ▲  needs-triage until finalised                │
+        └──────── fixes found while building ◄─────────┘
+```
+
+1. **Define** — the user turns an idea or a problem into a ready issue.
+   - **`/elaborate-feature`** (user-only) — new behaviour: the goal, the grilling, the PRD, its test
+     strategy (`test-plan`) and its slices, published with the plan committed on a branch.
+   - **`/capture-fix`** — a contained change to something that already exists (a bug, an
+     implementation gap, a test fix), found while working: offered by the agent, run only on the
+     user's yes, filed as a self-contained issue that is ready to build or lists what a human must
+     finalise (`/capture-fix #<n>` finalises it).
+2. **Build** — the user runs **`/implement <issue>`** on a ready PRD or fix; it refuses one that isn't.
+   For a PRD the plan PR, then one PR per slice; for a fix one PR, its test plan written from the
+   issue. Each PR is built with `tdd` and reviewed for conformance (`review.md`) and correctness; then
+   `test-review` once over all of it. It ends at PRs labelled `ready-to-land`, with a preview of the
+   app running for the user to try. A fix it finds along the way goes back to stream 1.
+3. **Land** — the user reviews the PRs and tries the preview; their sign-off is running
+   **`/land-prs [PR] [branch]`** (user-only) and approving its plan. It merges bottom-up into the base
+   branch, stopping on red, deploys once at the end, reaches the production branch only when named,
+   then closes the issues and cleans up the branches, worktrees and previews.
 
 `test-plan`, `tdd` and `test-review` stay usable on their own.
 
