@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — Pipeline skills target a base branch
 
+**Commit:** [`6e7fd52`](https://github.com/sahanh/foundry/commit/6e7fd52e13912464831b147b060e52a1f2496251)
+
 **implement-prd** and **elaborate-feature** gain a *Base branch* parameter: the branch work is cut from
 and the stack targets, the default branch unless the repo integrates elsewhere (e.g. `develop`).
 Everything they said of "the default branch" now says the base branch.
