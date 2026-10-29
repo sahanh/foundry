@@ -7,6 +7,9 @@ const docMetaEl = document.getElementById('docmeta');
 const DEFAULT_DOC = 'README.md';
 let currentDoc = null;
 const tokensByPath = new Map(); // repo-relative path -> token count
+// Top-level dirs left out of the playbook total: skills are loaded on demand,
+// not read as part of the standard. They keep their own per-folder count.
+const TOTAL_EXCLUDED_DIRS = new Set(['skills']);
 
 // ---------------------------------------------------------- Token display --
 
@@ -133,16 +136,17 @@ async function loadTree() {
   const res = await fetch(window.__DOCS_STATIC__ ? './tree.json' : '/api/tree');
   const nodes = await res.json();
 
-  // Index token counts for every file/dir, and total the whole playbook.
+  // Index token counts for every file/dir, and total the playbook (less the
+  // excluded dirs).
   tokensByPath.clear();
   let total = 0;
-  (function index(list) {
+  (function index(list, counted) {
     for (const n of list) {
       tokensByPath.set(n.path, n.tokens || 0);
-      if (n.type === 'file') total += n.tokens || 0;
-      if (n.children) index(n.children);
+      if (n.type === 'file' && counted) total += n.tokens || 0;
+      if (n.children) index(n.children, counted && !TOTAL_EXCLUDED_DIRS.has(n.path));
     }
-  })(nodes);
+  })(nodes, true);
   totalEl.textContent = `≈ ${fmtFull(total)} tokens total`;
 
   treeEl.innerHTML = '';
