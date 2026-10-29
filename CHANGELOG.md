@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — domain-modeling follows the repo's own ADR rules
 
+**Commit:** [`a0f4789`](https://github.com/sahanh/foundry/commit/a0f4789bef5ce8dbf2bb7cfc9ebda9953897536d)
+
 **domain-modeling** gains an *ADR format* parameter: a repo with its own rules for writing ADRs (their
 numbering, template and index) names them, and they replace the skill's `ADR-FORMAT.md`.
 
