@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — New elaborate-feature skill: from an idea to a published PRD
 
+**Commit:** [`424ff5c`](https://github.com/sahanh/foundry/commit/424ff5c49c720baacaad49f8825bc5079aaaf6ab)
+
 New user-only skill, **elaborate-feature** ([skills/elaborate-feature/](./skills/elaborate-feature/SKILL.md)):
 it takes the user's goal in their words, grills the idea, drafts the PRD, writes its test strategy with
 `test-plan`, cuts tracer-bullet slices that each own strategy rows, and publishes the PRD with the docs
