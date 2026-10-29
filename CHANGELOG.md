@@ -9,6 +9,20 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — Guard evidence is a pair of runs, in either order
+
+[testing.md → What a Test Must Prove](./packages/core/testing.md#what-a-test-must-prove) states a guard
+row's evidence as what it must show, not how to produce it: two runs of the test that differ only in
+the protection, passing with it and failing at the risk's assertion without it, in either order. The
+old wording, *the implementer breaks the guard, runs its test, watches it fail, and reverts* with *the
+test passed first*, is gone; a test written red before its guard exists now qualifies. The box in
+[core/end-here.md → Testing](./packages/core/end-here.md) and the **test-review** skill's Stage 4 and
+report template follow.
+
+Affects adopting repos' PR templates or instructions that describe the break-it record, and their
+installed `test-review` skill. A record made under the old wording still qualifies. Read
+[testing.md → What a Test Must Prove](./packages/core/testing.md#what-a-test-must-prove).
+
 ## 2026-10-25 — Strength checks may run on a schedule
 
 **Commit:** [`29e808d`](https://github.com/sahanh/foundry/commit/29e808dc9d0a44c25123f1b816eb8553c631ee96)

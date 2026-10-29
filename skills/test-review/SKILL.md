@@ -131,10 +131,11 @@ Check *Not covered*: only a behaviour-free layer or a user-accepted exception qu
 
 For every row about a lock, a conditional write, a uniqueness guard, a rollback or a refusal, read the
 PR's break-it record and judge it against
-[testing.md → What a Test Must Prove](../../packages/core/testing.md#what-a-test-must-prove): a
-passing baseline, a change that still builds and disables that protection, and a failure at the
-assertion for that risk. The **evidence verdict** is separate from the row's coverage verdict:
-**evidenced**, **weak** (the record doesn't show all three), or **none**. A row with no test stays
+[testing.md → What a Test Must Prove](../../packages/core/testing.md#what-a-test-must-prove): two
+runs that differ only in that protection, the test passing with it and, without it, the code still
+building and the test failing at the assertion for that risk, in either order. The **evidence
+verdict** is separate from the row's coverage verdict: **evidenced**, **weak** (the record doesn't
+show all of that), or **none**. A row with no test stays
 *missing*; a sound test with no record is *covered*, with evidence *none*.
 
 ## Stage 5. Report
