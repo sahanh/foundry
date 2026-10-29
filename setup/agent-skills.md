@@ -5,7 +5,8 @@ that applies the guidelines — planning tests, reviewing them, checking drift, 
 changes — written against Foundry's own paths. Where it sits, no agent harness discovers it: nobody can
 invoke it, and the guideline steps that route to it have nothing to run. **Setting up a repo means
 installing every skill as the repo's own**, invocable both by the user (as a command) and by the agent
-(when a task matches the skill's description).
+(when a task matches the skill's description) — except a skill that publishes or launches work on the
+user's behalf, which its frontmatter marks user-only.
 
 ## You are installing them
 
@@ -25,6 +26,8 @@ For each skill:
    folder name equal to the skill's `name`. Keep a script's executable bit.
 3. **Keep the frontmatter.** The `name` is how the user invokes it; the `description` is how the agent
    recognises when to use it. Change neither, except to fit the harness's frontmatter format.
+   `disable-model-invocation: true` makes a skill user-only; keep it, in the harness's own form where it
+   differs (Codex: `policy.allow_implicit_invocation: false` in the skill's `agents/openai.yaml`).
 4. **Repoint the Foundry links.** A skill links to the guidelines by relative path
    (`../../packages/core/testing.md`), and every one breaks once copied. Point each at the Foundry the
    repo follows: its GitHub URL on `main`, or the repo's own command for reading Foundry (e.g.
@@ -40,6 +43,23 @@ For each skill:
 
 **Adapt only the frontmatter format, the links and the parameters.** The procedure is Foundry's: a
 project that needs a different procedure writes its own skill under its own name.
+
+## Companion skills
+
+`elaborate-feature` runs two skills Foundry doesn't own: **`grilling`** and **`domain-modeling`**, from
+Matt Pocock's [skills](https://github.com/mattpocock/skills) (MIT), at commit
+[`59db609`](https://github.com/mattpocock/skills/tree/59db609eb1e18aaf59b63284d0e52255aff0c63c). Install
+both as the repo's own, alongside Foundry's:
+
+- **Copy each folder as published**, with its `LICENSE`, from `skills/productivity/grilling/` and
+  `skills/engineering/domain-modeling/` at that commit.
+- **Adapt only `domain-modeling`'s file layout** to where the repo keeps its glossary and ADRs, and note
+  that difference in the repo's records. Change nothing else, so a later upstream commit can be copied
+  over the same way.
+- **Upstream's `grill-with-docs`**, which runs the same two skills, may be installed beside them; it
+  stays usable on its own. Its `to-spec` and `to-tickets` are what `elaborate-feature` replaces.
+
+A Foundry changelog entry names the commit whenever it moves.
 
 ## Keeping current
 
