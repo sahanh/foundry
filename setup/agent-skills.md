@@ -44,6 +44,18 @@ For each skill:
 **Adapt only the frontmatter format, the links and the parameters.** The procedure is Foundry's: a
 project that needs a different procedure writes its own skill under its own name.
 
+## The pipeline
+
+Two skills take a feature from an idea to a stack of pull requests; the others run inside them.
+
+1. **`/elaborate-feature`** (user-only) — the goal, the grilling, the PRD, its test strategy (`test-plan`)
+   and its slices, published with the plan committed on a branch.
+2. **`/implement-prd <PRD>`** — the plan PR, then one PR per slice built with `tdd` and reviewed for
+   conformance (`review.md`) and correctness; then `test-review` once over the whole stack. It stops at a
+   ready stack: landing it is the user's.
+
+`test-plan`, `tdd` and `test-review` stay usable on their own.
+
 ## Companion skills
 
 `elaborate-feature` runs two skills Foundry doesn't own: **`grilling`** and **`domain-modeling`**, from
