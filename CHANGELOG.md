@@ -9,6 +9,22 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — Pipeline skills: landing marks the strategy, slice scope, stack catch-up
+
+After a review of the pipeline, **implement-prd** no longer marks the strategy *Merged in* ahead of time
+(a marked strategy reads as an earlier PRD's to test-review); the merger adds it before the top PR lands,
+by the repo's new *Merge method* parameter. Its stack catches up before every push, carries fixes and a
+moving default branch up by merge, and hands test-review the top worktree. Its reviewer judges a slice
+against the part of each use case it covers. **tdd** and **elaborate-feature** handle a slice with no
+rows and a PRD with no strategy; **elaborate-feature** assigns rows existing tests cover. Both pipeline
+skills need the PRD to be a tracker issue. [setup/agent-skills.md → Companion
+skills](./setup/agent-skills.md#companion-skills) copies the upstream root `LICENSE` and lists the
+companions in `AGENTS.md`.
+
+Affects adopting repos that installed these skills: re-copy `implement-prd`, `tdd` and
+`elaborate-feature`, filling in *Merge method*. Read
+[skills/implement-prd/pr-templates.md → Landing](./skills/implement-prd/pr-templates.md#landing).
+
 ## 2026-10-29 — New implement-prd skill: a PRD built as a PR stack
 
 **Commit:** [`deefd20`](https://github.com/sahanh/foundry/commit/deefd2048701d1c942a0d2d30533ed0931da4280)

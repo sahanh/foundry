@@ -22,7 +22,7 @@ Filled in when installed:
 
 | Parameter | Value |
 |---|---|
-| PRDs live in | *e.g. GitHub issues in `<owner>/<repo>`; `docs/agents/issue-tracker.md` gives the commands* |
+| PRDs live in | *issues on the tracker, e.g. GitHub issues in `<owner>/<repo>`; `docs/agents/issue-tracker.md` gives the commands. implement-prd needs an issue* |
 | Label on a published PRD | *e.g. `ready-for-agent`; or none* |
 | Test strategies live in | `docs/test-strategy/` |
 | Domain vocabulary and decisions | *e.g. `GLOSSARY.md` and `docs/adr/`, as `docs/agents/domain.md` names them* |
@@ -87,6 +87,9 @@ for the approval round below rather than asking them on their own; write the fil
 once that round is settled. Behaviour the strategy finds unspecified goes back into the grilling as a
 question, never into an assumed answer.
 
+If test-plan finds the change needs no strategy — it alters no behaviour — the PRD's *Test strategy*
+line says *none*, with the reason, and the slices own no rows.
+
 ## Stage 5. Slice it
 
 Cut the work into **tracer-bullet slices**, after Matt Pocock's `to-tickets` (MIT). Each slice:
@@ -96,7 +99,8 @@ Cut the work into **tracer-bullet slices**, after Matt Pocock's `to-tickets` (MI
 - **can be demonstrated or verified on its own** once built;
 - **fits one fresh context window**, since one agent builds it;
 - **owns strategy rows:** the rows its tests will cover. Every row is owned by exactly one slice. An
-  integration row spanning several slices belongs to the slice where its whole path first exists.
+  integration row spanning several slices belongs to the slice where its whole path first exists; a
+  row an existing test already covers, to the slice whose change could break it.
 
 Prefactoring that makes the change easy comes first, as its own slice. **A wide refactor** — one
 mechanical change that breaks many call sites at once, such as renaming a column — can't be cut
