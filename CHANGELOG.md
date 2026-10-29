@@ -9,6 +9,16 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — implement-prd: only high and medium correctness findings block
+
+**implement-prd** defines a clean slice review: no conformance blockers and no high or medium findings
+from the correctness review, rated by the orchestrator where the review doesn't rate them. Low findings
+don't block and are listed on the slice PR, so the fix loop ends. The whole-stack test-review waits for
+both reviews clean and CI green on every slice.
+
+Affects adopting repos that installed `implement-prd`: re-copy it. Read
+[skills/implement-prd/SKILL.md → Stage 3](./skills/implement-prd/SKILL.md#stage-3-build-each-slice).
+
 ## 2026-10-29 — domain-modeling follows the repo's own ADR rules
 
 **Commit:** [`a0f4789`](https://github.com/sahanh/foundry/commit/a0f4789bef5ce8dbf2bb7cfc9ebda9953897536d)
