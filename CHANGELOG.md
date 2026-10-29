@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — New tdd skill: build a test strategy test-first
 
+**Commit:** [`a446eed`](https://github.com/sahanh/foundry/commit/a446eedb84bb73ee04cf4c35300ac56916b72ca4)
+
 New skill, **tdd** ([skills/tdd/](./skills/tdd/SKILL.md)), adapted from Matt Pocock's skill of the same
 name: it builds a PRD's test strategy, or one slice of it, one row at a time, and reports guard evidence,
 strategy changes and judgment calls. [core/start-here.md](./packages/core/start-here.md) points to it
