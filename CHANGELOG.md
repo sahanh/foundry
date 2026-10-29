@@ -9,6 +9,15 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — Pipeline skills target a base branch
+
+**implement-prd** and **elaborate-feature** gain a *Base branch* parameter: the branch work is cut from
+and the stack targets, the default branch unless the repo integrates elsewhere (e.g. `develop`).
+Everything they said of "the default branch" now says the base branch.
+
+Affects adopting repos that installed either skill: fill in *Base branch*. Read
+[skills/implement-prd/SKILL.md → Project parameters](./skills/implement-prd/SKILL.md#project-parameters).
+
 ## 2026-10-29 — Pipeline skills: landing marks the strategy, slice scope, stack catch-up
 
 **Commit:** [`063efb6`](https://github.com/sahanh/foundry/commit/063efb6b40a28c821f1af896bc4d1d106fc5f4e3)

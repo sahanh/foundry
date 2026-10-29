@@ -29,12 +29,13 @@ Filled in when installed:
 | Worktree setup | *what a fresh worktree needs: e.g. `pnpm install --frozen-lockfile`, `.env` copied from the main checkout* |
 | Correctness review | *the bug review each slice PR gets, report-only: e.g. Claude Code's `code-review` skill, `code-review <PR> high`, in a Sonnet subagent at high effort; or none* |
 | UI evidence | *for a slice that changes the UI: how to run the app and capture it (e.g. the repo's run skill and a screenshot); or none* |
+| Base branch | *the branch PRs target: the default branch, unless the repo integrates elsewhere (e.g. `develop`)* |
 | Merge method | *how the repo merges PRs: merge commits, or squash* |
 | Subagent model | *e.g. inherit* |
 
 ## Invariants
 
-- **Never merge, and never push to the default branch.** Only the PRD's branches reach the remote. The
+- **Never merge, and never push to the base branch.** Only the PRD's branches reach the remote. The
   user lands the stack.
 - **One PRD per run.**
 - **Token-minimal delegation.** A subagent's prompt holds only pointers: its brief's path, the PRD, the
@@ -68,7 +69,7 @@ carries the plan and the code, its description both templates' sections.
 
 ## Stage 2. The plan PR
 
-Open it as a **draft**, base the default branch, head the plan branch, its description from
+Open it as a **draft**, base the base branch, head the plan branch, its description from
 [pr-templates.md → Plan PR](pr-templates.md#plan-pr): the goal first, the PRD, the stack (filled in as
 slices open), and empty *Strategy changes* and *Judgment calls* sections.
 
@@ -115,7 +116,7 @@ still running is skipped: it takes the fix at its own catch-up — never merge i
 is editing. While the stack is being built, never rebase or force-push a branch with an open PR; each
 PR's diff stays its own.
 
-**The default branch moving on** is carried the same way: when a PR in the stack conflicts with it,
+**The base branch moving on** is carried the same way: when a PR in the stack conflicts with it,
 merge it into the plan branch, then up.
 
 ## Stage 5. Review the tests across the stack
@@ -123,7 +124,7 @@ merge it into the plan branch, then up.
 When every slice's PR is open, reviewed clean and green, launch one agent, in the top slice's
 worktree, to run [test-review](../test-review/SKILL.md) on the **whole stack**:
 
-> Run the test-review skill on the current branch against base ref `<default branch>` — the whole
+> Run the test-review skill on the current branch against base ref `<base branch>` — the whole
 > stack. PRD: <ref>. Strategy: `<path>`. The break-it records are in the slice PRs' descriptions:
 > <PR links>.
 

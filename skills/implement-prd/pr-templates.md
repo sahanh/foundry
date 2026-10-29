@@ -76,11 +76,11 @@ The plan PR's *Landing* section tells whoever merges the stack, by the repo's me
 
 - **Bottom-up:** the plan PR first, then each slice in stack order. Each PR is reviewed against the one
   below it, so it merges only after that one.
-- **After each merge,** retarget the next PR to the default branch (GitHub does it when the merged
+- **After each merge,** retarget the next PR to the base branch (GitHub does it when the merged
   branch is deleted).
 - **Merge commits** keep the stack intact: each PR, once the one below has merged, shows only its own
   commits. **Squash** rewrites the merged PR's commits, so the PR above re-shows them and usually
-  conflicts: after each squash, rebase the next PR onto the default branch, push it, and let CI pass
+  conflicts: after each squash, rebase the next PR onto the base branch, push it, and let CI pass
   before merging it.
 - **Before merging the top PR,** add the line [testing.md](../../packages/core/testing.md#the-test-strategy)
   asks for at the strategy's top, naming the top PR. The top PR closes the PRD.
