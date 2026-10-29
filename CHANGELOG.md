@@ -9,6 +9,18 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-29 — New tdd skill: build a test strategy test-first
+
+New skill, **tdd** ([skills/tdd/](./skills/tdd/SKILL.md)), adapted from Matt Pocock's skill of the same
+name: it builds a PRD's test strategy, or one slice of it, one row at a time, and reports guard evidence,
+strategy changes and judgment calls. [core/start-here.md](./packages/core/start-here.md) points to it
+after the test strategy.
+
+Affects adopting repos: install it ([setup/agent-skills.md](./setup/agent-skills.md)). A repo that
+installed Matt Pocock's `tdd` directly replaces that copy with this one; its `mocking.md` and
+`tests.md` go with it, since they contradict
+[testing.md → The Two Levels](./packages/core/testing.md#the-two-levels).
+
 ## 2026-10-29 — Guard evidence is a pair of runs, in either order
 
 **Commit:** [`9e6260c`](https://github.com/sahanh/foundry/commit/9e6260ca364c514daf96de8b923700760036412e)
