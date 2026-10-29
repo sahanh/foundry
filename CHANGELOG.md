@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — implement-prd becomes implement, for PRDs and fixes; new capture-fix skill
 
+**Commit:** [`355995a`](https://github.com/sahanh/foundry/commit/355995a5a1562fda01b3b4182f321bb30898ef56)
+
 **implement-prd** is renamed **implement** ([skills/implement/](./skills/implement/SKILL.md)). It takes a
 ready issue of either kind — a PRD from `elaborate-feature`, or a finalised fix from the new
 **capture-fix** — checks it is ready first, and refuses one that isn't, naming what's missing and the
