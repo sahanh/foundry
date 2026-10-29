@@ -97,9 +97,15 @@ parallel, each in its own worktree. For each:
    - **Correctness**, by the repo's correctness review on the PR, report-only — the builder makes the
      fixes, with their tests.
 
-   Both reports' findings go back to the builder together, pasted verbatim; push the fixes and run both
-   again. Still not clean after **three rounds**, counted together: the slice is **blocked**. Record
-   the rounds in the PR's *Verification*.
+   **Clean** means no conformance blockers and no **high or medium** correctness findings. Where the
+   correctness review doesn't rate severity, rate each finding yourself: **high** — wrong behaviour or
+   data on a normal path; **medium** — a likely bug on a reachable path; **low** — an unlikely edge,
+   cleanup or style. Low findings never block and aren't fixed in the loop: list them in the PR's
+   *Verification*, so a review that always finds something can't keep the loop going.
+
+   The blocking findings go back to the builder together, pasted verbatim; push the fixes and run both
+   reviews again. Still not clean after **three rounds**, counted together: the slice is **blocked**.
+   Record the rounds in the PR's *Verification*.
 6. **CI** — watch the required checks. Red: reproduce in the worktree, have the builder fix it, delta
    review, push. Three failed fixes: the slice is **blocked**. An infrastructure flake gets one rerun.
 7. **Record** — add the PR to the plan PR's stack, and its strategy changes and judgment calls to the
@@ -121,7 +127,7 @@ merge it into the plan branch, then up.
 
 ## Stage 5. Review the tests across the stack
 
-When every slice's PR is open, reviewed clean and green, launch one agent, in the top slice's
+When every slice's PR is open, both its reviews are clean (Stage 3, step 5) and its CI is green, launch one agent, in the top slice's
 worktree, to run [test-review](../test-review/SKILL.md) on the **whole stack**:
 
 > Run the test-review skill on the current branch against base ref `<base branch>` — the whole
