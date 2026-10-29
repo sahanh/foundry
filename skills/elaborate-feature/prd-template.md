@@ -1,6 +1,6 @@
 # <PRD title>
 
-Branch: `<worktree branch>` · Test strategy: [<strategies folder>/<prd-slug>.md](<link to the file on the branch>)
+Branch: `<worktree branch>` · Test strategy: [<strategies folder>/<prd-slug>.md](<link to the file on the branch>) | none: <why no behaviour changes>
 
 ## Goal
 

@@ -55,6 +55,8 @@ Filled in when installed:
     Say so.
 - **The rows to build:** a slice given → the rows the PRD assigns to it; otherwise every row of the
   strategy. A row an existing test already owns needs nothing built; it goes in the report as covered.
+  A slice that owns no rows — a prefactor, a step of a wide refactor — changes no behaviour: build it
+  with the existing suite green throughout, and report `rows: none`.
 - **The ground:** the existing code and tests the rows touch, the test `AppContext` builder and its
   adapter defaults ([testing.md → The Test AppContext](../../packages/core/testing.md#the-test-appcontext)),
   and the domain vocabulary and decisions, if the repo has them. Absent ones: carry on without them.
@@ -82,10 +84,8 @@ Filled in when installed:
    - **A guard row:** the green run is the other half, when the only thing added between red and green
      is the protection. If other behaviour went in with it, the red is not evidence: remove only the
      protection, run the test, watch it fail at the assertion, and restore it.
-3. **Check the test from each assertion**
-   ([testing.md → What a Test Must Prove](../../packages/core/testing.md#what-a-test-must-prove)):
-   literal expected values, the precise failure, everything its name claims, negative assertions in a
-   setup where the effect could happen, spies on the object the code uses.
+3. **Check the test from each assertion**, against
+   [testing.md → What a Test Must Prove](../../packages/core/testing.md#what-a-test-must-prove).
 4. **Next row.** One test may cover several rows when each can still fail on its own.
 
 ## Stage 3. When the plan turns out wrong

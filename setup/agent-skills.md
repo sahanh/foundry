@@ -5,8 +5,7 @@ that applies the guidelines — planning tests, reviewing them, checking drift, 
 changes — written against Foundry's own paths. Where it sits, no agent harness discovers it: nobody can
 invoke it, and the guideline steps that route to it have nothing to run. **Setting up a repo means
 installing every skill as the repo's own**, invocable both by the user (as a command) and by the agent
-(when a task matches the skill's description) — except a skill that publishes or launches work on the
-user's behalf, which its frontmatter marks user-only.
+(when a task matches the skill's description) — unless the skill's frontmatter marks it user-only.
 
 ## You are installing them
 
@@ -63,8 +62,10 @@ Matt Pocock's [skills](https://github.com/mattpocock/skills) (MIT), at commit
 [`59db609`](https://github.com/mattpocock/skills/tree/59db609eb1e18aaf59b63284d0e52255aff0c63c). Install
 both as the repo's own, alongside Foundry's:
 
-- **Copy each folder as published**, with its `LICENSE`, from `skills/productivity/grilling/` and
-  `skills/engineering/domain-modeling/` at that commit.
+- **Copy each folder as published** from `skills/productivity/grilling/` and
+  `skills/engineering/domain-modeling/` at that commit, with a copy of the upstream repo's root
+  `LICENSE` in each.
+- **List them in `AGENTS.md`** beside Foundry's skills (step 7 above).
 - **Adapt only `domain-modeling`'s file layout** to where the repo keeps its glossary and ADRs, and note
   that difference in the repo's records. Change nothing else, so a later upstream commit can be copied
   over the same way.

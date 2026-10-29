@@ -19,9 +19,13 @@ the repo's local gates yourself; a red gate is a blocker.
 
 ## 2. The slice's use cases
 
-Read the PRD's use cases this slice covers, and judge the diff against them:
+Read the PRD's slice table and the use cases this slice covers. The slice's scope is what its row
+gives it: a whole use case, or the part named in brackets, and the strategy rows it owns. Behaviour
+the table gives another slice is out of scope, not missing. A slice that covers no use case — a
+prefactor, a step of a wide refactor — must change no behaviour. Judge the diff against that scope:
 
-- **Missing or partial** — an outcome, rule or failure behaviour the slice should deliver and doesn't.
+- **Missing or partial** — an outcome, rule or failure behaviour in the slice's scope that it doesn't
+  deliver.
 - **Beyond the slice** — behaviour no use case it covers asks for, or that another slice owns.
 - **Wrong** — something that looks done but doesn't do what the use case says.
 
