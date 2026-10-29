@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — Guard evidence is a pair of runs, in either order
 
+**Commit:** [`9e6260c`](https://github.com/sahanh/foundry/commit/9e6260ca364c514daf96de8b923700760036412e)
+
 [testing.md → What a Test Must Prove](./packages/core/testing.md#what-a-test-must-prove) states a guard
 row's evidence as what it must show, not how to produce it: two runs of the test that differ only in
 the protection, passing with it and failing at the risk's assertion without it, in either order. The
