@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — grilling and domain-modeling ship with Foundry
 
+**Commit:** [`dd79217`](https://github.com/sahanh/foundry/commit/dd792177735ff5a7e4e608181affee0a0f95dc40)
+
 Matt Pocock's **grilling** and **domain-modeling** skills, which `elaborate-feature` runs, are now
 Foundry skills ([skills/grilling/](./skills/grilling/SKILL.md), [skills/domain-modeling/](./skills/domain-modeling/SKILL.md)),
 copied at upstream `59db609` with its licence; `domain-modeling` gains parameters for where the glossary
