@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-29 — New land-prs skill; implement labels finished PRs and starts a preview
 
+**Commit:** [`f80d006`](https://github.com/sahanh/foundry/commit/f80d0066a8a38f939c24f4be30b9d7d0268efd3a)
+
 New user-only skill, **land-prs** ([skills/land-prs/](./skills/land-prs/SKILL.md)): it lands the PRs
 labelled `ready-to-land`, or a named one and its stack, after one approval — bottom-up into the base
 branch, stopping on red, one deploy at the end, the production branch only when named (promoting, or
