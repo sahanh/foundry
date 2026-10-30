@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-31 — Plugins and the published API
 
+**Commit:** [`8bcd4e6`](https://github.com/sahanh/foundry/commit/8bcd4e6f6d9902119d35a9aef96b031a442f5f2e)
+
 A third top-level home, **`plugins/`**: code that ships to another platform and runs there — a Zapier
 app, a WordPress plugin — one folder per platform, in any language, calling only the published API
 of `apps/api`, with a README mapping the integration's parts elsewhere
