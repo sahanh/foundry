@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-30 — implement runs quick checks locally; the full integration suite is CI's
 
+**Commit:** [`5d582ec`](https://github.com/sahanh/foundry/commit/5d582ecce0ea83295b110b07c245bb56f882b2d6)
+
 **implement** no longer runs the full local checks at every checkpoint. Its *Local gates* parameter is
 replaced by *Quick checks* (the repo's checks short of the full integration suite) and *Run test files*:
 a builder runs the test files its change touches, unit and integration, and the quick checks before
