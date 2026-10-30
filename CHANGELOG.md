@@ -9,6 +9,18 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-31 — implement creates the GitHub stack; land-prs merges stacked PRs
+
+**implement**, at its finish, creates a GitHub stack of a PRD's PRs through GitHub's stacks API with the
+existing `gh` (`POST /repos/{owner}/{repo}/stacks`, plan PR first), under a new *Native stack* parameter,
+and records its number on the plan PR. **land-prs** merges a PR in a GitHub stack through the
+asynchronous merge API (`PUT /pulls/{n}/merge-async`, then polling), the lowest unmerged one at a time,
+since the ordinary merge refuses stacked PRs and an async merge takes every PR beneath with it.
+
+Affects adopting repos that installed `implement` or `land-prs`: re-copy them, filling in *Native stack*.
+Read [skills/implement/SKILL.md → Stage 6](./skills/implement/SKILL.md#stage-6-finish) and
+[skills/land-prs/SKILL.md → Stage 3](./skills/land-prs/SKILL.md#stage-3-land-in-plan-order).
+
 ## 2026-10-30 — implement runs quick checks locally; the full integration suite is CI's
 
 **Commit:** [`5d582ec`](https://github.com/sahanh/foundry/commit/5d582ecce0ea83295b110b07c245bb56f882b2d6)

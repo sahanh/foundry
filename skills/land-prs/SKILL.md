@@ -58,7 +58,8 @@ Read-only. For each PR:
 - whether its head moved after the ready label went on, and who pushed;
 - human activity since the label: changes requested, unresolved review threads, a comment raising a
   concern;
-- its place in a stack — a PR whose base is another open PR's head sits above it;
+- its place in a stack — a PR whose base is another open PR's head sits above it — and whether it is
+  in a GitHub stack (its `stack` field in the REST API);
 - the issue it closes, and its *Preview* record, if it has one.
 
 Then classify each, first match wins:
@@ -102,11 +103,20 @@ For each PR:
 3. **The top PR of a PRD's stack:** before merging it, commit the line
    [testing.md](../../packages/core/testing.md#the-test-strategy) asks for at the strategy's top,
    naming this PR, and wait for its CI.
-4. **Merge** with the merge method, and record the merge commit.
+4. **Merge** with the merge method, and record the merge commit. **A PR in a GitHub stack** merges only
+   through GitHub's asynchronous merge — the ordinary merge refuses it — and that merges every PR
+   beneath it too, so always ask for the lowest unmerged one:
+   ```shell
+   gh api -X PUT repos/<owner>/<repo>/pulls/<n>/merge-async -H 'X-GitHub-Api-Version: 2026-03-10' \
+     -f merge_method=<method> -f sha=<the head you re-checked>
+   gh api repos/<owner>/<repo>/pulls/<n>/merge-async/<uuid> -H 'X-GitHub-Api-Version: 2026-03-10'
+   ```
+   Poll the second until its `status` is `merged` (it carries the merge commit) or `failed` (stop, as
+   for red). `enqueued` means a merge queue has it: wait until the PR shows as merged.
 5. **Watch the base branch's CI** on that merge commit. **Red: stop.** Report which merge broke it and
    the failing step, and propose reverting that merge or fixing forward — do neither yourself.
 6. **The next PR in its stack:** make sure it now targets the base branch (GitHub retargets it when the
-   merged branch is deleted). Under squash, the PR above now re-shows the merged commits: bring it up
+   merged branch is deleted; in a GitHub stack it manages the base itself — don't retarget it by hand). Under squash, the PR above now re-shows the merged commits: bring it up
    to date by merging the base branch in (step 2) before landing it.
 
 ## Stage 4. Deploy
