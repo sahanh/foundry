@@ -43,7 +43,8 @@ Explore the diff (not the whole repo, bar the two lookups below). Produce a **ta
 
 ```
 L1 — where in the repo?
-  apps/<app>                → driving adapter (app)          → L2b (server transport) or L2c (frontend)
+  apps/<app>                → driving adapter (app)          → L2b (server transport), L2c (frontend)
+                                                                or L2m (apps/mcp, the MCP server)
   packages/core/            → the domain core                → L2a
   packages/<other>/         → graduated package (driven adapter)
   plugins/<platform>/       → plugin (ships to another platform; any language) → L2d
@@ -56,9 +57,20 @@ L2a — inside packages/core/
   src/system/<primitive>    → foundational primitive (id helpers, pagination, AppContext type)
   src/<feature>/            → domain feature module          → L3
 
-L2b — inside a server-side app (api / cli / worker / mcp)
+L2b — inside a server-side app (api / cli / worker)
   transport / bootstrap     → server / session / actor + tenant resolution / AppContext assembly
-  handlers / controllers    → per route / tool / command handler
+  handlers / controllers    → per route / command / consumer handler
+
+L2m — inside the MCP server (apps/mcp) — skip this whole branch unless the diff touches apps/mcp,
+      or adds an MCP node (below)
+  mcp transport / auth      → main.ts, server.ts, context.ts, the token check, the metadata routes;
+                              the authorization server's MCP setup
+  mcp tool dispatcher       → dispatch.ts: parsing, failure mapping, rate limit, logging, the audit step
+  mcp refusal hints         → the hint mapper and the hint texts
+  mcp tool definition       → tools/<feature>.ts: name, description, schemas, annotations, the core call
+  mcp edge tests            → apps/mcp tests: edge tests, leak sweep, tools/list snapshot,
+                              conformance baseline, smoke script
+  mcp tool-call audit       → (added node only) the audit feature, its table, its purge job
 
 L2c — inside the frontend client UI (apps/web) — skip this whole branch unless the diff touches apps/web
   shell / layout            → app shell, container, navigation
@@ -80,7 +92,13 @@ L3 — inside a feature module
   __tests__/*                       → tests
 ```
 
-**Changed logic adds a tests node.** Each touch still classifies into one leaf; a touch that changes logic — a service, orchestration, schema, shared validation, pure helper, or a worker job's handler — also adds **tests** to the map, whether or not the diff touched `__tests__/`: changed logic needs its owning tests.
+**Changed logic adds a tests node.** Each touch still classifies into one leaf; a touch that changes logic — a service, orchestration, schema, shared validation, pure helper, or a worker job's handler — also adds **tests** to the map, whether or not the diff touched `__tests__/`: changed logic needs its owning tests. Likewise a change to an L2m dispatcher, refusal-hint or tool-definition node adds **mcp edge tests**.
+
+**A change reaching the MCP server adds an MCP node,** when the repo has `apps/mcp/`. Each touch still classifies into its own leaf; in addition:
+
+- a change to a core **exception message, guard message or input schema** that an MCP tool's refusal can carry adds **mcp refusal hints** — a new or reworded refusal needs a hint, or a deliberate none ([tool-design.md → Refusals that guide](./apps/mcp/tool-design.md#refusals-that-guide));
+- a change to a **service or orchestration an MCP tool calls**, or to its output schema, adds **mcp tool definition** — the tool's description, example and output schema may no longer hold;
+- a change to the **tool-call audit** feature, its table or its purge job adds **mcp tool-call audit** ([tool-call-audit.md](./apps/mcp/tool-call-audit.md)).
 
 **A touch adding new code or a new file/folder:** first run [code-placement.md](./code-placement.md) Q1–Q3; a misplaced file fails review before any concern-doc check.
 
@@ -98,6 +116,12 @@ Each mapped node routes to its guideline(s) and owning `end-here`:
 |---|---|---|
 | app handler / controller | [code-placement.md](./code-placement.md) (thin controller, schema reuse), [transport-mapping.md](./apps/transport-mapping.md) (outcome→response, error shape, collection contract), [logging.md](./packages/core/system/logging.md); edge authN gate → [identity-and-access.md](./packages/core/identity-and-access.md); a route for outside callers → [apps/start-here.md → The published API](./apps/start-here.md#the-published-api) | [apps/end-here.md](./apps/end-here.md) |
 | app transport / bootstrap | [code-placement.md](./code-placement.md), [app-context.md](./packages/core/app-context.md) (assembly + the context-as-facts invariant), [identity-and-access.md](./packages/core/identity-and-access.md) (actor resolution, identity lifecycle), [multi-tenancy.md](./packages/core/multi-tenancy.md) (tenant resolution) | [apps/end-here.md](./apps/end-here.md) |
+| mcp transport / auth | [apps/mcp/start-here.md](./apps/mcp/start-here.md) (toolchain, layout, transport), [authentication.md](./apps/mcp/authentication.md); plus everything *app transport / bootstrap* routes to | [apps/mcp/end-here.md](./apps/mcp/end-here.md) → Toolchain, Placement & transport, Authentication; plus [apps/end-here.md](./apps/end-here.md) |
+| mcp tool dispatcher | [apps/mcp/start-here.md](./apps/mcp/start-here.md) (The tool dispatcher, Rate limiting), [transport-mapping.md](./apps/transport-mapping.md#other-transports), [logging.md](./packages/core/system/logging.md) | [apps/mcp/end-here.md](./apps/mcp/end-here.md) → The tool dispatcher; [apps/end-here.md](./apps/end-here.md) → Response & error mapping, Entry-point logging |
+| mcp refusal hints | [tool-design.md → Refusals that guide](./apps/mcp/tool-design.md#refusals-that-guide), [transport-mapping.md → Other transports](./apps/transport-mapping.md#other-transports) | [apps/mcp/end-here.md](./apps/mcp/end-here.md) → Refusals that guide |
+| mcp tool definition | [tool-design.md](./apps/mcp/tool-design.md); plus everything *app handler / controller* routes to | [apps/mcp/end-here.md](./apps/mcp/end-here.md) → Tools, Refusals that guide; [apps/end-here.md](./apps/end-here.md) → Handler / controller |
+| mcp tool-call audit | [tool-call-audit.md](./apps/mcp/tool-call-audit.md), plus the guideline of the leaf it touched (service, schema, worker job) | [apps/mcp/end-here.md](./apps/mcp/end-here.md) → Tool-call audit |
+| mcp edge tests | [apps/mcp/testing.md](./apps/mcp/testing.md) | [apps/mcp/end-here.md](./apps/mcp/end-here.md) → Testing |
 | frontend shell / layout | [apps/web/app-shell.md](./apps/web/app-shell.md) | [apps/web/end-here.md](./apps/web/end-here.md) |
 | frontend feature component | [apps/web/component-placement.md](./apps/web/component-placement.md) | [apps/web/end-here.md](./apps/web/end-here.md) |
 | frontend visual system | [apps/web/visual-system.md](./apps/web/visual-system.md) | [apps/web/end-here.md](./apps/web/end-here.md) |
@@ -141,6 +165,7 @@ Run once across the whole diff:
 - **A cross-entity invariant is the one business rule an orchestration may own** — a predicate over ≥2 owners' data; a *single-entity* rule in an orchestration fails → [orchestration.md](./packages/core/orchestration.md#cross-entity-invariants).
 - **Business logic lives in the domain, integration-agnostic** — a rule existing *only* in a controller, adapter, or the UI fails → [code-placement.md](./code-placement.md#layering-three-roles-one-direction).
 - **Failures are raised, not returned; handled → `4xx` in one shape, never a `500`** → [error-handling.md](./error-handling.md).
+- **A refusal to an AI assistant guides its fix** (MCP) — every problem at its exact field path, all in one refusal, each with a hint naming a valid shape, a tool or a docs topic → [tool-design.md](./apps/mcp/tool-design.md#refusals-that-guide).
 - **Authorization is enforced in the domain against `ctx.actor`, not only at the edge** → [identity-and-access.md](./packages/core/identity-and-access.md#authorization-is-a-domain-concern).
 - **The context asserts facts; no operation establishes its own preconditions** — factory invoked only in driving adapters and test setup → [app-context.md](./packages/core/app-context.md#the-context-is-a-statement-of-fact).
 - **Tenant isolation is structural, not per-query** (multi-tenant apps) — scoped seam by default; the only unscoped path is an explicit elevated context → [multi-tenancy.md](./packages/core/multi-tenancy.md#isolation-is-enforced-at-the-database-seam).

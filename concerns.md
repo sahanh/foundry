@@ -46,11 +46,12 @@ idempotency keys for retried inbound API calls, no isolation-level expectations.
 
 ### 11. Audit trails are undecided — `partial`
 
-Timestamps, deletes, and enum columns are decided. An audit-trail convention (row-level who/what/when
-history, attributable to `ctx.actor`) remains unwritten — raise it as its own concern when a feature
-needs one.
+Timestamps, deletes, and enum columns are decided, and MCP tool calls have an audit record with
+retention (`apps/mcp/tool-call-audit.md`). A convention for row-level history of domain entities
+(who changed this record, attributable to `ctx.actor`) remains unwritten — raise it as its own concern
+when a feature needs one.
 
-**Anchor:** `working-with-databases.md`, `system/database.md`, `app-context.md`.
+**Anchor:** `working-with-databases.md`, `system/database.md`, `app-context.md`, `apps/mcp/tool-call-audit.md`.
 
 ## Scaling / five-year pressure points
 

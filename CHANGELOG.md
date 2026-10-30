@@ -9,6 +9,37 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-31 — The MCP server gets its own guidelines
+
+New subtree, [apps/mcp/](./apps/mcp/start-here.md), with its own [end-here](./apps/mcp/end-here.md).
+[start-here.md](./apps/mcp/start-here.md): a recommended toolchain (the official MCP TypeScript SDK v2,
+Better Auth as the authorization server) with the criteria a substitute must meet, a stateless
+Streamable HTTP transport, one tool dispatcher every tool call goes through, and a per-connection rate
+limit. [authentication.md](./apps/mcp/authentication.md): the MCP server as an OAuth resource server,
+and the authorization-server criteria. [tool-design.md](./apps/mcp/tool-design.md): the tool set,
+descriptions, retry-safe writes, refusals that guide the assistant (every problem at its field path,
+each with a hint on how to fix it), and results.
+[tool-call-audit.md](./apps/mcp/tool-call-audit.md): a durable audit record of every tool call, and
+its retention, decided from the business case and purged on a schedule.
+[testing.md](./apps/mcp/testing.md): the test layers an MCP server adds and the tooling for each — edge
+tests in-process, a leak sweep over every tool, a `tools/list` snapshot, the protocol conformance
+suite, portable schemas, a deploy smoke test, and evals. The MCP box in
+[apps/end-here.md](./apps/end-here.md) (transport and bootstrap separate from the tool handlers) moved
+there. [transport-mapping.md → Other transports](./apps/transport-mapping.md#other-transports) now says
+what an MCP tool failure carries, a refusal's hints included. [review.md](./review.md) gains an
+`L2m` branch for `apps/mcp` (its nodes moved out of `L2b`), routing rows for each MCP node, the rule
+that a core change an MCP tool exposes adds an MCP node, and a review-lens line for refusals. New
+CI rules `MCP-01` (tool calls go only through the dispatcher), `MCP-02` (no session transport),
+`MCP-03` (audit records are append-only), `MCP-04` (published tool names never disappear), `MCP-05`
+(protocol conformance) and `MCP-06` (portable tool schemas), with new parameters *MCP app*, *MCP tool
+dispatcher*, *Audit tables* and *Tool-surface snapshot*.
+
+Affects adopting repos with an MCP server, `apps/mcp/` (written before this change): read
+[apps/mcp/start-here.md](./apps/mcp/start-here.md) (in particular *The toolchain*, *The transport*
+and *The tool dispatcher*), [authentication.md](./apps/mcp/authentication.md),
+[tool-design.md](./apps/mcp/tool-design.md), [tool-call-audit.md](./apps/mcp/tool-call-audit.md) and
+[testing.md](./apps/mcp/testing.md). Add `MCP-01` to `MCP-06` to the CI manifest.
+
 ## 2026-10-31 — Plugins and the published API
 
 **Commit:** [`8bcd4e6`](https://github.com/sahanh/foundry/commit/8bcd4e6f6d9902119d35a9aef96b031a442f5f2e)

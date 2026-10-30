@@ -74,8 +74,14 @@ The classification is transport-agnostic; only the envelope changes:
 
 - **CLI** — nonzero **exit code**, messages on `stderr`; an unanticipated fault gets a distinct
   "internal error" exit code.
-- **MCP tool** — an **`isError` result** carrying the messages, so the calling model sees a handled
-  tool failure, not a transport crash.
+- **MCP tool** — an **`isError` result** whose text is the envelope above as JSON, so the calling
+  model sees a handled tool failure, not a transport crash: field-keyed messages for arguments the
+  tool's input schema rejects, one message for a domain exception or an unknown tool. An
+  unanticipated fault is an `isError` result with the generic message, never the error's own text;
+  a schema failure thrown from inside the core is one (stored data failed, not the caller's input).
+  The [tool dispatcher](./mcp/start-here.md#the-tool-dispatcher) is the one place that maps them.
+  For the assistant, each message of a refusal may carry a `hint` beside it, saying how to fix it
+  ([tool-design.md → Refusals that guide](./mcp/tool-design.md#refusals-that-guide)).
 - **Queue worker** — a handled failure is a **permanent reject** (malformed or rule-violating —
   retrying will not help); only an *unanticipated* fault is a **retry / redeliver**. A domain failure
   mapped to a retry loops forever.

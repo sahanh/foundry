@@ -10,7 +10,7 @@ This file is the entry point to the standard. When an agent builds in a codebase
 
 - **[packages/core/](./packages/core/start-here.md)** — the domain core: how to structure and build features (services, orchestrations, validation, schemas, testing) and the rules that govern the domain layer.
 - **[packages/core/system/](./packages/core/system/start-here.md)** — the driven infrastructure the core sits on: database, logger, clock, and other adapters.
-- **[apps/](./apps/start-here.md)** — the driving adapters, in two families: **server-side transport** (HTTP, CLI, workers, MCP) and the **[frontend / web UI](./apps/web/start-here.md)** (a client surface). The web subtree is a *skippable branch* — open it only for UI work; backend-only work stops at the server-transport guidance.
+- **[apps/](./apps/start-here.md)** — the driving adapters, in two families: **server-side transport** (HTTP, CLI, workers, MCP) and the **[frontend / web UI](./apps/web/start-here.md)** (a client surface). The web subtree is a *skippable branch* — open it only for UI work; backend-only work stops at the server-transport guidance. The **[MCP server](./apps/mcp/start-here.md)** has its own skippable subtree on top of the server-transport guidance.
 - **[packages/](./packages/start-here.md)** — libraries, including driven adapters that graduated out of the core.
 - **[plugins/](./plugins/start-here.md)** — code that ships to another platform and runs there (a Zapier app, a WordPress plugin), in any language. A *skippable branch* — open it only for plugin work.
 
