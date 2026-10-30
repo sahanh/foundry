@@ -27,7 +27,7 @@ Filled in when installed:
 | Domain vocabulary and decisions | *e.g. `GLOSSARY.md` and `docs/adr/`, as `docs/agents/domain.md` names them; or none* |
 | Typecheck | *e.g. `pnpm typecheck`* |
 | Run one test file | *e.g. `pnpm vitest run <file>`* |
-| Run the full suite | *e.g. `pnpm test`* |
+| Quick checks | *the repo's checks short of the full integration suite (e.g. `pnpm verify:quick`)* |
 
 ## How to work
 
@@ -41,7 +41,8 @@ Filled in when installed:
 - **Tests never cite strategy row IDs** ([testing.md](../../packages/core/testing.md#the-test-strategy)).
   Name them in the domain's words: the glossary's terms, and a use-case test after its scenario
   ([testing.md → Integration Test Flavours](../../packages/core/testing.md#integration-test-flavours)).
-- **Typecheck and run the test file you're in often;** the full suite once, at the end.
+- **Typecheck and run the test file you're in often;** at the end, the quick checks and every test
+  file the change touches. The full integration suite is CI's, on the push.
 
 ## Stage 0. Inputs
 
@@ -111,7 +112,7 @@ silent.
 
 ## Stage 4. Finish
 
-Typecheck and the full suite, green. Then report — to the user, or to whoever launched you — in this
+The quick checks and every test file the change touches, green. Then report — to the user, or to whoever launched you — in this
 shape:
 
 ```

@@ -32,7 +32,8 @@ Filled in when installed:
 | Issues live in | *issues on the tracker, e.g. GitHub issues in `<owner>/<repo>`; `docs/agents/issue-tracker.md` gives the commands. Its number names the PRs, and the top PR closes it* |
 | Labels | *as capture-fix sets them: the kind `fix`, ready `ready-for-agent`, needs a human `needs-triage`; and `ready-to-land`, which this skill puts on finished PRs* |
 | Test strategies live in | `docs/test-strategy/` |
-| Local gates | *the local command in `foundry-ci.md`, e.g. `pnpm verify:checks`* |
+| Quick checks | *the repo's checks short of the full integration suite: the static checks and the unit tests (e.g. `pnpm verify:quick`)* |
+| Run test files | *how to run named test files, unit or integration (e.g. `pnpm vitest run <files>`)* |
 | Stack-wide checks | *checks too slow for every commit, run once on the top of the stack before the tests are reviewed (e.g. a gate re-proof); or none* |
 | Required CI checks | *the check names a PR must show green* |
 | Worktree setup | *what a fresh worktree needs: e.g. `pnpm install --frozen-lockfile`, `.env` copied from the main checkout* |
@@ -52,11 +53,18 @@ Filled in when installed:
   slice, the worktree, the base branch, the strategy's path. It reads everything else itself. The one
   thing you paste is what exists nowhere else: review findings to fix.
 - **Record as you go.** The plan PR's description is the live record — update it after every slice.
-- **Verify each commit once.** A recorded passing run of the local gates on a commit is its evidence:
-  no reviewer and no later step runs them again on that commit. A new commit — a fix, a catch-up merge —
-  is verified again.
-- **One run per worktree.** Nothing else runs in a worktree while its gates run: no dev server or
+- **CI runs the full suite; nothing here does.** Every pushed commit gets CI's run, and a PR lands
+  only with its required checks green on its head commit — that result is the commit's record.
+  Locally, a builder runs the quick checks and the test files its change touches, unit and
+  integration; no one runs the full integration suite, and no one repeats a run CI makes.
+- **One run per worktree.** Nothing else runs in a worktree while its checks run: no dev server or
   preview writing into it, no second agent's checks.
+- **Stay in your worktree.** You and every subagent work only in the worktree you were given — launch
+  each with it as the working directory, the correctness review included. Never check out, switch
+  branches or run anything in the main checkout or another worktree.
+- **Skills from the base branch.** The skills and briefs a stack runs are the base branch's as it is
+  now: before building, if the plan branch's skill files differ from the base branch's, merge the base
+  branch into the plan branch first (Stage 4), so no slice runs a stale copy.
 
 ## Stage 0. Is it ready?
 
@@ -124,8 +132,9 @@ parallel, each in its own worktree. For each:
 2. **Build** — launch a builder per [builder.md](builder.md):
    > Read `<repo>/<skills dir>/implement/builder.md` and execute it. PRD: <ref>. Slice: <N>.
    > Worktree: `<path>`. Base: `<branch>`. Strategy: `<path>`.
-3. **Catch up** — before every push, merge the branch directly beneath it, at its current tip, and
-   rerun the local gates. That brings in a slice built alongside it and any fix carried up from below.
+3. **Catch up** — before every push, merge the branch directly beneath it, at its current tip. That
+   brings in a slice built alongside it and any fix carried up from below. Run no checks for a clean
+   merge — CI runs on the push; a merge whose conflicts you resolved gets the quick checks first.
    A slice whose branch beneath is still being built waits here.
 4. **Push and open its PR** as a draft, base the branch below, its description from
    [pr-templates.md → Slice PR](pr-templates.md#slice-pr): the builder's report — rows, guard evidence,
@@ -158,7 +167,8 @@ outstanding findings or failure on its PR.
 ## Stage 4. Carry a fix up the stack
 
 A fix lands on the branch of the slice it belongs to. Then, from that branch upward, **merge each
-branch into the one above it**, resolve, rerun the local gates, and push each. A slice whose builder is
+branch into the one above it**, resolve, and push each — CI runs on every push; only a merge whose
+conflicts you resolved gets the quick checks first. A slice whose builder is
 still running is skipped: it takes the fix at its own catch-up — never merge into a worktree a builder
 is editing. While the stack is being built, never rebase or force-push a branch with an open PR; each
 PR's diff stays its own.
