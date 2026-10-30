@@ -28,14 +28,17 @@ the slice test-first and keeps the record you report: guard evidence, strategy c
 and judgment calls on behaviour the PRD left open. You run unattended, so where it says to make a call,
 make it and record it.
 
-**Fix rounds:** when the orchestrator sends findings, fix each, rerun the gates, commit, and report
+**Fix rounds:** when the orchestrator sends findings, fix each, run the checks and test files the fix
+touches, commit, and report
 again with what each fix changed.
 
-## 3. Gates
+## 3. Checks
 
-Run the repo's local gates (`foundry-ci.md`'s local command) until green, on your final commit. Don't
-hand back red. Nothing else runs in the worktree while they do — no dev server or preview writing into
-it. If the slice changes the UI and the repo gives a way to capture it, capture each screen the slice's
+While you work, run the test files you're writing or changing — unit and integration — with typecheck
+and lint. Before you hand back, run the quick checks and every test file your slice touches, on your
+final commit, until green; don't hand back red. Never run the full integration suite: CI runs it on
+every push. Nothing else runs in the worktree while your checks do — no dev server or preview writing
+into it. If the slice changes the UI and the repo gives a way to capture it, capture each screen the slice's
 use cases name afterwards, and list the files.
 
 ## 4. Report
@@ -43,7 +46,7 @@ use cases name afterwards, and list the files.
 ```
 slice: <N> <title>
 status: done | blocked: <one line>
-gates: <command> — green at <commit sha> | <what failed>
+checks: quick checks and <the test files run> — green at <commit sha> | <what failed>
 <tdd's report: rows, guard evidence, strategy changes, judgment calls>
 ui evidence: <files, with what each shows> | n/a
 notes: <for the orchestrator: new dependencies, migrations, environment variables, anything it must know>

@@ -9,6 +9,21 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-30 — implement runs quick checks locally; the full integration suite is CI's
+
+**implement** no longer runs the full local checks at every checkpoint. Its *Local gates* parameter is
+replaced by *Quick checks* (the repo's checks short of the full integration suite) and *Run test files*:
+a builder runs the test files its change touches, unit and integration, and the quick checks before
+handing back; catch-up and carry-up merges, reviewers and fix rounds run no full suite — CI does, on
+every push, and its result for a PR's head commit is the record. New invariants: every subagent stays in
+its own worktree (never the main checkout), and a stack runs the base branch's skill files, merging the
+base in first if they differ. **tdd** and **land-prs** take *Quick checks* in place of a full-suite or
+*Local gates* parameter.
+
+Affects adopting repos that installed `implement`, `tdd` or `land-prs`: re-copy them, filling in *Quick
+checks* (a script that runs every check but the full integration suite) and *Run test files*. Read
+[skills/implement/SKILL.md → Invariants](./skills/implement/SKILL.md#invariants).
+
 ## 2026-10-30 — The pipeline is described as three streams
 
 **Commit:** [`3e10e6b`](https://github.com/sahanh/foundry/commit/3e10e6bd6973d9559928aa11d67635dc5acebf2e)

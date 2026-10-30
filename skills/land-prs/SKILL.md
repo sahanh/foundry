@@ -24,7 +24,7 @@ Filled in when installed:
 | Promotion | *how the base branch reaches the production branch, e.g. a release PR from base into production, merged with a merge commit* |
 | Merge method | *merge commits, or squash* |
 | Required CI checks | *the check names a PR, and the branch after a merge, must show green* |
-| Local gates | *the local command in `foundry-ci.md`, e.g. `pnpm verify:checks`, for a PR you bring up to date* |
+| Quick checks | *the repo's checks short of the full integration suite (e.g. `pnpm verify:quick`), for a PR whose conflicts you resolve* |
 | Worktree setup | *what a fresh worktree needs: e.g. `pnpm install --frozen-lockfile`* |
 | Deploy after landing | *the command that deploys the base branch, run once at the end of a run (e.g. `pnpm deploy:staging`); or none* |
 | Known conflict fixes | *mechanical conflicts and their fix, e.g. a lockfile: take the base's and reinstall; or none* |
@@ -93,8 +93,8 @@ For each PR:
 1. **Re-check it live:** still open, merges cleanly, required checks green on its **current** head, no
    new objection, head unchanged since the survey. Anything else is reconciled below or held.
 2. **Bring a stale PR up to date** in a worktree on its branch (with the worktree setup):
-   - **behind, no conflict** — merge the base branch in, run the local gates, push, wait for fresh CI;
-   - **a known conflict** — apply its fix, run the local gates, push, wait for fresh CI;
+   - **behind, no conflict** — merge the base branch in, push, wait for fresh CI;
+   - **a known conflict** — apply its fix, run the quick checks, push, wait for fresh CI;
    - **anything else** — a real code conflict, a push nobody in the plan made, CI red with no known fix:
      **hold** it, remove the ready label, and comment what collided.
 

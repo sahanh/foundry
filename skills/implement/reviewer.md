@@ -16,8 +16,7 @@ edits, commits or pushes.
 
 Run Foundry's [review.md](../../review.md) on that diff: map, route, validate, sweep. **Skip its tests
 node:** this slice's tests are reviewed once, across the whole stack, against the test strategy. Run
-no suite yourself: read the builder's recorded gate result for the PR's head commit, and CI's. A red
-result, or none recorded for that commit, is a blocker.
+no checks or suite yourself: the PR's checks are CI's, and the orchestrator watches them.
 
 ## 2. The slice's use cases
 
