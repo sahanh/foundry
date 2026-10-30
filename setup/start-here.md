@@ -21,5 +21,5 @@ repo has no `foundry-ci.md`, `foundry.lock` or `.github/dependabot.yml`.
   its Foundry links, fills in its project parameters, checks it is invocable, and lists it in
   `AGENTS.md` — and does the same for new and changed skills when reconciling.
 
-Setup is not finished once. A later change that picks or swaps an adapter, or adds a deterministic
-convention, extends the CI too — [ci-verification.md → Extending](./ci-verification.md#extending).
+Setup is not finished once. A later change that picks or swaps an adapter, adds a deterministic
+convention, or adds a plugin, extends the CI too — [ci-verification.md → Extending](./ci-verification.md#extending).

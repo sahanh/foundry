@@ -106,15 +106,16 @@ Lives at the adopting repo's root; the reviewer and every later agent read it. I
 | Shared styling files | the files that define the visual system's tokens and cross-app primitives (web apps only) |
 | Generated UI primitives folder | `apps/web/src/components/ui/` — files a UI generator writes (shadcn/ui), exempt from `TS-07` (web apps only) |
 | Shared component folder | `apps/web/src/components/shared/` — its siblings under `components/`, other than the generated UI primitives folder, are feature folders (web apps only) |
-
+| Plugins | none — each `plugins/<platform>/` folder, with its language (*Plugins* below) |
 ---
 
 ## Always
 
 ### Baseline
 
-The floor every package and app meets, frontend and backend alike. Usually the type checker, ESLint
-with typescript-eslint, and the formatter's check mode.
+The floor every package and app meets, frontend and backend alike — and every TypeScript plugin (a
+plugin in another language is outside it). Usually the type checker, ESLint with typescript-eslint,
+and the formatter's check mode.
 
 - **BASE-01 — Strict type-check.** Fails when a package or app compiles with `strict` (or a flag it
   enables) turned off, or the type checker reports an error (e.g. `tsc --noEmit` per package). Rule:
@@ -136,11 +137,12 @@ with typescript-eslint, and the formatter's check mode.
 
 ### Repo shape
 
-- **REPO-01 — Two top-level homes.** Fails when a top-level `src/` exists, or application source sits
-  anywhere but `apps/*` and `packages/*` (repo-wide tooling config excepted). Rule:
+- **REPO-01 — The top-level homes.** Fails when a top-level `src/` exists, or application source sits
+  anywhere but `apps/*`, `packages/*` and `plugins/*` (repo-wide tooling config excepted). Rule:
   [code-placement.md → The Topology](../code-placement.md#the-topology).
 - **REPO-02 — pnpm only.** Fails when a `package-lock.json` or `yarn.lock` exists, or the root
-  `packageManager` field is not pnpm. Rule: [README.md → Conventions](../README.md#conventions).
+  `packageManager` field is not pnpm. A plugin in another language using its own manager
+  (Composer's `composer.lock`) is not a failure. Rule: [README.md → Conventions](../README.md#conventions).
 
 ### Import direction
 
@@ -200,7 +202,7 @@ Usually a file-structure linter (ls-lint, eslint-plugin-check-file).
 
 ### TypeScript
 
-Usually ESLint with typescript-eslint. Scope: all TypeScript in the repo.
+Usually ESLint with typescript-eslint. Scope: all TypeScript in the repo outside `plugins/`.
 
 - **TS-01 — Arrow functions at module level.** Fails on a module-level `function` declaration
   (exported or not). Rule: [typescript-coding-standards.md](../common/typescript-coding-standards.md#arrow-functions-for-top-level-definitions).
@@ -355,6 +357,21 @@ plugin; `WEB-03` runs in the same dependency-graph tool as the import rules.
   component folder imports from any feature component folder. Rule:
   [component-placement.md → Ownership after promotion](../apps/web/component-placement.md#ownership-after-promotion).
 
+### Plugins
+
+Skip (`n/a — no plugins`) unless `plugins/` exists. **These rules, the Baseline and `REPO-02` are the
+only catalogue rules a TypeScript plugin meets; a plugin in another language meets only `PLUG-02`.**
+Everything else inside a plugin's folder is the project's call
+([plugins/start-here.md → Toolchain, CI and release](../plugins/start-here.md#toolchain-ci-and-release-are-the-projects)).
+`PLUG-01` runs in the same dependency-graph tool as the import rules.
+
+- **PLUG-01 — Plugins are walled off.** Fails when a file in a TypeScript plugin imports anything
+  from `apps/` or `packages/` (`@app/core`, a graduated package, an app), or a file under `apps/` or
+  `packages/` imports from `plugins/`. Rule:
+  [plugins/start-here.md → Through the published API](../plugins/start-here.md#it-reaches-the-system-only-through-the-published-api).
+- **PLUG-02 — Every plugin has its map.** Fails when a `plugins/<platform>/` folder has no
+  `README.md`. Whether the map is complete is review's job. Rule:
+  [plugins/start-here.md → The README maps the whole integration](../plugins/start-here.md#the-readme-maps-the-whole-integration).
 ---
 
 ## Extending
@@ -372,6 +389,18 @@ with a rule its vendor imposes, a second datastore, a styling system, a conventi
 The same goes for picking an adapter: the *Per adapter* rules are written for the adapter's role, so
 choosing or swapping one (a different ORM, a different store) means re-reading those rules and
 rebuilding their checks for it.
+
+### Plugins in another language
+
+The catalogue's rules are written for TypeScript. A [plugin](../plugins/start-here.md) in another
+language — a PHP WordPress plugin — meets only `PLUG-02`, and **the rest of its CI is the project's
+call**: a syntax lint, a static analyser, a test suite, or nothing yet. To keep that choice visible:
+
+- **List it** under the *Plugins* parameter, with its language. A reviewer then knows which rules
+  apply to it ([review.md → Step 0](../review.md#step-0--what-ci-already-verifies)).
+- **Record each check the project builds for it** as an `EXT-NN`, like any project rule.
+- **The judgment rules still apply.** Placement, the README map, the API-only boundary and the other
+  boxes in [plugins/end-here.md](../plugins/end-here.md) are language-neutral, and review checks them.
 
 **Keeping current.** When a [CHANGELOG](../CHANGELOG.md) entry after the repo's pin
 ([staying-in-sync.md](./staying-in-sync.md)) names a rule ID, updating that check and its manifest row

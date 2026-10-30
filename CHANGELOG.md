@@ -9,6 +9,28 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-31 — Plugins and the published API
+
+A third top-level home, **`plugins/`**: code that ships to another platform and runs there — a Zapier
+app, a WordPress plugin — one folder per platform, in any language, calling only the published API
+of `apps/api`, with a README mapping the integration's parts elsewhere
+([plugins/](./plugins/start-here.md)). Inside its folder, layout, scripts, tests, CI and release are
+the project's; a TypeScript plugin meets only the tooling baseline. `apps/api` gains **the published
+API**: the routes outside callers may depend on, with breaking changes called out. A vendor
+integration now splits into up to three homes by direction. **REPO-01** now allows `plugins/`;
+**REPO-02** allows a non-TypeScript plugin's own package manager; new parameter *Plugins*; new
+conditional rules **PLUG-01** and **PLUG-02**. New review node L2d (plugin); review now checks a
+plugin's calls against the `apps/api` routes.
+
+Affects adopting repos with integration code: anything shipped to a vendor's platform, the endpoints
+a vendor calls back on, and code pushing data out to a vendor. Read
+[code-placement.md → Worked Examples](./code-placement.md#worked-examples) (*Vendor integration*),
+[plugins/start-here.md](./plugins/start-here.md) and
+[apps/start-here.md → The published API](./apps/start-here.md#the-published-api). In CI, re-read
+REPO-01 and REPO-02, fill in the new parameter, and build PLUG-01 and PLUG-02 or record them `n/a`:
+[setup/ci-verification.md → Plugins](./setup/ci-verification.md#plugins) and
+[→ Plugins in another language](./setup/ci-verification.md#plugins-in-another-language).
+
 ## 2026-10-31 — implement creates the GitHub stack; land-prs merges stacked PRs
 
 **Commit:** [`734f0b6`](https://github.com/sahanh/foundry/commit/734f0b62fc615ecb5363a67b5e350452db82ceea)
