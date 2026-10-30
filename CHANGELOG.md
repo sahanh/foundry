@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-31 — implement creates the GitHub stack; land-prs merges stacked PRs
 
+**Commit:** [`734f0b6`](https://github.com/sahanh/foundry/commit/734f0b62fc615ecb5363a67b5e350452db82ceea)
+
 **implement**, at its finish, creates a GitHub stack of a PRD's PRs through GitHub's stacks API with the
 existing `gh` (`POST /repos/{owner}/{repo}/stacks`, plan PR first), under a new *Native stack* parameter,
 and records its number on the plan PR. **land-prs** merges a PR in a GitHub stack through the
