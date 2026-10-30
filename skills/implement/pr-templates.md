@@ -22,7 +22,8 @@ slices build on it.
 |---|---|---|---|---|
 | 1 | #<n> | <title> | <slices it really depends on, or —> | <draft · ready · blocked> |
 
-A slice sits above every slice before it; only *Blocked by* is a real dependency.
+A slice sits above every slice before it; only *Blocked by* is a real dependency. GitHub stack: #<stack
+number> | none.
 
 ## Strategy changes
 

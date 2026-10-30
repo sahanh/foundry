@@ -42,6 +42,7 @@ Filled in when installed:
 | Preview | *how to run the app from a worktree for the user to try: the start command on free ports, the check that it's up, how to expose it to the user (e.g. the host's `expose-service` skill) and how to stop it; or none* |
 | Base branch | *the branch PRs target: the default branch, unless the repo integrates elsewhere (e.g. `develop`)* |
 | Merge method | *how the repo merges PRs: merge commits, or squash* |
+| Native stack | *yes, when the repo has GitHub's stacked pull requests turned on: the finished PRs become a GitHub stack; or none* |
 | Subagent model | *e.g. inherit* |
 
 ## Invariants
@@ -196,16 +197,26 @@ rounds: report them rather than looping. Put the final report's summary on the p
 
 1. **Ready to land** — when nothing in the stack is blocked: mark every PR **ready for review** and
    label it `ready-to-land`. A blocked slice leaves every PR unlabelled; they stay drafts.
-2. **Preview** — unless the repo has none: in a worktree on the top branch (the single PR's, for a
+2. **The GitHub stack** — for a PRD's stack, when the repo uses native stacks: create it through
+   GitHub's stacks API with the existing `gh`, the plan PR first and the slices bottom to top. It
+   accepts the stack because each PR's base is the branch below it:
+   ```shell
+   gh api -X POST repos/<owner>/<repo>/stacks -H 'X-GitHub-Api-Version: 2026-03-10' \
+     -F 'pull_requests[]=<plan PR>' -F 'pull_requests[]=<slice 1 PR>' …
+   ```
+   Record the stack number it returns on the plan PR. An error — stacks not turned on, a refused
+   stack — is reported and changes nothing else. Create or add only: never rebase, force-push or
+   unstack a stack with open PRs.
+3. **Preview** — unless the repo has none: in a worktree on the top branch (the single PR's, for a
    fix), start the app on free ports, wait until it's up, and expose it to the user. Record under the
    plan PR's (or single PR's) *Preview*: the link, the worktree, and everything started — processes,
    containers, ports, the exposed address — with how to stop each. That record is what
    [land-prs](../land-prs/SKILL.md) stops once the work lands.
-3. **Clean up:** remove every other worktree and local slice branch you created, and stop anything
+4. **Clean up:** remove every other worktree and local slice branch you created, and stop anything
    else you started. A worktree on the plan branch that elaborate-feature left stays until the stack
    lands.
-4. **Report** to the user: the goal; the preview's link; the stack, bottom to top, each PR's link and
+5. **Report** to the user: the goal; the preview's link; the stack, bottom to top, its GitHub stack number, each PR's link and
    status; the judgment calls (weakened guards first) and strategy changes, or a pointer to the plan
    PR; the test-review verdict; anything blocked and why. Landing is theirs, with `/land-prs`.
-5. **Fixes found** — every one the builders reported, listed for the user with the question
+6. **Fixes found** — every one the builders reported, listed for the user with the question
    [capture-fix](../capture-fix/SKILL.md) asks: *Shall I invoke `/capture-fix` for these?*
