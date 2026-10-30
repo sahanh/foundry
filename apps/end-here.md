@@ -17,6 +17,9 @@ Deterministic rules (import direction, handler `try`, auth SDK placement) are CI
 - [ ] Business-rule validation owned by the domain — controller parses with reused schemas, declares no rules — [error-handling.md](../error-handling.md#the-principles) (principle 4)
 - [ ] MCP server: transport/bootstrap (server, session lifecycle, `AppContext` assembly) separate from per-tool handlers — [code-placement.md](../code-placement.md)
 
+## Published API → [start-here.md](./start-here.md#the-published-api)
+- [ ] A route for outside callers (a plugin, a vendor callback, a customer integration) is on the published API; a route only the web UI calls stays internal — [start-here.md](./start-here.md#the-published-api)
+- [ ] A breaking change to a published route (removed or renamed route or field, newly required input, narrowed type) is called out and confirmed with the user — [start-here.md](./start-here.md#the-published-api)
 ## Response & error mapping → [transport-mapping.md](./transport-mapping.md)
 - [ ] One shared error handler; one envelope for validation failures (field-keyed) and domain exceptions (one message); `traceId` echoed on it — [transport-mapping.md](./transport-mapping.md#the-error-response-structure)
 - [ ] Every anticipated failure a `4xx` — validation and domain exceptions both `422` (or a project-chosen 400/422 split), never `500` — [transport-mapping.md](./transport-mapping.md#mapping-outcomes-to-a-response-http)

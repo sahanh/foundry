@@ -5,8 +5,9 @@ application** of the [error-handling strategy](../error-handling.md), made concr
 notes for the other transports.
 
 > **Scope:** server-side transport only — HTTP/GraphQL controllers (`api/`), CLI commands, queue
-> consumers/workers, MCP tool handlers. The **frontend** consumes this contract but does not define
-> it — client-UI changes route to [apps/web/](./web/start-here.md). HTTP is the canonical example;
+> consumers/workers, MCP tool handlers. The **frontend** and **plugins** consume this contract but
+> do not define it — client-UI changes route to [apps/web/](./web/start-here.md), plugin changes to
+> [plugins/](../plugins/start-here.md). HTTP is the canonical example;
 > [other transports](#other-transports) map the same outcomes to their idioms.
 
 ## Core Principle

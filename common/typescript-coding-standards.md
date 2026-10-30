@@ -1,6 +1,6 @@
 # TypeScript Coding Standards
 
-Conventions for all TypeScript in this codebase — new code and changes to existing files.
+Conventions for all TypeScript in this codebase — new code and changes to existing files. A plugin under `plugins/` meets only the [Tooling Baseline](#tooling-baseline) ([plugins/start-here.md](../plugins/start-here.md#toolchain-ci-and-release-are-the-projects)).
 
 ## Arrow Functions for Top-Level Definitions
 
