@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-31 — plugins/ is renamed satellites/ and covers any independent codebase
 
+**Commit:** [`3eac2e2`](https://github.com/sahanh/foundry/commit/3eac2e2f1c91cc55ead33e6fb3cc1ca38a55a252)
+
 The **`plugins/`** home is now **`satellites/`**: any independent codebase that reaches the system
 only through the published API, shipped to a vendor's platform or deployed on its own. Its docs moved
 from `plugins/start-here.md` and `plugins/end-here.md` to [satellites/](./satellites/start-here.md).
