@@ -11,6 +11,8 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-31 — The MCP server gets its own guidelines
 
+**Commit:** [`7b6ad50`](https://github.com/sahanh/foundry/commit/7b6ad5045ef27d52a665285d96abbb845b47d011)
+
 New subtree, [apps/mcp/](./apps/mcp/start-here.md), with its own [end-here](./apps/mcp/end-here.md).
 [start-here.md](./apps/mcp/start-here.md): a recommended toolchain (the official MCP TypeScript SDK v2,
 Better Auth as the authorization server) with the criteria a substitute must meet, a stateless
