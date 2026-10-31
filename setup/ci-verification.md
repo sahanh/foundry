@@ -98,7 +98,7 @@ Lives at the adopting repo's root; the reviewer and every later agent read it. I
 | Context factory | the function that assembles an `AppContext` (e.g. `createAppContext`) |
 | Domain npm allowlist | the schema library and the ORM's query-builder entry point (never a driver subpath) |
 | Auth-provider packages | the identity vendor's SDKs (e.g. `@clerk/*`) |
-| Server handler files | globs for route / command / tool / consumer handlers in server apps |
+| Server handler files | globs for route / command / tool / consumer handlers in server apps (MCP: `apps/mcp/src/tools/*.ts`) |
 | Extra feature-folder entries | none — each one added records a user-confirmed exception |
 | Tenancy | single-tenant (default) or multi-tenant; if multi: tenant column name (`tenantId`), tenant-exempt tables, unscoped-escape names (e.g. `db.unscoped()`) and the files allowed to call them |
 | Formatter | the project's one formatter (e.g. Prettier, Biome) |
@@ -107,6 +107,11 @@ Lives at the adopting repo's root; the reviewer and every later agent read it. I
 | Generated UI primitives folder | `apps/web/src/components/ui/` — files a UI generator writes (shadcn/ui), exempt from `TS-07` (web apps only) |
 | Shared component folder | `apps/web/src/components/shared/` — its siblings under `components/`, other than the generated UI primitives folder, are feature folders (web apps only) |
 | Plugins | none — each `plugins/<platform>/` folder, with its language (*Plugins* below) |
+| MCP app | `apps/mcp/` (MCP servers only) |
+| Tool-surface snapshot | the committed `tools/list` snapshot file (MCP servers only) |
+| MCP tool dispatcher | `apps/mcp/src/dispatch.ts` — the one module that answers `tools/list` and `tools/call` (MCP servers only) |
+| Audit tables | the table definitions holding audit records (MCP: the tool-call audit table) and the purge method allowed to delete from them |
+
 ---
 
 ## Always
@@ -372,6 +377,39 @@ Everything else inside a plugin's folder is the project's call
 - **PLUG-02 — Every plugin has its map.** Fails when a `plugins/<platform>/` folder has no
   `README.md`. Whether the map is complete is review's job. Rule:
   [plugins/start-here.md → The README maps the whole integration](../plugins/start-here.md#the-readme-maps-the-whole-integration).
+### MCP servers
+
+Skip unless the MCP app exists. `MCP-01` and `MCP-02` are usually a lint rule (ESLint
+`no-restricted-syntax` / `no-restricted-imports`) scoped to the MCP app; they name the recommended
+SDK's API, and with a substitute SDK the check is built against its equivalents. `MCP-03` is usually
+the same lint rule over the core. `MCP-04` is a diff script over the snapshot file; `MCP-05` and
+`MCP-06` run their tools against a server started on loopback in the CI job.
+
+- **MCP-01 — Tool calls go only through the dispatcher.** Fails on a `registerTool` call anywhere in
+  the MCP app, or on a `tools/list` or `tools/call` request handler set outside the tool dispatcher.
+  Rule: [apps/mcp/start-here.md → The tool dispatcher](../apps/mcp/start-here.md#the-tool-dispatcher).
+- **MCP-02 — No session transport.** Fails, in the MCP app, on a `sessionIdGenerator` option, or on a
+  Streamable HTTP server transport constructed directly (`NodeStreamableHTTPServerTransport`,
+  `WebStandardStreamableHTTPServerTransport`, v1's `StreamableHTTPServerTransport`) instead of served
+  through `createMcpHandler`. Rule:
+  [apps/mcp/start-here.md → The transport](../apps/mcp/start-here.md#the-transport--stateless-streamable-http).
+- **MCP-03 — Audit records are append-only.** Fails on an update of an audit table anywhere, or a
+  delete from one outside its purge method (Drizzle: `db.update(<auditTable>)`,
+  `db.delete(<auditTable>)`). Rule:
+  [apps/mcp/tool-call-audit.md → How it is written](../apps/mcp/tool-call-audit.md#how-it-is-written).
+- **MCP-04 — Published tool names never disappear.** Fails when a tool name in the base branch's
+  `tools/list` snapshot is missing from the pull request's snapshot and not on the snapshot's list of
+  retired names (a retirement is a reviewed decision, never a side effect). Rules:
+  [apps/mcp/tool-design.md → The tool set](../apps/mcp/tool-design.md#the-tool-set),
+  [apps/mcp/testing.md → Tool-surface snapshot](../apps/mcp/testing.md#tool-surface-snapshot).
+- **MCP-05 — The server conforms to the protocol.** Fails when `@modelcontextprotocol/conformance`,
+  run against the spec revision the server serves, reports a failure not in the committed baseline,
+  or a baselined failure that now passes. Rule:
+  [apps/mcp/testing.md → Protocol conformance](../apps/mcp/testing.md#protocol-conformance-and-portable-schemas).
+- **MCP-06 — Tool schemas are portable.** Fails when the MCP Inspector CLI's `--strict` mode reports
+  an error-severity schema problem on `tools/list` (exit code 6). Rule:
+  [apps/mcp/testing.md → Portable schemas](../apps/mcp/testing.md#protocol-conformance-and-portable-schemas).
+
 ---
 
 ## Extending

@@ -3,6 +3,7 @@
 Verify companion to [start-here.md](./start-here.md), for a **server-side driving adapter** (HTTP/GraphQL controller, CLI command, queue consumer, MCP tool handler). A box you cannot tick is a blocker.
 
 > **Frontend change?** `apps/web/` verifies against [apps/web/end-here.md](./web/end-here.md) instead.
+> **MCP server change?** Verify against this file *and* [apps/mcp/end-here.md](./mcp/end-here.md).
 
 Deterministic rules (import direction, handler `try`, auth SDK placement) are CI checks, not boxes — [setup/ci-verification.md](../setup/ci-verification.md); without CI for them, [review.md](../review.md) Step 0 checks them.
 
@@ -15,7 +16,6 @@ Deterministic rules (import direction, handler `try`, auth SDK placement) are CI
 - [ ] Handler thin: parse request → call service/orchestration → format response, no business rules — [transport-mapping.md](./transport-mapping.md)
 - [ ] Core's Zod schemas reused at the boundary, input shapes never redefined (why: redefinitions drift) — [code-placement.md](../code-placement.md)
 - [ ] Business-rule validation owned by the domain — controller parses with reused schemas, declares no rules — [error-handling.md](../error-handling.md#the-principles) (principle 4)
-- [ ] MCP server: transport/bootstrap (server, session lifecycle, `AppContext` assembly) separate from per-tool handlers — [code-placement.md](../code-placement.md)
 
 ## Published API → [start-here.md](./start-here.md#the-published-api)
 - [ ] A route for outside callers (a plugin, a vendor callback, a customer integration) is on the published API; a route only the web UI calls stays internal — [start-here.md](./start-here.md#the-published-api)

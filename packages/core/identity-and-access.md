@@ -30,6 +30,8 @@ type Actor =
 
 The edge verifies the credential and maps it to an `Actor` (`user` with its domain `id`, or `anonymous`), set on `ctx.actor` during `AppContext` assembly **before** any service runs ([apps/end-here.md](../../apps/end-here.md) → *Authentication & actor*). The provider SDK **never enters `packages/core`** (the db-vendor discipline).
 
+An AI assistant authenticates over OAuth as the user, the MCP server checking the token like any edge: [apps/mcp/authentication.md](../../apps/mcp/authentication.md).
+
 An **authentication failure** (missing/invalid credential) is a `401` at the edge, controller-mapped ([transport-mapping.md](../../apps/transport-mapping.md)), never reaching the domain; authorization failure (below) is a domain decision.
 
 Domain-side credential verification graduates to a **capability-named** driven adapter under `system/` (`policy/`, never `clerk/`) — real signal, never upfront ([system/start-here.md](./system/start-here.md)); policy engines: rung 3.
