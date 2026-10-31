@@ -11,9 +11,9 @@ Two families:
 
 ## The published API
 
-The routes `apps/api` exposes to callers outside the repo — [plugins](../plugins/start-here.md), a vendor calling back, a customer's own integration — are the **published API**: the routes an installed client may depend on. Which routes are published is the project's call, and visible in the code (a versioned prefix such as `/api/v1`, a router of its own); a route only the repo's own web UI calls is internal.
+The routes `apps/api` exposes to callers outside the product's own apps — [satellites](../satellites/start-here.md), a vendor calling back, a customer's own integration — are the **published API**: the routes an installed or separately deployed client may depend on. Which routes are published is the project's call, and visible in the code (a versioned prefix such as `/api/v1`, a router of its own); a route only the repo's own web UI calls is internal.
 
-- **The route code is the source of truth.** A plugin is built against it, and review checks a plugin's calls against it — nothing in between is required.
+- **The route code is the source of truth.** A satellite is built against it, and review checks a satellite's calls against it — nothing in between is required.
 - **A breaking change is called out.** Removing or renaming a published route or field, newly requiring an input, or narrowing a type breaks installed clients — a Zapier or WordPress version can linger for months. The change says so and the user confirms it; how the API is versioned is the project's decision.
 
 Deferred: general server-side app guidance beyond the docs above (bootstrap conventions, per-transport scaffolding) — until written, the owners linked above plus [end-here.md](./end-here.md) govern.

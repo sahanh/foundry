@@ -30,9 +30,9 @@ Read the repo's CI manifest, `foundry-ci.md` at its root ([ci-verification.md �
   check the diff against the rule's *Fails when* condition, and report a hit as a blocker under the
   rule ID. Note in the report that the repo has no CI for these rules
   ([setup/start-here.md](./setup/start-here.md)).
-- **A plugin meets only the catalogue rules named for plugins**
-  ([ci-verification.md → Plugins](./setup/ci-verification.md#plugins)); check no other rule against
-  it. The project's own `EXT-NN` checks for it are reported like any other. Steps 1–4 still apply to
+- **A satellite meets only the catalogue rules named for satellites**
+  ([ci-verification.md → Satellites](./setup/ci-verification.md#satellites)); check no other rule
+  against it. The project's own `EXT-NN` checks for it are reported like any other. Steps 1–4 still apply to
   it, in any language.
 
 ## Step 1 — Map
@@ -47,7 +47,7 @@ L1 — where in the repo?
                                                                 or L2m (apps/mcp, the MCP server)
   packages/core/            → the domain core                → L2a
   packages/<other>/         → graduated package (driven adapter)
-  plugins/<platform>/       → plugin (ships to another platform; any language) → L2d
+  satellites/<name>/        → satellite (own codebase, published API only; any language) → L2d
   repo root / config        → cross-cutting
   foundry-ci.md · CI config → CI verification
   site/                     → the website (landing + docs viewer) — OUT OF SCOPE; not the standard, skip it
@@ -78,9 +78,9 @@ L2c — inside the frontend client UI (apps/web) — skip this whole branch unle
   visual system             → shared visual treatments, design tokens, global styles
   ui scope                  → feature-surface scope decisions
 
-L2d — inside a plugin (plugins/<platform>: a Zapier app, a WordPress plugin) — skip unless the diff touches one
-  plugin wiring             → README map, platform manifest / plugin bootstrap, auth flow, packaging
-  trigger / action          → per trigger / action / search / hook / block mapping
+L2d — inside a satellite (satellites/<name>: a Zapier app, a WordPress plugin) — skip unless the diff touches one
+  satellite wiring          → README map, platform manifest / bootstrap, auth flow, build, packaging, deploy config
+  satellite surface         → per trigger / action / search / hook / form: each call it makes to the system
 
 L3 — inside a feature module
   services/*.service.ts             → service (or sub-feature service)
@@ -102,11 +102,11 @@ L3 — inside a feature module
 
 **A touch adding new code or a new file/folder:** first run [code-placement.md](./code-placement.md) Q1–Q3; a misplaced file fails review before any concern-doc check.
 
-**A touch to a plugin's part outside `plugins/`** — a webhook route the vendor calls back on, the adapter that pushes to it — also maps that plugin's **plugin wiring** node, so its README map is checked ([plugins/start-here.md](./plugins/start-here.md#the-readme-maps-the-whole-integration)).
+**A touch to a satellite's part outside `satellites/`** — a published route it calls, a webhook route the vendor calls back on, the adapter that pushes to it, its deploy step — also maps that satellite's **satellite wiring** node, so its README map is checked ([satellites/start-here.md](./satellites/start-here.md#the-readme-maps-the-whole-integration)).
 
 **A new frontend component is one place to look outside the diff:** search its owning feature and sibling feature folders for a component of the same shape. A diff never contains the first copy, so this is the only way to see a second one ([component-placement.md → Extraction](./apps/web/component-placement.md#extraction--on-the-second-copy-with-confirmation)).
 
-**A plugin's API call is the other:** for each call a changed trigger or action makes, open the `apps/api` route it calls, and check that the route is on the published API and that the call's method, path, inputs and the response it reads match the route's code ([plugins/start-here.md](./plugins/start-here.md#it-reaches-the-system-only-through-the-published-api)).
+**A satellite's API call is the other:** for each call a changed satellite surface makes, open the `apps/api` route it calls, and check that the route is on the published API and that the call's method, path, inputs and the response it reads match the route's code ([satellites/start-here.md](./satellites/start-here.md#it-reaches-the-system-only-through-the-published-api)).
 
 ## Step 2 — Route
 
@@ -126,8 +126,8 @@ Each mapped node routes to its guideline(s) and owning `end-here`:
 | frontend feature component | [apps/web/component-placement.md](./apps/web/component-placement.md) | [apps/web/end-here.md](./apps/web/end-here.md) |
 | frontend visual system | [apps/web/visual-system.md](./apps/web/visual-system.md) | [apps/web/end-here.md](./apps/web/end-here.md) |
 | frontend ui scope | [apps/web/ui-scope.md](./apps/web/ui-scope.md) | [apps/web/end-here.md](./apps/web/end-here.md) |
-| plugin wiring | [plugins/start-here.md](./plugins/start-here.md) (placement, README map, authentication); credential issue and actor resolution on the API side → [identity-and-access.md](./packages/core/identity-and-access.md) | [plugins/end-here.md](./plugins/end-here.md) |
-| plugin trigger / action | [plugins/start-here.md](./plugins/start-here.md) (published API only, calls match the `apps/api` routes, no business rules) | [plugins/end-here.md](./plugins/end-here.md) |
+| satellite wiring | [satellites/start-here.md](./satellites/start-here.md) (placement, README map, credentials); credential issue and actor resolution on the API side → [identity-and-access.md](./packages/core/identity-and-access.md) | [satellites/end-here.md](./satellites/end-here.md) |
+| satellite surface | [satellites/start-here.md](./satellites/start-here.md) (published API only, calls match the `apps/api` routes, no business rules) | [satellites/end-here.md](./satellites/end-here.md) |
 | driven adapter (`system/`) | [system/start-here.md](./packages/core/system/start-here.md), [database.md](./packages/core/system/database.md) / [logging.md](./packages/core/system/logging.md); tenant column & scoped seam → [multi-tenancy.md](./packages/core/multi-tenancy.md) | [system/end-here.md](./packages/core/system/end-here.md) → Any driven adapter (+ Database adapter / Logger adapter / Multi-tenancy) |
 | foundational primitive (`system/`) | [system/start-here.md](./packages/core/system/start-here.md) (Foundational Primitives), [app-context.md](./packages/core/app-context.md) (Injectable helper vs direct import), [identifiers.md](./packages/core/identifiers.md) | [system/end-here.md](./packages/core/system/end-here.md) → Foundational primitive |
 | feature service | [service-first-architecture.md](./packages/core/service-first-architecture.md), [implementation-validation.md](./packages/core/implementation-validation.md) | [core/end-here.md](./packages/core/end-here.md) → Services |
