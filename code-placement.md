@@ -127,7 +127,8 @@ Graduation moves **delivery mechanics, never the decision**: "a task assignment 
 
 Same rules in `core/src/system/` and graduated `packages/<name>/`:
 
-- **Name it by capability, not vendor** — `email/` not `sendgrid/`, `queue/` not `bullmq/`; a vendor swap stays inside the adapter.- **Expose a focused interface** — what the domain needs, not a passthrough of the library's full API.
+- **Name it by capability, not vendor** — `email/` not `sendgrid/`, `queue/` not `bullmq/`; a vendor swap stays inside the adapter.
+- **Expose a focused interface** — what the domain needs, not a passthrough of the library's full API.
 - **No business logic** — an adapter that decides domain rules has crossed layers.
 - **The domain reaches it through `AppContext`** (`ctx.system.*`), never a direct import — see [app-context.md](./packages/core/app-context.md).
 
@@ -135,5 +136,17 @@ Same rules in `core/src/system/` and graduated `packages/<name>/`:
 
 - **Organize by feature/domain, not technical layer** — one capability, one feature folder under the core's `src/`; a new feature adds a folder, not edits across `services/`, `schemas/`, `exceptions/` directories.
 - **`packages/core/src/system/` is the core's non-domain infrastructure** — driven adapters plus the foundational primitives above. Invariant: **no business rules, no domain vocabulary** (see [system/start-here.md](./packages/core/system/start-here.md)). Every *other* child of the core's `src/` is a feature folder.
-- **`apps/` is reserved for driving adapters.** Nothing inbound belongs inside the core.- **`plugins/` is reserved for code that ships to another platform** — one folder per platform; inside it, the project decides ([plugins/start-here.md](./plugins/start-here.md)).
+- **`apps/` is reserved for driving adapters.** Nothing inbound belongs inside the core.
+- **`plugins/` is reserved for code that ships to another platform** — one folder per platform; inside it, the project decides ([plugins/start-here.md](./plugins/start-here.md)).
 - **Any folder fitting *none* of these categories requires explicit confirmation from the user before it is created** — a shared-utilities or cross-cutting-helpers folder is not the developer's unilateral call; stop and confirm. Applies at every level of the tree.
+- **A folder the standard should not govern at all is declared outside it** — see *Outside the standard* below.
+
+## Outside the standard
+
+A repo may hold a folder Foundry does not govern: a legacy app being folded in, a prototype, a third-party template kept as delivered. It is **declared, never assumed**: the repo's CI manifest lists it under *Outside the standard* ([ci-verification.md → The manifest](./setup/ci-verification.md#the-manifest--foundry-cimd)).
+
+- **Each entry is the user's decision.** An agent never adds one to get past a check or a review. The entry links the decision that made it, such as an ADR or the PR where the user confirmed it.
+- **Each entry says why, and whether it is temporary or permanent.** A temporary entry, such as code being folded in, names what ends it: the work that brings the folder under the standard, or the issue tracking that work. A permanent entry says why the folder will never conform.
+- **Placement still applies.** The folder sits where the placement criteria above put it; a website you deploy is still under `apps/`. Being outside the standard changes what is checked, not where the code lives.
+- **The wall holds.** Nothing governed imports an excluded folder, and an excluded folder imports nothing governed. It reaches the system the way a plugin does, over the published API ([apps/start-here.md → The published API](./apps/start-here.md#the-published-api)). Why: an import would let unreviewed code into reviewed code.
+- **Inside it, nothing else applies.** No other catalogue rule, no review and no `end-here` reaches into the folder. Its own CI, if it has any, is the project's.

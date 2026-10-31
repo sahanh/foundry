@@ -2,7 +2,7 @@
 
 **Foundry is an engineering standard for TypeScript codebases** — an opinionated take on how the domain, services, adapters, and edges are organised, with a review protocol built in. It's a guideline, not a dependency: a project adopts it by pointing its coding agents at this repository, and there's nothing to install or upgrade. For a human-friendly overview, see [sahanh.github.io/foundry](https://sahanh.github.io/foundry/).
 
-The repo may also hold code that ships to another platform, in that platform's language — a Zapier app, a PHP WordPress plugin. Foundry places it and reviews its boundaries, while what sits inside its folder, toolchain and CI included, is the project's own ([plugins/start-here.md](./plugins/start-here.md)).
+The repo may also hold code that ships to another platform, in that platform's language — a Zapier app, a PHP WordPress plugin. Foundry places it and reviews its boundaries, while what sits inside its folder, toolchain and CI included, is the project's own ([plugins/start-here.md](./plugins/start-here.md)). A folder the repo declares outside the standard, such as a legacy app being folded in, is placed by Foundry but not governed by it ([code-placement.md → Outside the standard](./code-placement.md#outside-the-standard)).
 
 This file is the entry point to the standard. When an agent builds in a codebase that adopts Foundry, it reads here first and follows where it leads — this is the specification to follow, not a reference to consult occasionally. Read it before writing code.
 

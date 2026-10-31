@@ -87,6 +87,10 @@ Lives at the adopting repo's root; the reviewer and every later agent read it. I
 - **Project rules** — `EXT-NN` checks the project added (*Extending* below), with the same columns.
 - **Docs-only set** — when the repo uses *Docs-only changes*: the docs globs, and every excluded file
   with what reads it.
+- **Outside the standard** — when the repo holds a folder Foundry does not govern: each folder's path,
+  why it is outside, whether that is temporary (with what ends it) or permanent, and the decision that
+  confirmed it ([code-placement.md → Outside the standard](../code-placement.md#outside-the-standard)).
+  The CI built from this spec leaves those folders out, bar `REPO-01` and `OUT-01`.
 
 ## Parameters
 
@@ -377,6 +381,7 @@ Everything else inside a plugin's folder is the project's call
 - **PLUG-02 — Every plugin has its map.** Fails when a `plugins/<platform>/` folder has no
   `README.md`. Whether the map is complete is review's job. Rule:
   [plugins/start-here.md → The README maps the whole integration](../plugins/start-here.md#the-readme-maps-the-whole-integration).
+
 ### MCP servers
 
 Skip unless the MCP app exists. `MCP-01` and `MCP-02` are usually a lint rule (ESLint
@@ -409,6 +414,18 @@ the same lint rule over the core. `MCP-04` is a diff script over the snapshot fi
 - **MCP-06 — Tool schemas are portable.** Fails when the MCP Inspector CLI's `--strict` mode reports
   an error-severity schema problem on `tools/list` (exit code 6). Rule:
   [apps/mcp/testing.md → Portable schemas](../apps/mcp/testing.md#protocol-conformance-and-portable-schemas).
+
+### Outside the standard
+
+Skip (`n/a — nothing outside the standard`) unless the manifest lists a folder under *Outside the
+standard*. **Every other catalogue rule skips a listed folder, except `REPO-01`**: placement still
+applies ([code-placement.md → Outside the standard](../code-placement.md#outside-the-standard)).
+`OUT-01` runs in the same dependency-graph tool as the import rules.
+
+- **OUT-01 — Excluded folders are walled off.** Fails when a listed folder does not exist, a file
+  outside the listed folders imports from one, or a file in a listed folder imports from `apps/`,
+  `packages/` or `plugins/` outside the listed folders. Rule:
+  [code-placement.md → Outside the standard](../code-placement.md#outside-the-standard).
 
 ---
 

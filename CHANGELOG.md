@@ -9,6 +9,21 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-31 — A repo can declare folders outside the standard
+
+An adopting repo can list a folder Foundry does not govern, such as a legacy app being folded in,
+under a new *Outside the standard* section of its CI manifest. Each entry is the user's decision and
+says why, and whether it is temporary or permanent. Placement still applies, and the folder is walled
+off from governed code; no other rule, review or `end-here` reaches into it. New conditional CI rule
+**OUT-01**; every other catalogue rule but **REPO-01** skips a listed folder. Review skips listed
+folders and checks a new or changed entry.
+
+Affects adopting repos that hold code they don't want held to Foundry, or that recorded such code as
+a deviation. Read [code-placement.md → Outside the standard](./code-placement.md#outside-the-standard)
+and [setup/ci-verification.md → The manifest](./setup/ci-verification.md#the-manifest--foundry-cimd).
+In CI, build OUT-01 or record it `n/a`:
+[setup/ci-verification.md → Outside the standard](./setup/ci-verification.md#outside-the-standard).
+
 ## 2026-10-31 — The MCP server gets its own guidelines
 
 **Commit:** [`7b6ad50`](https://github.com/sahanh/foundry/commit/7b6ad5045ef27d52a665285d96abbb845b47d011)

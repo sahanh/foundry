@@ -34,6 +34,8 @@ Read the repo's CI manifest, `foundry-ci.md` at its root ([ci-verification.md �
   ([ci-verification.md → Plugins](./setup/ci-verification.md#plugins)); check no other rule against
   it. The project's own `EXT-NN` checks for it are reported like any other. Steps 1–4 still apply to
   it, in any language.
+- **A folder the manifest lists under *Outside the standard*** is checked by no rule but `REPO-01` and
+  `OUT-01`, and Steps 1–4 skip it ([ci-verification.md → Outside the standard](./setup/ci-verification.md#outside-the-standard)).
 
 ## Step 1 — Map
 
@@ -49,7 +51,8 @@ L1 — where in the repo?
   packages/<other>/         → graduated package (driven adapter)
   plugins/<platform>/       → plugin (ships to another platform; any language) → L2d
   repo root / config        → cross-cutting
-  foundry-ci.md · CI config → CI verification
+  foundry-ci.md · CI config → CI verification (an Outside-the-standard entry added or changed included)
+  a folder Outside the standard → OUT OF SCOPE; listed in the manifest, skip it
   site/                     → the website (landing + docs viewer) — OUT OF SCOPE; not the standard, skip it
 
 L2a — inside packages/core/
@@ -138,7 +141,7 @@ Each mapped node routes to its guideline(s) and owning `end-here`:
 | db access in a service | [working-with-databases.md](./packages/core/working-with-databases.md), [atomicity.md](./packages/core/atomicity.md); multi-tenant app → [multi-tenancy.md](./packages/core/multi-tenancy.md) (no hand-written tenant filter) | [core/end-here.md](./packages/core/end-here.md) → Database / Atomicity |
 | tests | [testing.md](./packages/core/testing.md), validated by running the [test-review](./skills/test-review/SKILL.md) procedure | [core/end-here.md](./packages/core/end-here.md) → Testing |
 | graduated package | [code-placement.md](./code-placement.md) (building a driven adapter) | [packages/end-here.md](./packages/end-here.md) |
-| CI verification (manifest, CI config) | [setup/ci-verification.md](./setup/ci-verification.md) — each enforced rule's check rejects its *Fails when* condition and was proven to fail; parameters match the repo | — (the spec is the gate) |
+| CI verification (manifest, CI config) | [setup/ci-verification.md](./setup/ci-verification.md) — each enforced rule's check rejects its *Fails when* condition and was proven to fail; parameters match the repo. An Outside-the-standard entry added or changed → [code-placement.md → Outside the standard](./code-placement.md#outside-the-standard): it links the user's decision, says why and whether it is temporary (naming what ends it) or permanent, and the folder sits where placement puts it | — (the spec is the gate) |
 
 Service, orchestration, and shared-validation nodes also consult [logic-placement.md](./packages/core/logic-placement.md) for *which construct the logic belongs in and when to promote it*.
 
