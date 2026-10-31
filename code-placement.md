@@ -1,6 +1,6 @@
 # Code Placement
 
-**Read this first** — the repository's shape and the single rule for *where any piece of code belongs*. Guides underneath: **[packages/core/start-here.md](./packages/core/start-here.md)** · **[packages/core/system/start-here.md](./packages/core/system/start-here.md)** · **[apps/start-here.md](./apps/start-here.md)** · **[packages/start-here.md](./packages/start-here.md)** · **[plugins/start-here.md](./plugins/start-here.md)**.
+**Read this first** — the repository's shape and the single rule for *where any piece of code belongs*. Guides underneath: **[packages/core/start-here.md](./packages/core/start-here.md)** · **[packages/core/system/start-here.md](./packages/core/system/start-here.md)** · **[apps/start-here.md](./apps/start-here.md)** · **[packages/start-here.md](./packages/start-here.md)** · **[satellites/start-here.md](./satellites/start-here.md)**.
 
 Implementation complete → run the [review protocol](./review.md).
 
@@ -8,15 +8,15 @@ Implementation complete → run the [review protocol](./review.md).
 
 ## The Topology
 
-A monorepo with up to three top-level homes. Each is defined by **who runs the code**:
+A monorepo with up to three top-level homes. Each is defined by **how the code reaches the system**:
 
-| Home | Holds | Who runs it |
+| Home | Holds | How it reaches the system |
 |---|---|---|
-| **`apps/`** | the entry points that import the core and call into it | you — each app is deployed with the product |
-| **`packages/`** | the libraries the apps import | nothing on its own — a package is consumed |
-| **`plugins/`** | the code that drives the system from another platform, through the published API | the vendor's platform — you ship it there |
+| **`apps/`** | the entry points of the integrated product, deployed with it | as part of the product: it imports the core, or calls the product's API, internal routes included |
+| **`packages/`** | the core and the libraries the apps import | it is the system, or a library the system consumes; it never runs on its own |
+| **`satellites/`** | independent codebases with their own build and release, shipped to a vendor's platform or deployed on their own | only over the published API; it imports nothing in the repo |
 
-`plugins/` appears once the product ships code to another platform. No top-level `src/` — each app and package has its own `src/`.
+`satellites/` appears with the first satellite. No top-level `src/` — each app and package has its own `src/`.
 
 ```
 apps/                  ← driving adapters: inbound entry points, each deployable
@@ -31,7 +31,7 @@ packages/              ← libraries: consumed, never run on their own
       system/            driven adapters the core depends on (db, logger, clock)
       <feature>/         the domain layer (business logic)
   notifications/         a driven adapter that graduated out of core (example)
-plugins/               ← code shipped to another platform, run there (any language)
+satellites/            ← independent codebases, own build and release (any language)
   zapier/                Zapier app                     →  calls api/'s published routes over HTTP
   wordpress/             WordPress plugin (PHP)         →  calls api/'s published routes over HTTP
 ```
@@ -46,7 +46,7 @@ Every piece of code plays one of three roles:
 |---|---|---|
 | **Domain** | business logic — rules, calculations, entity transformations | `packages/core/src/<feature>/` |
 | **Driven adapter** | infrastructure the domain calls *out* to (db, logger, clock, email, queue) | `packages/core/src/system/` — or its own `packages/<name>/` once graduated |
-| **Driving adapter** | an inbound entry point that calls *into* the domain (HTTP, CLI, worker, MCP, web UI) | `apps/<name>/` when you deploy it; `plugins/<platform>/` when another platform runs it |
+| **Driving adapter** | an inbound entry point that calls *into* the domain (HTTP, CLI, worker, MCP, web UI) | `apps/<name>/` when it is part of the product; `satellites/<name>/` when it is its own codebase calling the published API |
 
 `system/` also holds the core's **foundational primitives** (`AppContext` + `ctx.transaction` factory, id helpers + prefix registry, pagination) — not a fourth role: non-domain substrate, imported directly (or via `ctx.system.helpers.*`), never injected, no business rules. See [system/start-here.md](./packages/core/system/start-here.md).
 
@@ -61,7 +61,7 @@ driving adapters   →   domain core   →   driven adapters
 (apps/*)               (packages/core)    (core/src/system + graduated packages/*)
 ```
 
-The core never imports an app; a driven adapter never imports the domain. A plugin imports none of them: it reaches the system over HTTP, and nothing imports it ([plugins/start-here.md](./plugins/start-here.md#it-reaches-the-system-only-through-the-published-api)).
+The core never imports an app; a driven adapter never imports the domain. A satellite imports none of them: it reaches the system over HTTP, and nothing imports it ([satellites/start-here.md](./satellites/start-here.md#it-reaches-the-system-only-through-the-published-api)).
 
 ## The Placement Criteria
 
@@ -74,8 +74,8 @@ Q1 — Is it business logic (rules/decisions about your entities)?
 
 Q2 — Which way does the dependency point?
      It calls INTO the domain (inbound entry point)?   ← driving adapter
-          You deploy and run it      → apps/<name>/
-          Another platform runs it   → plugins/<platform>/
+          Part of the product                      → apps/<name>/
+          Its own codebase, over the published API → satellites/<name>/
      The domain calls OUT to it (infrastructure)?
           → go to Q3.                               ← driven adapter
 
@@ -99,7 +99,7 @@ Q3 is [logic-placement.md](./packages/core/logic-placement.md)'s promotion philo
 | REST API (Express/Hono routes) | no | inbound | — | `apps/api/` |
 | Frontend web UI (React SPA / client) | no | inbound | — | `apps/web/` |
 | Queue worker (consumes jobs) | no | inbound | — | `apps/worker/` |
-| Zapier app, WordPress plugin, browser extension (runs on the platform, calls your API) | no | inbound, remote | — | `plugins/<platform>/` |
+| Zapier app, WordPress plugin, browser extension, or a codebase deployed on its own that calls your API | no | inbound, over the published API | — | `satellites/<name>/` |
 | Webhook from a vendor (Stripe event, Zapier REST-hook subscribe) | no | inbound | — | `apps/api/` (a route) |
 | Sync records out to a vendor (push contacts to a CRM) | no | outbound | one capability → stays (until it grows) | `packages/core/src/system/<capability>/` |
 | Notifications (templates, multi-channel, read by a settings page) | no | outbound | own lifecycle + non-domain consumer → **graduates** | `packages/notifications/` |
@@ -114,7 +114,7 @@ Common trip-ups:
 
 - **MCP server** — feels like infrastructure but **imports the domain** (each tool calls a service) → driving, structurally a REST route: `apps/mcp/`, never `system/`. Its toolchain, layout, authentication and tool design: [apps/mcp/start-here.md](./apps/mcp/start-here.md).
 - **Frontend** — `apps/web/` drives the core via `api/` over HTTP (or `@app/core` server-side); direction still inward → driving. No business rules here — the UI may *mirror* a rule for fast feedback; the core stays source of truth. Internal structure (skippable subtree): [apps/web/start-here.md](./apps/web/start-here.md).
-- **Vendor integration** — one vendor, up to three homes, split by direction: code that **ships to the vendor's platform** (a Zapier app, a WordPress plugin) is a plugin in `plugins/<platform>/`, reaching the system only through the published API; the endpoints the vendor **calls back** on are routes in `apps/api/`, because they need the core; what the core **pushes out** to the vendor is a driven adapter, named by capability. The plugin's README maps the parts outside its folder. Rules: [plugins/start-here.md](./plugins/start-here.md).
+- **Vendor integration** — one vendor, up to three homes, split by direction: code that **ships to the vendor's platform** (a Zapier app, a WordPress plugin) is a satellite in `satellites/<name>/`, reaching the system only through the published API; the endpoints the vendor **calls back** on are routes in `apps/api/`, because they need the core; what the core **pushes out** to the vendor is a driven adapter, named by capability. The satellite's README maps the parts outside its folder. Rules: [satellites/start-here.md](./satellites/start-here.md).
 - **Multi-tenancy** — splits by face: tenant-as-*scope* (`ctx.tenant`, the scoped `ctx.system.db`) is system-level; tenant-as-*entity* (org/plan/members and their rules) is a domain feature. See [multi-tenancy.md](./packages/core/multi-tenancy.md).
 
 ### Graduation: when a driven adapter leaves `system/`
@@ -127,7 +127,8 @@ Graduation moves **delivery mechanics, never the decision**: "a task assignment 
 
 Same rules in `core/src/system/` and graduated `packages/<name>/`:
 
-- **Name it by capability, not vendor** — `email/` not `sendgrid/`, `queue/` not `bullmq/`; a vendor swap stays inside the adapter.- **Expose a focused interface** — what the domain needs, not a passthrough of the library's full API.
+- **Name it by capability, not vendor** — `email/` not `sendgrid/`, `queue/` not `bullmq/`; a vendor swap stays inside the adapter.
+- **Expose a focused interface** — what the domain needs, not a passthrough of the library's full API.
 - **No business logic** — an adapter that decides domain rules has crossed layers.
 - **The domain reaches it through `AppContext`** (`ctx.system.*`), never a direct import — see [app-context.md](./packages/core/app-context.md).
 
@@ -135,5 +136,6 @@ Same rules in `core/src/system/` and graduated `packages/<name>/`:
 
 - **Organize by feature/domain, not technical layer** — one capability, one feature folder under the core's `src/`; a new feature adds a folder, not edits across `services/`, `schemas/`, `exceptions/` directories.
 - **`packages/core/src/system/` is the core's non-domain infrastructure** — driven adapters plus the foundational primitives above. Invariant: **no business rules, no domain vocabulary** (see [system/start-here.md](./packages/core/system/start-here.md)). Every *other* child of the core's `src/` is a feature folder.
-- **`apps/` is reserved for driving adapters.** Nothing inbound belongs inside the core.- **`plugins/` is reserved for code that ships to another platform** — one folder per platform; inside it, the project decides ([plugins/start-here.md](./plugins/start-here.md)).
+- **`apps/` is reserved for driving adapters.** Nothing inbound belongs inside the core.
+- **`satellites/` is reserved for independent codebases that reach the system only over the published API** — one folder per satellite; inside it, the project decides ([satellites/start-here.md](./satellites/start-here.md)).
 - **Any folder fitting *none* of these categories requires explicit confirmation from the user before it is created** — a shared-utilities or cross-cutting-helpers folder is not the developer's unilateral call; stop and confirm. Applies at every level of the tree.

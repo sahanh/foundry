@@ -18,7 +18,7 @@ Deterministic rules (import direction, handler `try`, auth SDK placement) are CI
 - [ ] Business-rule validation owned by the domain — controller parses with reused schemas, declares no rules — [error-handling.md](../error-handling.md#the-principles) (principle 4)
 
 ## Published API → [start-here.md](./start-here.md#the-published-api)
-- [ ] A route for outside callers (a plugin, a vendor callback, a customer integration) is on the published API; a route only the web UI calls stays internal — [start-here.md](./start-here.md#the-published-api)
+- [ ] A route for outside callers (a satellite, a vendor callback, a customer integration) is on the published API; a route only the product's own apps call stays internal — [start-here.md](./start-here.md#the-published-api)
 - [ ] A breaking change to a published route (removed or renamed route or field, newly required input, narrowed type) is called out and confirmed with the user — [start-here.md](./start-here.md#the-published-api)
 ## Response & error mapping → [transport-mapping.md](./transport-mapping.md)
 - [ ] One shared error handler; one envelope for validation failures (field-keyed) and domain exceptions (one message); `traceId` echoed on it — [transport-mapping.md](./transport-mapping.md#the-error-response-structure)

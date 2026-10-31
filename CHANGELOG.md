@@ -9,6 +9,23 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ---
 
+## 2026-10-31 — plugins/ is renamed satellites/ and covers any independent codebase
+
+The **`plugins/`** home is now **`satellites/`**: any independent codebase that reaches the system
+only through the published API, shipped to a vendor's platform or deployed on its own. Its docs moved
+from `plugins/start-here.md` and `plugins/end-here.md` to [satellites/](./satellites/start-here.md).
+Code placement now defines an app as part of the integrated product rather than by importing the
+core. The satellite wall, its authentication rule and its review scope changed. Renamed or changed
+in CI: **PLUG-01** is now **SAT-01**, **PLUG-02** is now **SAT-02**, the *Plugins* parameter is
+*Satellites*, and **REPO-01** and **BASE-01** changed. Review's plugin nodes are now *satellite
+wiring*, *satellite surface* and *satellite internals*.
+
+Affects adopting repos that reconciled *Plugins and the published API*, and any repo with, or about to
+add, an independent codebase beside its product. Read [satellites/start-here.md](./satellites/start-here.md),
+[code-placement.md → The Topology](./code-placement.md#the-topology),
+[apps/start-here.md → The published API](./apps/start-here.md#the-published-api) and
+[setup/ci-verification.md → Satellites](./setup/ci-verification.md#satellites).
+
 ## 2026-10-31 — The MCP server gets its own guidelines
 
 **Commit:** [`7b6ad50`](https://github.com/sahanh/foundry/commit/7b6ad5045ef27d52a665285d96abbb845b47d011)

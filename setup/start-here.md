@@ -22,4 +22,4 @@ repo has no `foundry-ci.md`, `foundry.lock` or `.github/dependabot.yml`.
   `AGENTS.md` — and does the same for new and changed skills when reconciling.
 
 Setup is not finished once. A later change that picks or swaps an adapter, adds a deterministic
-convention, or adds a plugin, extends the CI too — [ci-verification.md → Extending](./ci-verification.md#extending).
+convention, or adds a satellite, extends the CI too — [ci-verification.md → Extending](./ci-verification.md#extending).
