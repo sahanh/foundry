@@ -20,12 +20,14 @@ Foundry fixes where a satellite lives, what it may touch, and how it maps the re
    for its role when you deploy it yourself.
 3. **Write its README map** ([below](#the-readme-maps-the-whole-integration)).
 4. **Make sure every route it calls is on the published API**, and publish any it needs in the same
-   change ([apps/start-here.md → The published API](../apps/start-here.md#the-published-api)).
+   change ([apps/start-here.md → The published API](../apps/start-here.md#the-published-api)). A
+   route it calls that the repo files as internal is reclassified as published.
 5. **Set up its toolchain and CI** ([below](#toolchain-ci-and-release-are-the-projects)), and update
    the repo's CI manifest: list it under the *Satellites* parameter, and build and prove the checks
    that apply to it — `SAT-02` for every satellite, `SAT-01` for a TypeScript one. Where no check
    covers its imports, review checks the wall instead
-   ([ci-verification.md → Satellites](../setup/ci-verification.md#satellites)).
+   ([ci-verification.md → Satellites](../setup/ci-verification.md#satellites)). A repo check that
+   allows only root tool configs gets a carve-out for the satellite's own.
 
 ## Placement — one folder per satellite
 
@@ -68,8 +70,11 @@ integration whole.
 - **It imports nothing from outside its folder in the repo, and nothing outside imports it** — no
   app, package, repo tooling or other satellite. The third-party packages it installs are fine; a
   workspace package is repo source however it is linked. Repo tooling may run a satellite's
-  commands or read its build output, never import its source. Why: an import would let the satellite's code and the
-  governed code reach into each other, which the published API exists to prevent.
+  commands or read its build output, never import its source. Why: an import would let the
+  satellite's code and the governed code reach into each other, which the published API exists to
+  prevent. Import tools often can't parse a UI framework's own component files, so for such a
+  satellite `SAT-01` usually stays deferred and review checks the wall
+  ([ci-verification.md → Satellites](../setup/ci-verification.md#satellites)).
 
 ## It holds no business rules
 
@@ -99,6 +104,9 @@ as a bot-check token.
   ([typescript-coding-standards.md → Tooling Baseline](../common/typescript-coding-standards.md#tooling-baseline)) —
   using its framework's own checker, lint preset and formatter plugin where it has them, and the
   import wall above. Foundry's other TypeScript conventions and CI rules do not apply.
+- **Workspace membership is the project's call.** A JavaScript or TypeScript satellite may join the
+  repo's package-manager workspace, sharing its lockfile and catalog versions, or pin its own.
+  Membership manages its dependencies and imports nothing, so the wall still holds.
 - **A satellite in another language** — a PHP WordPress plugin — meets none of the CI catalogue but
   the README rule. The project decides its toolchain and its checks, from a syntax lint to a full
   suite ([ci-verification.md → Satellites in another language](../setup/ci-verification.md#satellites-in-another-language)).
