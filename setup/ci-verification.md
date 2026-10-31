@@ -369,14 +369,16 @@ Skip (`n/a — no satellites`) unless `satellites/` exists. **These rules, the B
 are the only catalogue rules a TypeScript satellite meets; a satellite in another language meets only
 `SAT-02`.** Everything else inside a satellite's folder is the project's call
 ([satellites/start-here.md → Toolchain, CI and release](../satellites/start-here.md#toolchain-ci-and-release-are-the-projects)).
-`SAT-01` runs in the same dependency-graph tool as the import rules, and must parse every file type
-the satellite's imports appear in (a framework's own component files included); a file type no tool
-can parse leaves that part of the wall to review, recorded as such in the manifest.
+`SAT-01` runs in the same dependency-graph tool as the import rules. It counts as `enforced` only
+when its check parses every file type the satellite's imports appear in (a framework's own component
+files included); until then it stays `deferred`, so review checks the whole wall.
 
 - **SAT-01 — Satellites are walled off.** Fails when a file in a TypeScript satellite imports any
   file in the repo outside its own folder (an app, a package, repo tooling, another satellite), or a
-  file outside a satellite imports from it. Running a satellite's commands or reading its build
-  output is not an import. Rule:
+  file outside a satellite imports from it. A workspace package counts as repo source however it is
+  linked; a third-party package the satellite installs does not. Running a satellite's commands or
+  reading its build output is not an import. Prove it with an ordinary third-party import that
+  passes beside each kind of crossing that fails. Rule:
   [satellites/start-here.md → Through the published API](../satellites/start-here.md#it-reaches-the-system-only-through-the-published-api).
 - **SAT-02 — Every satellite has its map.** Fails when a `satellites/<name>/` folder has no
   `README.md`. Whether the map is complete is review's job. Rule:

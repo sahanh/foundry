@@ -32,8 +32,8 @@ Read the repo's CI manifest, `foundry-ci.md` at its root ([ci-verification.md �
   ([setup/start-here.md](./setup/start-here.md)).
 - **A satellite meets only the catalogue rules named for satellites**
   ([ci-verification.md → Satellites](./setup/ci-verification.md#satellites)); check no other rule
-  against it. The project's own `EXT-NN` checks for it are reported like any other. Steps 1–4 still apply to
-  it, in any language.
+  against it. The project's own `EXT-NN` checks for it are reported like any other. Steps 1–3
+  apply to it through its L2d nodes, in any language; Step 4 stops at its boundary.
 
 ## Step 1 — Map
 
@@ -81,6 +81,7 @@ L2c — inside the frontend client UI (apps/web) — skip this whole branch unle
 L2d — inside a satellite (satellites/<name>: a Zapier app, a WordPress plugin) — skip unless the diff touches one
   satellite wiring          → README map, platform manifest / bootstrap, auth flow, build, packaging, deploy config
   satellite surface         → per trigger / action / search / hook / form: each call it makes to the system
+  satellite internals       → everything else inside it: pages, components, content, assets, its own tests
 
 L3 — inside a feature module
   services/*.service.ts             → service (or sub-feature service)
@@ -128,6 +129,7 @@ Each mapped node routes to its guideline(s) and owning `end-here`:
 | frontend ui scope | [apps/web/ui-scope.md](./apps/web/ui-scope.md) | [apps/web/end-here.md](./apps/web/end-here.md) |
 | satellite wiring | [satellites/start-here.md](./satellites/start-here.md) (placement, README map, credentials); credential issue and actor resolution on the API side → [identity-and-access.md](./packages/core/identity-and-access.md) | [satellites/end-here.md](./satellites/end-here.md) |
 | satellite surface | [satellites/start-here.md](./satellites/start-here.md) (published API only, calls match the `apps/api` routes, no business rules) | [satellites/end-here.md](./satellites/end-here.md) |
+| satellite internals | [satellites/start-here.md → Toolchain, CI and release](./satellites/start-here.md#toolchain-ci-and-release-are-the-projects) — the baseline only; layout, patterns and tests are the project's, so no other guideline applies | — (the baseline is CI's) |
 | driven adapter (`system/`) | [system/start-here.md](./packages/core/system/start-here.md), [database.md](./packages/core/system/database.md) / [logging.md](./packages/core/system/logging.md); tenant column & scoped seam → [multi-tenancy.md](./packages/core/multi-tenancy.md) | [system/end-here.md](./packages/core/system/end-here.md) → Any driven adapter (+ Database adapter / Logger adapter / Multi-tenancy) |
 | foundational primitive (`system/`) | [system/start-here.md](./packages/core/system/start-here.md) (Foundational Primitives), [app-context.md](./packages/core/app-context.md) (Injectable helper vs direct import), [identifiers.md](./packages/core/identifiers.md) | [system/end-here.md](./packages/core/system/end-here.md) → Foundational primitive |
 | feature service | [service-first-architecture.md](./packages/core/service-first-architecture.md), [implementation-validation.md](./packages/core/implementation-validation.md) | [core/end-here.md](./packages/core/end-here.md) → Services |
@@ -152,14 +154,14 @@ Validate each mapped node's changed area against the routed guideline + `end-her
 
 ## Step 4 — Cross-cutting sweeps (always)
 
-Run once across the whole diff:
+Run once across the whole diff, outside satellites' folders:
 
 - **Logging** → [logging.md](./packages/core/system/logging.md) — `ctx.system.logger` at method entry / business events / side effects; errors logged with full context before re-throw; trace ID flowing throughout.
 - **Patterns** → [branching-logic.md](./packages/core/branching-logic.md) (incl. [Strategy escalation](./packages/core/branching-logic.md#escalation-when-the-decision-grows-into-a-family--extract-a-strategy)) — tangled policy that should be a named decision; substantial type-branching that should be a Strategy.
 
-**The review lens.** Hold these cross-cutting invariants against every node, whatever was touched; each links its owning doc:
+**The review lens.** Hold these cross-cutting invariants against every node, whatever was touched; each links its owning doc. A satellite's nodes are held only to placement, the published-API boundary and business-rule ownership:
 
-- **One home for every piece of code** — feature, driven adapter / `system/` primitive, or app; anything else needs explicit confirmation → [code-placement.md](./code-placement.md).
+- **One home for every piece of code** — feature, driven adapter / `system/` primitive, app, or satellite; anything else needs explicit confirmation → [code-placement.md](./code-placement.md).
 - **Dependencies point one way** — driving → domain → driven, never reversed → [code-placement.md](./code-placement.md#layering-three-roles-one-direction).
 - **Cross-feature crossings have exactly two shapes** — an owner-exported `void` guard (verdict) or the data path (an orchestration calling the owner's services; schemas deriving from the owner's schemas); any other cross-feature import in domain code fails → [implementation-validation.md](./packages/core/implementation-validation.md#cross-feature-guards).
 - **A cross-entity invariant is the one business rule an orchestration may own** — a predicate over ≥2 owners' data; a *single-entity* rule in an orchestration fails → [orchestration.md](./packages/core/orchestration.md#cross-entity-invariants).

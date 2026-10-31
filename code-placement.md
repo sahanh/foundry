@@ -12,7 +12,7 @@ A monorepo with up to three top-level homes. Each is defined by **how the code r
 
 | Home | Holds | How it reaches the system |
 |---|---|---|
-| **`apps/`** | the entry points deployed with the product | it imports the core and calls into it |
+| **`apps/`** | the entry points of the integrated product, deployed with it | as part of the product: it imports the core, or calls the product's API, internal routes included |
 | **`packages/`** | the core and the libraries the apps import | it is the system, or a library the system consumes; it never runs on its own |
 | **`satellites/`** | independent codebases with their own build and release, shipped to a vendor's platform or deployed on their own | only over the published API; it imports nothing in the repo |
 
@@ -46,7 +46,7 @@ Every piece of code plays one of three roles:
 |---|---|---|
 | **Domain** | business logic — rules, calculations, entity transformations | `packages/core/src/<feature>/` |
 | **Driven adapter** | infrastructure the domain calls *out* to (db, logger, clock, email, queue) | `packages/core/src/system/` — or its own `packages/<name>/` once graduated |
-| **Driving adapter** | an inbound entry point that calls *into* the domain (HTTP, CLI, worker, MCP, web UI) | `apps/<name>/` when it imports the core; `satellites/<name>/` when it is its own codebase calling the published API |
+| **Driving adapter** | an inbound entry point that calls *into* the domain (HTTP, CLI, worker, MCP, web UI) | `apps/<name>/` when it is part of the product; `satellites/<name>/` when it is its own codebase calling the published API |
 
 `system/` also holds the core's **foundational primitives** (`AppContext` + `ctx.transaction` factory, id helpers + prefix registry, pagination) — not a fourth role: non-domain substrate, imported directly (or via `ctx.system.helpers.*`), never injected, no business rules. See [system/start-here.md](./packages/core/system/start-here.md).
 
@@ -74,7 +74,7 @@ Q1 — Is it business logic (rules/decisions about your entities)?
 
 Q2 — Which way does the dependency point?
      It calls INTO the domain (inbound entry point)?   ← driving adapter
-          It imports the core                     → apps/<name>/
+          Part of the product                      → apps/<name>/
           Its own codebase, over the published API → satellites/<name>/
      The domain calls OUT to it (infrastructure)?
           → go to Q3.                               ← driven adapter

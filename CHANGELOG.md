@@ -11,23 +11,20 @@ Each entry's **Commit:** is the commit on `main` that made it — what an adopti
 
 ## 2026-10-31 — plugins/ is renamed satellites/ and covers any independent codebase
 
-The **`plugins/`** home is now **`satellites/`**, and it covers any independent codebase that reaches
-the system only through the published API, wherever it runs: shipped to a vendor's platform, or
-deployed on its own. Its docs moved from `plugins/start-here.md` and `plugins/end-here.md` to
-[satellites/](./satellites/start-here.md), which gains *Adding a satellite*. Rules **PLUG-01** and
-**PLUG-02** are now **SAT-01** and **SAT-02**, and the *Plugins* parameter is *Satellites*.
-`SAT-01`'s wall now covers every file outside the satellite's folder, repo tooling and other
-satellites included, and its check must parse the satellite's own file types. A satellite carries a
-credential only where the route needs one. **BASE-01** lets a framework with its own file type use its
-own checker. The published API is defined as the routes for callers outside the product's own apps.
-Review's plugin nodes are now *satellite wiring* and *satellite surface*.
+The **`plugins/`** home is now **`satellites/`**: any independent codebase that reaches the system
+only through the published API, shipped to a vendor's platform or deployed on its own. Its docs moved
+from `plugins/start-here.md` and `plugins/end-here.md` to [satellites/](./satellites/start-here.md).
+Code placement now defines an app as part of the integrated product rather than by importing the
+core. The satellite wall, its authentication rule and its review scope changed. Renamed or changed
+in CI: **PLUG-01** is now **SAT-01**, **PLUG-02** is now **SAT-02**, the *Plugins* parameter is
+*Satellites*, and **REPO-01** and **BASE-01** changed. Review's plugin nodes are now *satellite
+wiring*, *satellite surface* and *satellite internals*.
 
-Affects adopting repos that reconciled *Plugins and the published API*. Read
-[satellites/start-here.md](./satellites/start-here.md),
-[code-placement.md → The Topology](./code-placement.md#the-topology) and
-[apps/start-here.md → The published API](./apps/start-here.md#the-published-api). In CI, rename
-PLUG-01 and PLUG-02 to SAT-01 and SAT-02 and re-read both, rename the parameter, and re-read
-REPO-01 and BASE-01: [setup/ci-verification.md → Satellites](./setup/ci-verification.md#satellites).
+Affects adopting repos that reconciled *Plugins and the published API*, and any repo with, or about to
+add, an independent codebase beside its product. Read [satellites/start-here.md](./satellites/start-here.md),
+[code-placement.md → The Topology](./code-placement.md#the-topology),
+[apps/start-here.md → The published API](./apps/start-here.md#the-published-api) and
+[setup/ci-verification.md → Satellites](./setup/ci-verification.md#satellites).
 
 ## 2026-10-31 — The MCP server gets its own guidelines
 

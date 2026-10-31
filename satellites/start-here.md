@@ -22,8 +22,9 @@ Foundry fixes where a satellite lives, what it may touch, and how it maps the re
 4. **Make sure every route it calls is on the published API**, and publish any it needs in the same
    change ([apps/start-here.md → The published API](../apps/start-here.md#the-published-api)).
 5. **Set up its toolchain and CI** ([below](#toolchain-ci-and-release-are-the-projects)), and update
-   the repo's CI manifest: list it under the *Satellites* parameter, and make sure `SAT-01` and
-   `SAT-02` are built and proven, not `n/a`
+   the repo's CI manifest: list it under the *Satellites* parameter, and build and prove the checks
+   that apply to it — `SAT-02` for every satellite, `SAT-01` for a TypeScript one. Where no check
+   covers its imports, review checks the wall instead
    ([ci-verification.md → Satellites](../setup/ci-verification.md#satellites)).
 
 ## Placement — one folder per satellite
@@ -36,8 +37,8 @@ Foundry fixes where a satellite lives, what it may touch, and how it maps the re
   ([code-placement.md → Worked Examples](../code-placement.md#worked-examples)).
 - **Its internal layout is the project's**, usually its platform's or framework's own scaffolding —
   Zapier's `triggers/` and `creates/`, a WordPress plugin's main file and `includes/`.
-- **A satellite rebuilt to import the core and follow the app guidelines becomes an app** and moves
-  to `apps/`.
+- **A satellite rebuilt as part of the product, following the app guidelines, becomes an app** and
+  moves to `apps/`.
 
 ## The README maps the whole integration
 
@@ -58,15 +59,16 @@ integration whole.
 - **Every call goes to a route of the published API** — the routes `apps/api` exposes to callers
   outside the product's own apps
   ([apps/start-here.md → The published API](../apps/start-here.md#the-published-api)). Never an
-  internal route, such as one only the web UI calls, and never the database, a queue or another
+  internal route, such as one only the product's own apps call, and never the database, a queue or another
   service directly. Why: a satellite builds and ships apart from the product, and an installed or
   deployed version keeps calling after the product changes — only the published API is a promise
   you keep.
 - **The route code in `apps/api` is the reference.** Each call's method, path, inputs and the
   response it reads match what that route accepts and returns.
 - **It imports nothing from outside its folder in the repo, and nothing outside imports it** — no
-  app, package, repo tooling or other satellite. Repo tooling may run a satellite's commands or read
-  its build output, never import its source. Why: an import would let the satellite's code and the
+  app, package, repo tooling or other satellite. The third-party packages it installs are fine; a
+  workspace package is repo source however it is linked. Repo tooling may run a satellite's
+  commands or read its build output, never import its source. Why: an import would let the satellite's code and the
   governed code reach into each other, which the published API exists to prevent.
 
 ## It holds no business rules
@@ -76,14 +78,19 @@ response to its own output. A rule may be *mirrored* for its UI — a dropdown f
 input hint — but the API decides; a rule that exists only in a satellite fails, as it would in the
 web UI ([code-placement.md → Worked Examples](../code-placement.md#worked-examples)).
 
-## It carries only credentials the API issued
+## It authenticates the way the API allows
 
-Where a route needs a credential, the satellite sends one the API issued to the customer's account —
-an API key or an OAuth token, entered through the platform's own auth flow — and the API verifies it
-and resolves the actor at its edge, like any other caller
+Each call authenticates the way the called route supports — a customer's API key or OAuth token
+(through the platform's own auth flow, where there is one), a user's session from the product's
+sign-in, or a service identity the API issued — and the API verifies it and resolves the actor at its
+edge, like any other caller
 ([identity-and-access.md → Authentication is an edge concern](../packages/core/identity-and-access.md#authentication-is-an-edge-concern)).
-A public route takes none. A satellite never ships a secret of its own, and never holds a credential
-that skips the domain's authorization.
+A public route takes no product credential, though it may still require evidence it asks for, such
+as a bot-check token.
+
+- **No secret ships in code the satellite distributes** to a user's browser, device or a vendor's
+  platform. A deployment or server-side secret lives in its host's secret store.
+- **No credential reaches the system around the domain's authorization.**
 
 ## Toolchain, CI and release are the project's
 
@@ -100,7 +107,7 @@ that skips the domain's authorization.
   repo's deploy pipeline — versioned on its own. The repo is its source; a publish step or a mirror
   repo that distributes it is fine.
 
-Placement, the README map, the API-only rule, no business rules and credentials are
+Placement, the README map, the API-only rule, no business rules and authentication are
 language-neutral: review checks them for every satellite.
 
 When a change here is complete, verify against [end-here.md](./end-here.md). You are usually routed

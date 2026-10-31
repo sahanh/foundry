@@ -24,13 +24,15 @@ Deterministic rules (the import wall, the README existing) are CI checks, not bo
 - [ ] Every call goes to a route of the published API in `apps/api` — none to an internal route, the database, a queue or another service — [start-here.md](./start-here.md#it-reaches-the-system-only-through-the-published-api)
 - [ ] Each call's method, path, inputs and the response it reads match the `apps/api` route it calls, checked against that route's code — [start-here.md](./start-here.md#it-reaches-the-system-only-through-the-published-api)
 - [ ] Repo tooling reaches it only by running its commands or reading its build output, never by importing its source — [start-here.md](./start-here.md#it-reaches-the-system-only-through-the-published-api)
+- [ ] Where `SAT-01` does not cover it (another language, or the rule deferred), it imports nothing in the repo outside its folder, and nothing outside imports it — [start-here.md](./start-here.md#it-reaches-the-system-only-through-the-published-api)
 
 ## No business rules → [start-here.md](./start-here.md#it-holds-no-business-rules)
 - [ ] Each trigger, action, hook or form maps its input to an API call and the response to its own output, and decides nothing else — [start-here.md](./start-here.md#it-holds-no-business-rules)
 - [ ] Any rule mirrored for its UI has its owner in the core; none exists only here — [code-placement.md](../code-placement.md#worked-examples)
 
-## Credentials → [start-here.md](./start-here.md#it-carries-only-credentials-the-api-issued)
-- [ ] Where a route needs a credential, the call carries one the API issued to the customer's account, through the platform's auth flow; no secret ships in the satellite — [start-here.md](./start-here.md#it-carries-only-credentials-the-api-issued)
+## Authentication → [start-here.md](./start-here.md#it-authenticates-the-way-the-api-allows)
+- [ ] Each call authenticates the way the called route supports; a public route gets no product credential — [start-here.md](./start-here.md#it-authenticates-the-way-the-api-allows)
+- [ ] No secret ships in code the satellite distributes; deployment and server-side secrets live in its host's secret store — [start-here.md](./start-here.md#it-authenticates-the-way-the-api-allows)
 - [ ] No credential reaches the system around the API's authorization — [identity-and-access.md](../packages/core/identity-and-access.md#authorization-is-a-domain-concern)
 
 ---
